@@ -1,4 +1,9 @@
-asmk/
+mast3r/
 venv/
 build/
 install/
+.vscode/
+.antigravity/
+__pycache__/
+
+.env

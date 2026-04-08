@@ -1,0 +1,60 @@
+{
+  "dataset": {
+    "total_images": 1945,
+    "total_scenes": 34,
+    "total_datasets": 13,
+    "img_per_scene_mean": 57.205882352941174,
+    "img_per_scene_std": 38.82734073551523,
+    "img_per_scene_min": 3,
+    "img_per_scene_max": 200,
+    "tiny_scenes_count": 1
+  },
+  "resolution": {
+    "height_mean": 1005.476,
+    "height_std": 735.8985211454091,
+    "width_mean": 1142.738,
+    "width_std": 1158.1957180701368
+  },
+  "sharpness": {
+    "mean": 2530.246753013749,
+    "std": 3948.0929573383096,
+    "p10": 93.29567389115194,
+    "p50": 694.0656250830996,
+    "p90": 9631.261501030896,
+    "blurry_threshold": 93.29567389115194,
+    "blurry_fraction": 0.114
+  },
+  "orientation": {
+    "non_upright_pct": 0.0,
+    "normalization_recommended": false
+  },
+  "descriptor": {
+    "descriptor_source": "HOG (fallback)",
+    "n_images": 100,
+    "descriptor_dim": 34020,
+    "norm_mean": 30.65304183959961,
+    "norm_std": 0.14397242665290833,
+    "norm_min": 29.773611068725586,
+    "norm_max": 30.70563507080078,
+    "norm_p10": 30.64184513092041,
+    "norm_p50": 30.691889762878418,
+    "norm_p90": 30.70468044281006
+  },
+  "scene_difficulty": {
+    "ETs/outliers": {
+      "n_images": 3,
+      "mean_pairwise_similarity": 0.6254899501800537,
+      "difficulty": "easy"
+    },
+    "imc2023_heritage/outliers": {
+      "n_images": 30,
+      "mean_pairwise_similarity": 0.7855429463002873,
+      "difficulty": "easy"
+    },
+    "amy_gardens/peach": {
+      "n_images": 30,
+      "mean_pairwise_similarity": 0.8967033298536279,
+      "difficulty": "easy"
+    }
+  }
+}

@@ -1,0 +1,80 @@
+stages:
+
+  # ── Stage 1: Validate raw data ────────────────────────────────────────────
+  # Reads the DVC-tracked CSVs, runs schema checks, writes a JSON report.
+  # The report is a DVC metric so `dvc metrics show` compares across commits.
+  validate:
+    cmd: python scripts/validate_data.py
+    deps:
+      - scripts/validate_data.py
+      - scripts/data.py
+      - scripts/data_schema.py
+      - data/train_labels.csv
+      - data/train_thresholds.csv
+      - data/train
+      - data/test
+    outs:
+      - data/processed/validation_report.json:
+          cache: false        # small JSON — no need to push to DVC remote
+    metrics:
+      - data/processed/validation_metrics.json:
+          cache: false
+
+  # ── Stage 2: EDA + drift baselines ───────────────────────────────────────
+  # Runs EDA analysis script, produces baseline stats used by Stage 6 monitoring.
+  # Depends on the validation report so it only re-runs when data changes.
+  eda_baselines:
+    cmd: python scripts/eda_baselines.py
+    deps:
+      - scripts/eda_baselines.py
+      - scripts/data.py
+      - scripts/data_schema.py
+      - data/train_labels.csv
+      - data/train
+      - data/processed/validation_report.json
+    outs:
+      - data/processed/eda_baselines.json:
+          cache: false
+      - data/processed/similarity_matrix.png:
+          cache: true
+      - data/processed/sharpness_hist.png:
+          cache: true
+      - data/processed/resolution_hist.png:
+          cache: true
+    metrics:
+      - data/processed/eda_metrics.json:
+          cache: false
+
+  # ── Stage 3: Scene inventory ──────────────────────────────────────────────
+  # Produces a per-scene CSV summary (image count, resolution stats, scene type)
+  # used by the Airflow DAG and the API data health endpoint.
+  scene_inventory:
+    cmd: python scripts/scene_inventory.py
+    deps:
+      - scripts/scene_inventory.py
+      - scripts/data.py
+      - scripts/data_schema.py
+      - data/train_labels.csv
+      - data/train
+      - data/processed/validation_report.json
+    outs:
+      - data/processed/scene_inventory.csv:
+          cache: false
+    metrics:
+      - data/processed/inventory_metrics.json:
+          cache: false
+
+  # ── Stage 4: Custom data ingestion check ─────────────────────────────────
+  # Validates that custom mobile-camera images in data/test/custom_warehouse
+  # follow the same directory schema as IMC25 scenes.
+  validate_custom:
+    cmd: python scripts/validate_custom_data.py
+    deps:
+      - scripts/validate_custom_data.py
+      - data/test
+    outs:
+      - data/processed/custom_validation_report.json:
+          cache: false
+    metrics:
+      - data/processed/custom_metrics.json:
+          cache: false
