@@ -2,8 +2,8 @@ mast3r/
 venv/
 build/
 install/
+logs/
 .vscode/
 .antigravity/
 __pycache__/
-
 .env

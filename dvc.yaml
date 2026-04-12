@@ -1,8 +1,20 @@
+# dvc.yaml
+# ─────────────────────────────────────────────────────────────────────────────
+# RAW DATA is versioned via `dvc add` (not stages):
+#   data/train_labels.csv.dvc  |  data/train.dvc
+#   data/train_thresholds.csv.dvc  |  data/test.dvc
+#
+# Run full chain:   dvc repro
+# Visualise DAG:    dvc dag
+# Check metrics:    dvc metrics show
+# ─────────────────────────────────────────────────────────────────────────────
+
 stages:
 
-  # ── Stage 1: Validate raw data ────────────────────────────────────────────
-  # Reads the DVC-tracked CSVs, runs schema checks, writes a JSON report.
-  # The report is a DVC metric so `dvc metrics show` compares across commits.
+  # ─────────────────────────────────────────────────────────────────────────
+  # STAGE 1: Data Collection & Validation
+  # ─────────────────────────────────────────────────────────────────────────
+
   validate:
     cmd: python scripts/validate_data.py
     deps:
@@ -15,14 +27,11 @@ stages:
       - data/test
     outs:
       - data/processed/validation_report.json:
-          cache: false        # small JSON — no need to push to DVC remote
+          cache: false
     metrics:
       - data/processed/validation_metrics.json:
           cache: false
 
-  # ── Stage 2: EDA + drift baselines ───────────────────────────────────────
-  # Runs EDA analysis script, produces baseline stats used by Stage 6 monitoring.
-  # Depends on the validation report so it only re-runs when data changes.
   eda_baselines:
     cmd: python scripts/eda_baselines.py
     deps:
@@ -45,9 +54,6 @@ stages:
       - data/processed/eda_metrics.json:
           cache: false
 
-  # ── Stage 3: Scene inventory ──────────────────────────────────────────────
-  # Produces a per-scene CSV summary (image count, resolution stats, scene type)
-  # used by the Airflow DAG and the API data health endpoint.
   scene_inventory:
     cmd: python scripts/scene_inventory.py
     deps:
@@ -64,9 +70,6 @@ stages:
       - data/processed/inventory_metrics.json:
           cache: false
 
-  # ── Stage 4: Custom data ingestion check ─────────────────────────────────
-  # Validates that custom mobile-camera images in data/test/custom_warehouse
-  # follow the same directory schema as IMC25 scenes.
   validate_custom:
     cmd: python scripts/validate_custom_data.py
     deps:
@@ -77,4 +80,73 @@ stages:
           cache: false
     metrics:
       - data/processed/custom_metrics.json:
+          cache: false
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # STAGE 2: Preprocessing & Feature Engineering
+  # ─────────────────────────────────────────────────────────────────────────
+
+  # Stage 2a: Image-level preprocessing stats
+  # Runs orientation + deblur on a sample of scenes to log stats and verify
+  # the config. Full per-image preprocessing runs inside IMC2025Pipeline
+  # at inference time. This stage exists to catch config regressions early.
+  image_preprocess:
+    cmd: python scripts/run_stage2.py --skip-features --max-scenes 20
+    deps:
+      - scripts/run_stage2.py
+      - preprocesses/pipeline.py
+      - preprocesses/orientation.py
+      - preprocesses/deblur.py
+      - conf/preprocess.yaml
+      - data/train_labels.csv
+      - data/train
+      - data/processed/eda_baselines.json
+    outs:
+      - data/processed/preprocess_report.json:
+          cache: false
+    params:
+      - conf/preprocess.yaml:
+          - deblurring.blurry_threshold
+          - orientation.type
+
+  # Stage 2b: Global descriptor extraction
+  # Extracts DINOv2 + ISC descriptors; saved as .npy per scene.
+  # These are the input to the shortlist generator at inference time.
+  extract_global_descriptors:
+    cmd: python scripts/run_stage2.py --skip-preprocess
+    deps:
+      - scripts/run_stage2.py
+      - features/engineer.py
+      - global_descriptors/dinov2.py
+      - global_descriptors/isc.py
+      - conf/features.yaml
+      - data/train_labels.csv
+      - data/train
+      - data/processed/eda_baselines.json
+    outs:
+      - data/processed/features:
+          cache: true
+    params:
+      - conf/features.yaml:
+          - global_descriptors.dinov2
+          - global_descriptors.isc
+          - global_descriptors.batch_size
+          - local_features.aliked_max_keypoints
+          - local_features.superpoint_max_keypoints
+    metrics:
+      - data/processed/feature_metrics.json:
+          cache: false
+
+  # Stage 2c: Drift detection
+  # KS-test of live descriptor norms vs EDA baselines.
+  # Writes drift_report.json consumed by the Prometheus exporter.
+  check_drift:
+    cmd: python -m scripts.drift_monitor
+    deps:
+      - scripts/drift_monitor.py
+      - data/processed/eda_baselines.json
+      - data/processed/features
+      - data/processed/feature_metrics.json
+    outs:
+      - data/processed/drift_report.json:
           cache: false

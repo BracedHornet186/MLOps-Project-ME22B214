@@ -1,0 +1,44 @@
+# conf/features.yaml
+# ─────────────────────────────────────────────────────────────────────────────
+# Feature Engineering configuration for Stage 2.
+#
+# Used by:
+#   - FeatureEngineer (features/engineer.py)
+#   - Airflow DAG tasks extract_global_descriptors + extract_local_features
+#   - EDA notebook drift baseline comparison
+#
+# Global descriptors are used for image retrieval (shortlist generation).
+# Local features are used for pairwise matching.
+#
+# Toggle individual models on/off based on available weights.
+# All weights are referenced by key; paths live in conf/models.yaml.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── A. Global descriptors ─────────────────────────────────────────────────────
+global_descriptors:
+  dinov2: true          # DINOv2 ViT-Base, 768-d, max-pooled
+  isc: true             # ISC21 ResNet, 256-d, copy-detection
+  mast3r_spoc: false    # MASt3R SPoC, 1024-d  (requires MASt3R weights)
+  siglip2: false        # SigLIP2, 1152-d       (requires SigLIP2 weights)
+  batch_size: 8
+
+# ── B. Local features ─────────────────────────────────────────────────────────
+local_features:
+  aliked: true
+  superpoint: true
+  aliked_max_keypoints: 4096
+  superpoint_max_keypoints: 4096
+  aliked_resize: 1280           # long-edge resize before ALIKED extraction
+  superpoint_resize: 1600       # long-edge resize before SuperPoint extraction
+
+# ── Output & baselines ────────────────────────────────────────────────────────
+output_dir: data/processed/features
+baselines_path: data/processed/eda_baselines.json
+
+# ── Drift detection ───────────────────────────────────────────────────────────
+# KS-test significance level. Alert fires when p < drift_ks_alpha.
+drift_ks_alpha: 0.01
+
+# ── MLflow ────────────────────────────────────────────────────────────────────
+log_to_mlflow: true
+mlflow_run_name: feature_engineering_stage2

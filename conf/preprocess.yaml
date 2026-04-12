@@ -1,0 +1,66 @@
+# conf/preprocess.yaml
+# ─────────────────────────────────────────────────────────────────────────────
+# Image-level preprocessing configuration for Stage 2.
+# All steps are optional — set to null to disable.
+#
+# Used by:
+#   - PreprocessingPipeline (preprocesses/pipeline.py)
+#   - Airflow DAG task_image_preprocess (dags/preprocess_features_dag.py)
+#   - IMC2025Pipeline.run_scene() (pipelines/imc2025_pipeline.py)
+#
+# Values for blurry_threshold come from EDA analysis (analysis 2).
+# Run notebooks/eda.ipynb first to generate data/processed/eda_baselines.json,
+# then copy the p10 sharpness value here.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Step 1: Orientation normalization
+# Detects rotated images using a ResNeXt-50 classifier and registers the
+# correction angle in Scene.orientations so all downstream matchers see
+# upright images without modifying files on disk.
+orientation:
+  type: check_orientation
+  check_orientation:
+    weight_path: CHECK_ORIENTATION     # key in conf/models.yaml
+
+# Step 2: Deblurring
+# Applies FFTformer to images whose Laplacian variance < blurry_threshold.
+# Deblurred images are cached in Scene.deblurred_images and used by
+# Scene.get_image() transparently.
+# Set blurry_threshold to the p10 value from EDA analysis 2.
+deblurring:
+  type: fftformer
+  blurry_threshold: 100.0             # override with p10 from eda_baselines.json
+  fftformer:
+    weight_path: FFTFORMER            # key in conf/models.yaml
+
+# Step 3: Segmentation (optional — enable for transparent/reflective objects)
+# Grounded-SAM produces per-image masks stored in Scene.segmentation_mask_images.
+# skip_when_identical_camera_scene avoids redundant segmentation on
+# warehouse scenes where all images share the same camera/lighting.
+segmentation: null
+# segmentation:
+#   type: grounded_sam
+#   resize: 800
+#   skip_when_identical_camera_scene: true
+#   dilation: 2
+#   grounded_sam:
+#     labels: ["object", "transparent object", "glass"]
+#     threshold: 0.3
+#     mode: pos-only
+#     positive_labels: ["object"]
+#     negative_labels: []
+#     detector:
+#       pretrained_model: GROUNDED_DINO
+#     segmentator:
+#       pretrained_model: SAM
+
+# Step 4: Depth estimation (optional — needed for MapFree localizer)
+depth_estimation: null
+# depth_estimation:
+#   type: depth_anything
+#   hf_weight_path: DEPTH_ANYTHING_V2
+#   keep_raw_prediction: false
+
+# MLflow logging
+log_to_mlflow: true
+mlflow_run_name: preprocess_stage2
