@@ -1,0 +1,177 @@
+# hardnet-mlsuperpoint-mtldesc-004
+type: pre_matching_ensemble
+
+pre_matching_ensemble_pipeline:
+  pre_matcher:
+    type: dkm
+    dkm:
+      weight_path: DKM_V3_OUTDOOR
+      model_type: DKMv3_outdoor
+      upsample_preds: false
+      height: 320
+      width: 320
+      sample_mode: threshold
+      sample_threshold: 0.5
+      sample_nums: 2048
+  
+  overlap_region_estimation:
+    method: lof
+    bidirectional: true
+    bidirectional_merging: intersection
+    bbox_expansion: 16
+    border_padding: 8
+    lof_n_neighbors: 100
+
+  local_features:
+    # HardNet (Whole)
+    - type: hardnet
+      ignore_cropper: true
+      hardnet:
+        orinet_weight_path: ORINET
+        keynet_weight_path: KEYNET
+        affnet_weight_path: AFFNET
+        hardnet_weight_path: HARDNET_PP
+        num_features: 8000
+      resize:
+        func: kornia
+        long_edge_length: 1024
+    # MTLDesc (Crop)
+    - type: mtldesc
+      mtldesc:
+        model:
+          weight_path: MTLDESC
+          detection_threshold: 0.3
+        topk: 4096
+      resize:
+        func: kornia
+        long_edge_length: 720
+        antialias: true
+    # MTLDesc (Whole)
+    - type: mtldesc
+      ignore_cropper: true
+      mtldesc:
+        model:
+          weight_path: MTLDESC
+          detection_threshold: 0.3
+        topk: 4096
+      resize:
+        func: kornia
+        long_edge_length: 960
+        antialias: true
+    # SuperPoint (Crop)
+    - type: magicleap_superpoint
+      magicleap_superpoint:
+        weight_path: MAGICLEAP_SUPERPOINT
+        nms_radius: 4
+        keypoint_threshold: 0.005
+        max_keypoints: 4096
+        remove_borders: 4
+      resize:
+        func: magicleap
+        ml_resize: 960
+    # SuperPoint (Whole)
+    - type: magicleap_superpoint
+      ignore_cropper: true
+      magicleap_superpoint:
+        weight_path: MAGICLEAP_SUPERPOINT
+        nms_radius: 4
+        keypoint_threshold: 0.005
+        max_keypoints: 4096
+        remove_borders: 4
+      resize:
+        func: magicleap
+        ml_resize: 1280
+    # SuperPoint (Whole)
+    - type: magicleap_superpoint
+      ignore_cropper: true
+      magicleap_superpoint:
+        weight_path: MAGICLEAP_SUPERPOINT
+        nms_radius: 4
+        keypoint_threshold: 0.005
+        max_keypoints: 4096
+        remove_borders: 4
+      resize:
+        func: magicleap
+        ml_resize: 1600
+
+  local_feature_matchers:
+    - type: nn
+      nn:
+        match_mode: smnn
+        th: 0.90
+    - type: openglue
+      openglue:
+        experiment_path: OPENGLUE_MTLDESC_V4
+        checkpoint_name: superglue-step125000.ckpt
+        descriptor_dim: 128
+        max_features: 2048    # No used
+        resize_to: original
+        match_threshold: 0.2
+    - type: openglue
+      openglue:
+        experiment_path: OPENGLUE_MTLDESC_V4
+        checkpoint_name: superglue-step125000.ckpt
+        descriptor_dim: 128
+        max_features: 2048    # No used
+        resize_to: original
+        match_threshold: 0.2
+    - type: magicleap_superglue
+      magicleap_superglue:
+        weight_path: MAGICLEAP_SUPERGLUE
+        min_matches: null
+        weights: outdoor
+        sinkhorn_iterations: 30
+        match_threshold: 0.2
+    - type: magicleap_superglue
+      magicleap_superglue:
+        weight_path: MAGICLEAP_SUPERGLUE
+        min_matches: null
+        weights: outdoor
+        sinkhorn_iterations: 30
+        match_threshold: 0.2
+    - type: magicleap_superglue
+      magicleap_superglue:
+        weight_path: MAGICLEAP_SUPERGLUE
+        min_matches: null
+        weights: outdoor
+        sinkhorn_iterations: 30
+        match_threshold: 0.2
+
+  shortlist_generator: 
+    type: global_desc
+    global_desc_model: cvnet
+    global_desc_batch_size: 1
+    global_desc_num_workers: 1
+    global_desc_similar_distance_threshold: 1.0
+    global_desc_topk: 10
+    global_desc_fallback_threshold: 20
+    global_desc_remove_swapped_pairs: true
+    cvnet:
+      weight_path: CVNET_R101
+      depth: 101
+      reduction_dim: 2048
+  
+  #filtering:
+  #  type: ncmnet
+  #  ncmnet:
+  #    weight_path: NCMNET_YFCC
+  #    inlier_ratio: 0.95
+  #    #topk: 1024
+
+  refinement:
+    weight_path: PANET
+    max_edge: 1600
+    max_sum_edges: 2800
+    batch_size: 256
+  
+  verification:
+    type: custom
+    ransac:
+      threshold: 2.0
+      confidence: 0.999999
+      max_iters: 100000
+      min_inliers: 16
+      method: magsac
+  
+  #reconstruction:
+  #  mapper_min_num_matches: 50

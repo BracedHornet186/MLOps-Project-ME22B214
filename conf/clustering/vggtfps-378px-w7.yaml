@@ -1,0 +1,24 @@
+# AMI: 
+type: vggt_fps
+vggt_fps:
+  global_desc:
+    global_desc_model: mast3r_retrieval_spoc
+    batch_size: 1
+    mast3r_retrieval_spoc:
+      mast3r:
+        weight_path: MAST3R
+        retrieval_weight_path: MAST3R_RETRIEVAL
+        retrieval_codebook_path: MAST3R_RETRIEVAL_CODEBOOK
+      global_desc_type: retrieval_spoc
+
+  vggt:
+    pretrained_model: VGGT
+
+  image_size: 378
+  window_size: 8
+
+  depth_score_threshold: null
+  world_points_score_threshold: 1.3
+
+  seed: 2025
+  verbose: false

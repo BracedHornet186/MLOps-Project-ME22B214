@@ -1,0 +1,117 @@
+# mlsuperpoint-008
+type: simple_ensemble
+
+simple_ensemble_pipeline:
+  local_features:
+    # rot=0
+    - type: magicleap_superpoint
+      magicleap_superpoint:
+        weight_path: MAGICLEAP_SUPERPOINT
+        nms_radius: 4
+        keypoint_threshold: 0.005
+        max_keypoints: 2048
+        remove_borders: 4
+      resize:
+        func: magicleap
+        ml_resize: 1600
+    # rot=90
+    - type: magicleap_superpoint
+      magicleap_superpoint:
+        weight_path: MAGICLEAP_SUPERPOINT
+        nms_radius: 4
+        keypoint_threshold: 0.005
+        max_keypoints: 2048
+        remove_borders: 4
+      resize:
+        func: magicleap
+        ml_resize: 1600
+      rotation:
+        angles: [90]
+    # rot=180
+    - type: magicleap_superpoint
+      magicleap_superpoint:
+        weight_path: MAGICLEAP_SUPERPOINT
+        nms_radius: 4
+        keypoint_threshold: 0.005
+        max_keypoints: 2048
+        remove_borders: 4
+      resize:
+        func: magicleap
+        ml_resize: 1600
+      rotation:
+        angles: [180]
+    # rot=270
+    - type: magicleap_superpoint
+      magicleap_superpoint:
+        weight_path: MAGICLEAP_SUPERPOINT
+        nms_radius: 4
+        keypoint_threshold: 0.005
+        max_keypoints: 2048
+        remove_borders: 4
+      resize:
+        func: magicleap
+        ml_resize: 1600
+      rotation:
+        angles: [270]
+
+  local_feature_matchers:
+    - type: magicleap_superglue
+      magicleap_superglue:
+        weight_path: MAGICLEAP_SUPERGLUE
+        min_matches: null
+        weights: outdoor
+        sinkhorn_iterations: 30
+        match_threshold: 0.2
+    - type: magicleap_superglue
+      magicleap_superglue:
+        weight_path: MAGICLEAP_SUPERGLUE
+        min_matches: null
+        weights: outdoor
+        sinkhorn_iterations: 30
+        match_threshold: 0.2
+    - type: magicleap_superglue
+      magicleap_superglue:
+        weight_path: MAGICLEAP_SUPERGLUE
+        min_matches: null
+        weights: outdoor
+        sinkhorn_iterations: 30
+        match_threshold: 0.2
+    - type: magicleap_superglue
+      magicleap_superglue:
+        weight_path: MAGICLEAP_SUPERGLUE
+        min_matches: null
+        weights: outdoor
+        sinkhorn_iterations: 30
+        match_threshold: 0.2
+
+  shortlist_generator: 
+    type: global_desc
+    global_desc_model: cvnet
+    global_desc_batch_size: 1
+    global_desc_num_workers: 1
+    global_desc_similar_distance_threshold: 1.0
+    global_desc_topk: 10
+    global_desc_fallback_threshold: 20
+    global_desc_remove_swapped_pairs: true
+    cvnet:
+      weight_path: CVNET_R101
+      depth: 101
+      reduction_dim: 2048
+  
+  matcher:
+    type: magicleap_superglue
+    magicleap_superglue:
+      weight_path: MAGICLEAP_SUPERGLUE
+      min_matches: null
+      weights: outdoor
+      sinkhorn_iterations: 30
+      match_threshold: 0.2
+  
+  verification:
+    type: custom
+    ransac:
+      threshold: 2.0
+      confidence: 0.999999
+      max_iters: 100000
+      min_inliers: 16
+      method: magsac

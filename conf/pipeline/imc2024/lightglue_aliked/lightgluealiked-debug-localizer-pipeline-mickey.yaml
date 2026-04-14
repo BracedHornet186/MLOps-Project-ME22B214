@@ -1,0 +1,18 @@
+type: localizer
+
+localizer_pipeline:
+  shortlist_generator: 
+    type: all_pairs
+  
+  depth_estimation:
+    type: depth_anything
+    hf_weight_path: HF_DEPTH_ANYTHING_LARGE
+    keep_raw_prediction: true
+  
+  localizer:
+    type: mickey
+    mickey:
+      model:
+        weight_path: MICKEY_MODEL
+        config_path: MICKEY_CONFIG
+        size: 640

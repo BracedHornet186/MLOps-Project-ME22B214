@@ -4,7 +4,7 @@ import pathlib
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime
-import sys; sys.path.insert(0, "/app")
+import sys; sys.path.insert(0, "/opt/airflow/project/scripts")
 from data import IMC2025TrainData, DEFAULT_DATASET_DIR
 
 def validate_data():

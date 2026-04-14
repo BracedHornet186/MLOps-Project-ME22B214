@@ -1,0 +1,140 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "title": "Reconstruction mAA",
+      "type": "gauge",
+      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 0.35 },
+              { "color": "green", "value": 0.45 }
+            ]
+          },
+          "min": 0, "max": 1
+        }
+      },
+      "targets": [
+        { "expr": "reconstruction_maa", "legendFormat": "mAA" }
+      ]
+    },
+    {
+      "title": "Registration Rate",
+      "type": "gauge",
+      "gridPos": { "h": 8, "w": 6, "x": 6, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 0.7 },
+              { "color": "green", "value": 0.9 }
+            ]
+          },
+          "min": 0, "max": 1
+        }
+      },
+      "targets": [
+        { "expr": "registered_images_ratio", "legendFormat": "Reg Rate" }
+      ]
+    },
+    {
+      "title": "Active Jobs",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 4, "x": 12, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "active_jobs_total", "legendFormat": "Active" }
+      ]
+    },
+    {
+      "title": "Model Server Ready",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 4, "x": 16, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "options": { "0": { "text": "NOT READY", "color": "red" }, "1": { "text": "READY", "color": "green" } }, "type": "value" }
+          ]
+        }
+      },
+      "targets": [
+        { "expr": "model_server_ready", "legendFormat": "Ready" }
+      ]
+    },
+    {
+      "title": "Drift Status",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 4, "x": 20, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "options": { "0": { "text": "OK", "color": "green" }, "1": { "text": "WARNING", "color": "yellow" }, "2": { "text": "CRITICAL", "color": "red" } }, "type": "value" }
+          ]
+        }
+      },
+      "targets": [
+        { "expr": "feature_drift_status", "legendFormat": "Drift" }
+      ]
+    },
+    {
+      "title": "Inference Latency Distribution",
+      "type": "histogram",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "rate(inference_latency_seconds_bucket[5m])", "legendFormat": "{{le}}", "format": "heatmap" }
+      ]
+    },
+    {
+      "title": "API Requests Rate",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "rate(api_requests_total[5m])", "legendFormat": "{{endpoint}} {{status}}" }
+      ]
+    },
+    {
+      "title": "API Errors Rate",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "red" } } },
+      "targets": [
+        { "expr": "rate(api_errors_total[5m])", "legendFormat": "{{endpoint}}" }
+      ]
+    },
+    {
+      "title": "Drift Alert Count",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "feature_drift_alert_count", "legendFormat": "Alerts" }
+      ]
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["scene_reconstruction", "mlops"],
+  "templating": { "list": [] },
+  "time": { "from": "now-6h", "to": "now" },
+  "title": "Scene Reconstruction MLOps",
+  "uid": "scene_reconstruction_mlops",
+  "version": 1
+}

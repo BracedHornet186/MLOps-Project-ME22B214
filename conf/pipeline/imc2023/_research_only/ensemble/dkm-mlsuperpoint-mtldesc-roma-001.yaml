@@ -1,0 +1,82 @@
+# dkm-mlsuperpoint-mtldesc-roma-001
+type: simple_ensemble
+
+simple_ensemble_pipeline:
+  local_features:
+    - type: mtldesc
+      mtldesc:
+        model:
+          weight_path: MTLDESC
+          detection_threshold: 0.3
+        topk: 4096
+      resize:
+        func: kornia
+        long_edge_length: 1600
+        antialias: true
+    - type: magicleap_superpoint
+      magicleap_superpoint:
+        weight_path: MAGICLEAP_SUPERPOINT
+        nms_radius: 4
+        keypoint_threshold: 0.005
+        max_keypoints: 2048
+        remove_borders: 4
+      resize:
+        func: magicleap
+        ml_resize: 1600
+  
+  local_feature_matchers:
+    - type: openglue
+      openglue:
+        experiment_path: OPENGLUE_MTLDESC_V4
+        checkpoint_name: superglue-step125000.ckpt
+        descriptor_dim: 128
+        max_features: 2048    # No used
+        resize_to: original
+        match_threshold: 0.05
+    - type: magicleap_superglue
+      magicleap_superglue:
+        weight_path: MAGICLEAP_SUPERGLUE
+        min_matches: null
+        weights: outdoor
+        sinkhorn_iterations: 30
+        match_threshold: 0.2
+  
+  detector_free_matchers:
+    - type: dkm
+      dkm:
+        weight_path: DKM_V3_OUTDOOR
+        model_type: DKMv3_outdoor
+        upsample_preds: false
+        sample_nums: 2048
+    - type: roma
+      roma:
+        weight_path: ROMA_OUTDOOR
+        dinov2_weight_path: ROMA_DINO_V2
+        model_type: outdoor
+        height: 336
+        width: 336
+        upsample_preds: false
+        sample_nums: 2048
+
+  shortlist_generator: 
+    type: global_desc
+    global_desc_model: cvnet
+    global_desc_batch_size: 1
+    global_desc_num_workers: 1
+    global_desc_similar_distance_threshold: 1.0
+    global_desc_topk: 10
+    global_desc_fallback_threshold: 20
+    global_desc_remove_swapped_pairs: true
+    cvnet:
+      weight_path: CVNET_R101
+      depth: 101
+      reduction_dim: 2048
+
+  verification:
+    type: custom
+    ransac:
+      threshold: 2.0
+      confidence: 0.999999
+      max_iters: 100000
+      min_inliers: 16
+      method: magsac

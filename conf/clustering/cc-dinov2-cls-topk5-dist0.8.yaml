@@ -1,0 +1,12 @@
+# AMI: 0.6719409845683372
+type: connected_component
+connected_component:
+  global_desc:
+    global_desc_model: dinov2
+    batch_size: 8
+    dinov2:
+      pretrained_model: DINOV2_BASE
+      options:
+        pooling_type: cls
+  topk: 5
+  dist_threshold: 0.8

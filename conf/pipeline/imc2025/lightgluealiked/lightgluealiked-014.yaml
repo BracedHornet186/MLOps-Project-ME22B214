@@ -1,0 +1,60 @@
+# conf/pipeline/imc2025/lightgluealiked/lightgluealiked-014.yaml
+# ------------------------------------
+# (n, k, dist_th) = (0, 5, None)
+# imc2023_haiper: score=63.76% (mAA=63.33%, clusterness=64.20%)
+# ETs: score=68.35% (mAA=51.92%, clusterness=100.00%)
+# stairs: score=0.00% (mAA=0.00%, clusterness=81.82%)
+# Average over all datasets: score=44.04% (mAA=38.42%, clusterness=82.01%)
+# Computed metric in: 1.92 sec.
+# final_score: (44.03897813776869, 44.03897813776869, 0.0)
+# ------------------------------------
+# (n, k, dist_th) = (20, 1, None)
+# imc2023_haiper: score=31.76% (mAA=20.56%, clusterness=69.77%)
+# ETs: score=38.65% (mAA=34.62%, clusterness=43.75%)
+# stairs: score=0.00% (mAA=0.00%, clusterness=85.71%)
+# Average over all datasets: score=23.47% (mAA=18.39%, clusterness=66.41%)
+# Computed metric in: 0.68 sec.
+# final_score: (23.468473488701072, 23.468473488701072, 0.0)
+# ------------------------------------
+type: imc2025
+
+imc2025_pipeline:
+  local_features:
+    - type: lightglue_aliked
+      lightglue_aliked:
+        weight_path: ALIKED_LIGHTGLUE_N16
+      resize:
+        func: lightglue
+        lg_resize: 1280
+
+  local_feature_matchers:
+    - type: lightglue
+      lightglue:
+        weight_path: LIGHTGLUE_WITH_ALIKED_N16
+        feature_name: aliked
+        min_matches: 15
+        width_confidence: -1.0
+        depth_confidence: -1.0
+        mp: true
+
+  shortlist_generator: 
+    type: mast3r_retrieval_asmk
+    mast3r_retrieval_asmk_fallback_threshold: 20
+    mast3r_retrieval_asmk_remove_swapped_pairs: true
+    mast3r_retrieval_asmk_make_pairs_fps_n: 10
+    mast3r_retrieval_asmk_make_pairs_fps_k: 3
+    mast3r_retrieval_asmk_make_pairs_fps_dist_threshold: null
+    mast3r_retrieval_asmk:
+      mast3r:
+        weight_path: MAST3R
+        retrieval_weight_path: MAST3R_RETRIEVAL
+        retrieval_codebook_path: MAST3R_RETRIEVAL_CODEBOOK
+  
+  reconstruction:
+    fill_zero_Rt: false
+    fill_nan_Rt: false
+    fill_nearest_position: false
+    mapper_min_model_size: 3
+    mapper_max_num_models: 25
+  
+  clustering: null

@@ -1,0 +1,58 @@
+# conf/pipeline/imc2025/gimloftr-lightgluealiked/gimloftr-lightgluealiked-001.yaml
+# --------------------
+# imc2023_haiper: score=68.32% (mAA=73.89%, clusterness=63.53%)
+# ETs: score=34.88% (mAA=28.85%, clusterness=44.12%)
+# stairs: score=4.26% (mAA=2.22%, clusterness=50.00%)
+# Average over all datasets: score=35.82% (mAA=34.99%, clusterness=52.55%)
+# Computed metric in: 2.78 sec.
+# final_score: (35.81923611041653, 35.81923611041653, 0.0)
+# ----------------------
+type: imc2025
+
+imc2025_pipeline:
+  local_features:
+    - type: lightglue_aliked
+      lightglue_aliked:
+        weight_path: ALIKED_LIGHTGLUE_N16
+      resize:
+        func: lightglue
+        lg_resize: 1280
+
+  local_feature_matchers:
+    - type: lightglue
+      lightglue:
+        weight_path: LIGHTGLUE_WITH_ALIKED_N16
+        feature_name: aliked
+        min_matches: 15
+        width_confidence: -1.0
+        depth_confidence: -1.0
+        mp: true
+
+  detector_free_matchers:
+    - type: gim_loftr
+      gim_loftr:
+        weight_path: GIM_LOFTR
+        min_matches: 15
+        topk: 2048
+        resize:
+          func: gim
+          gim_resize: 960
+
+  shortlist_generator: 
+    type: global_desc
+    global_desc_model: dinov2
+    global_desc_batch_size: 1
+    global_desc_num_workers: 1
+    global_desc_similar_distance_threshold: 0.3
+    global_desc_topk: 30
+    global_desc_fallback_threshold: 30
+    global_desc_remove_swapped_pairs: true
+    global_desc_num_refills_when_no_matches: 30
+    dinov2:
+      pretrained_model: DINOV2_BASE
+  
+  reconstruction:
+    mapper_min_model_size: 3
+    mapper_max_num_models: 25
+  
+  clustering: null

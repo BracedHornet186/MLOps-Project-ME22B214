@@ -1,0 +1,29 @@
+type: detector_based
+
+detector_based_pipeline:
+  local_features:
+    - type: disk
+      disk:
+        weight_path: DISK_DEPTH
+      resize:
+        func: kornia
+        small_edge_length: 640
+        antialias: true
+
+  shortlist_generator: 
+    type: global_desc
+    global_desc_model: cvnet
+    global_desc_batch_size: 1
+    global_desc_num_workers: 1
+    global_desc_similar_distance_threshold: 0.6
+    global_desc_topk: 20
+    global_desc_fallback_threshold: 20
+    cvnet:
+      weight_path: CVNET_R101
+      depth: 101
+      reduction_dim: 2048
+  
+  matcher:
+    type: nn
+    nn:
+      match_mode: nn

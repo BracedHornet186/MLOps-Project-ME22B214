@@ -1,0 +1,37 @@
+# adamatcher-002
+type: detector_free
+
+detector_free_pipeline:
+  shortlist_generator: 
+    type: global_desc
+    global_desc_model: cvnet
+    global_desc_batch_size: 1
+    global_desc_num_workers: 1
+    global_desc_similar_distance_threshold: 1.0
+    global_desc_topk: 10
+    global_desc_fallback_threshold: 20
+    global_desc_remove_swapped_pairs: true
+    cvnet:
+      weight_path: CVNET_R101
+      depth: 101
+      reduction_dim: 2048
+  
+  matcher:
+    type: adamatcher
+    adamatcher:
+      weight_path: ADAMATCHER
+      resize:
+        func: opencv-divisible
+        long_edge_length: 640
+        antialias: true
+        divisible_factor: 32
+        pad_bottom_right: true
+
+  verification:
+    type: custom
+    ransac:
+      threshold: 2.0
+      confidence: 0.999999
+      max_iters: 100000
+      min_inliers: 16
+      method: magsac

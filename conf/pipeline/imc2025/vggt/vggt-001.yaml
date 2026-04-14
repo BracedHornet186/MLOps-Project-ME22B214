@@ -1,0 +1,68 @@
+# conf/pipeline/imc2025/vggt/vggt-001.yaml
+# ------------------------------------
+# th=0.3
+# ETs: score=23.73% (mAA=13.46%, clusterness=100.00%)
+# stairs: score=17.92% (mAA=10.00%, clusterness=86.21%)
+# Average over all datasets: score=20.82% (mAA=11.73%, clusterness=93.10%)
+# ------------------------------------
+# th=0.2
+# ETs: score=23.73% (mAA=13.46%, clusterness=100.00%)
+# stairs: score=18.92% (mAA=11.67%, clusterness=50.00%)
+# Average over all datasets: score=21.32% (mAA=12.56%, clusterness=75.00%)
+# ------------------------------------
+# th=0.2, aliked.num=2048
+# ETs: score=26.67% (mAA=15.38%, clusterness=100.00%)
+# stairs: score=8.46% (mAA=4.44%, clusterness=88.46%)
+# Average over all datasets: score=17.57% (mAA=9.91%, clusterness=94.23%)
+# ------------------------------------
+# th=0.1
+# ETs: score=14.29% (mAA=7.69%, clusterness=100.00%)
+# stairs: score=11.76% (mAA=6.67%, clusterness=50.00%)
+# Average over all datasets: score=13.03% (mAA=7.18%, clusterness=75.00%)
+# ------------------------------------
+# th=(0.1, 0.2)
+# ETs: score=14.29% (mAA=7.69%, clusterness=100.00%)
+# stairs: score=11.76% (mAA=6.67%, clusterness=50.00%)
+# Average over all datasets: score=13.03% (mAA=7.18%, clusterness=75.00%)
+# ------------------------------------
+type: imc2025
+
+imc2025_pipeline:
+  point_tracking_matchers:
+    - type: vggt
+      local_features:
+        - type: lightglue_aliked
+          lightglue_aliked:
+            weight_path: ALIKED_LIGHTGLUE_N16
+            max_num_keypoints: 2048
+          resize:
+            func: lightglue
+            lg_resize: 1280
+      vggt:
+        min_matches: 15
+        conf_score_threshold: 0.2
+        vis_score_threshold: 0.2
+        model:
+          pretrained_model: VGGT
+
+  shortlist_generator: 
+    type: mast3r_retrieval_asmk
+    mast3r_retrieval_asmk_fallback_threshold: 30
+    mast3r_retrieval_asmk_remove_swapped_pairs: true
+    mast3r_retrieval_asmk_make_pairs_fps_n: 20
+    mast3r_retrieval_asmk_make_pairs_fps_k: 10
+    mast3r_retrieval_asmk_make_pairs_fps_dist_threshold: null
+    mast3r_retrieval_asmk:
+      mast3r:
+        weight_path: MAST3R
+        retrieval_weight_path: MAST3R_RETRIEVAL
+        retrieval_codebook_path: MAST3R_RETRIEVAL_CODEBOOK
+  
+  reconstruction:
+    fill_zero_Rt: false
+    fill_nan_Rt: false
+    fill_nearest_position: false
+    mapper_min_model_size: 3
+    mapper_max_num_models: 25
+  
+  clustering: null

@@ -1,0 +1,11 @@
+type: global_desc
+global_desc_model: apgem
+global_desc_batch_size: 1
+global_desc_num_workers: 1
+global_desc_similar_distance_threshold: 1.4
+global_desc_topk: 10
+global_desc_fallback_threshold: 20
+global_desc_remove_swapped_pairs: true
+apgem:
+  weight_path: APGEM_RESNET101
+  resize_max: 1024

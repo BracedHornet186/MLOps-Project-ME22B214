@@ -1,0 +1,74 @@
+# mlsuperpoint-015
+type: simple_ensemble
+
+simple_ensemble_pipeline:
+  local_features: []
+
+  detector_free_matchers:
+    - type: magicleap_superglue_rotation
+      apply_round: false
+      magicleap_superglue_rotation:
+        angles: [0, 90, 270]
+        output_type: best
+        ml_superglue:
+          weight_path: MAGICLEAP_SUPERGLUE
+          min_matches: null
+          weights: outdoor
+          sinkhorn_iterations: 30
+          match_threshold: 0.2
+        local_feature:
+          type: magicleap_superpoint
+          magicleap_superpoint:
+            weight_path: MAGICLEAP_SUPERPOINT
+            nms_radius: 4
+            keypoint_threshold: 0.005
+            max_keypoints: 4096
+            remove_borders: 4
+          resize:
+            func: magicleap
+            ml_resize: 1280
+    - type: magicleap_superglue_rotation
+      apply_round: false
+      magicleap_superglue_rotation:
+        angles: [0, 90, 270]
+        output_type: best
+        ml_superglue:
+          weight_path: MAGICLEAP_SUPERGLUE
+          min_matches: null
+          weights: outdoor
+          sinkhorn_iterations: 30
+          match_threshold: 0.2
+        local_feature:
+          type: magicleap_superpoint
+          magicleap_superpoint:
+            weight_path: MAGICLEAP_SUPERPOINT
+            nms_radius: 4
+            keypoint_threshold: 0.005
+            max_keypoints: 4096
+            remove_borders: 4
+          resize:
+            func: magicleap
+            ml_resize: 1600
+
+  shortlist_generator: 
+    type: global_desc
+    global_desc_model: cvnet
+    global_desc_batch_size: 1
+    global_desc_num_workers: 1
+    global_desc_similar_distance_threshold: 1.0
+    global_desc_topk: 10
+    global_desc_fallback_threshold: 20
+    global_desc_remove_swapped_pairs: true
+    cvnet:
+      weight_path: CVNET_R101
+      depth: 101
+      reduction_dim: 2048
+  
+  verification:
+    type: custom
+    ransac:
+      threshold: 2.0
+      confidence: 0.999999
+      max_iters: 100000
+      min_inliers: 16
+      method: magsac

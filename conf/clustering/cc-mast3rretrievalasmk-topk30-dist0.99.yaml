@@ -1,0 +1,12 @@
+# AMI: 0.46930353213312576
+type: connected_component
+connected_component:
+  retriever:
+    type: mast3r_retrieval_asmk
+    mast3r_retrieval_asmk:
+      mast3r:
+        weight_path: MAST3R
+        retrieval_weight_path: MAST3R_RETRIEVAL
+        retrieval_codebook_path: MAST3R_RETRIEVAL_CODEBOOK
+  topk: 30
+  dist_threshold: 0.99

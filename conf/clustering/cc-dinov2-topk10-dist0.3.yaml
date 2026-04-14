@@ -1,0 +1,10 @@
+# AMI: 0.3208166993828488
+type: connected_component
+connected_component:
+  global_desc:
+    global_desc_model: dinov2
+    batch_size: 8
+    dinov2:
+      pretrained_model: DINOV2_BASE
+  topk: 10
+  dist_threshold: 0.3

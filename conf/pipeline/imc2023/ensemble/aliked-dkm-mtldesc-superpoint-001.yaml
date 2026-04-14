@@ -1,0 +1,79 @@
+# aliked-dkm-mtldesc-superpoint-001
+type: simple_ensemble
+
+simple_ensemble_pipeline:
+  local_features:
+    - type: mtldesc
+      mtldesc:
+        model:
+          weight_path: MTLDESC
+          detection_threshold: 0.3
+        topk: 4096
+      resize:
+        func: kornia
+        long_edge_length: 1600
+        antialias: true
+    - type: aliked
+      aliked:
+        weight_path: ALIKED_N32
+        model_name: aliked-n32
+        top_k: -1
+        scores_th: 0.2
+        n_limit: 2048
+      resize:
+        func: opencv-divisible
+        long_edge_length: 1600
+        antialias: true
+    - type: superpoint
+      superpoint:
+        weight_path: SUPERPOINT_COCO
+        max_keypoints: 2048
+        nms_kernel: 9
+        remove_borders_size: 4
+        keypoint_threshold: 0.005
+      resize:
+        func: superpoint
+        target_size_height: 1260
+        target_size_width: 1680
+  
+  local_feature_matchers:
+    - type: nn
+      nn:
+        match_mode: mnn
+    - type: nn
+      nn:
+        match_mode: mnn
+    - type: nn
+      nn:
+        match_mode: mnn
+  
+  detector_free_matchers:
+    - type: dkm
+      dkm:
+        weight_path: DKM_V3_OUTDOOR
+        model_type: DKMv3_outdoor
+        upsample_preds: false
+        sample_nums: 2048
+
+  shortlist_generator: 
+    type: global_desc
+    global_desc_model: cvnet
+    global_desc_batch_size: 1
+    global_desc_num_workers: 1
+    global_desc_similar_distance_threshold: 1.0
+    global_desc_topk: 10
+    global_desc_fallback_threshold: 20
+    global_desc_remove_swapped_pairs: true
+    cvnet:
+      weight_path: CVNET_R101
+      depth: 101
+      reduction_dim: 2048
+
+  verification:
+    type: custom
+    ransac:
+      threshold: 2.0
+      confidence: 0.999999
+      max_iters: 100000
+      min_inliers: 16
+      method: magsac

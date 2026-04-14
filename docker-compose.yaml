@@ -1,51 +1,4 @@
-# Licensed to the Apache Software Foundation (ASF) under one
-# or more contributor license agreements.  See the NOTICE file
-# distributed with this work for additional information
-# regarding copyright ownership.  The ASF licenses this file
-# to you under the Apache License, Version 2.0 (the
-# "License"); you may not use this file except in compliance
-# with the License.  You may obtain a copy of the License at
-#
-#   http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing,
-# software distributed under the License is distributed on an
-# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-# KIND, either express or implied.  See the License for the
-# specific language governing permissions and limitations
-# under the License.
-#
-# ─────────────────────────────────────────────────────────────────────────────
-# Scene Reconstruction — MLOps stack
-#
-# Services:
-#   Airflow stack  : postgres, redis, apiserver(:8080), scheduler,
-#                    dag-processor, worker, triggerer, init
-#   MLflow         : tracking server on :5000
-#
-# Project layout mounted into every Airflow container:
-#   ./dags        → /opt/airflow/dags      (Airflow DAG files)
-#   ./logs        → /opt/airflow/logs
-#   ./config      → /opt/airflow/config
-#   ./plugins     → /opt/airflow/plugins
-#   ./scripts     → /opt/airflow/project/scripts   (validate_data.py etc.)
-#   ./data        → /opt/airflow/project/data      (read-only; raw DVC data)
-#   ./pipelines   → /opt/airflow/project/pipelines
-#   ./global_descriptors → /opt/airflow/project/global_descriptors
-#   ./preprocesses       → /opt/airflow/project/preprocesses
-#
-# Required .env variables (copy .env.example → .env and fill in):
-#   AIRFLOW_UID
-#   FERNET_KEY          (generate: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())")
-#   AIRFLOW__API_AUTH__JWT_SECRET
-#   _AIRFLOW_WWW_USER_USERNAME   (default: airflow)
-#   _AIRFLOW_WWW_USER_PASSWORD   (default: airflow)
-#
-# Start:
-#   echo -e "AIRFLOW_UID=$(id -u)" >> .env
-#   docker compose up airflow-init
-#   docker compose up -d
-# ─────────────────────────────────────────────────────────────────────────────
+# docker-compose.yaml
 ---
 x-airflow-common:
   &airflow-common
@@ -67,29 +20,21 @@ x-airflow-common:
     AIRFLOW__API_AUTH__JWT_ISSUER: ${AIRFLOW__API_AUTH__JWT_ISSUER:-airflow}
     AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: 'true'
     AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
-    # ── Project-specific env vars ──────────────────────────────────────────
-    # Makes the project source importable inside every Airflow container.
     PYTHONPATH: '/opt/airflow/project'
-    # Points scripts/data.py to the mounted data directory.
     DEFAULT_DATASET_DIR: '/opt/airflow/project/data'
-    # MLflow tracking URI so DAG tasks log experiments automatically.
     MLFLOW_TRACKING_URI: 'http://mlflow:5000'
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
   volumes:
-    # ── Airflow standard dirs ──────────────────────────────────────────────
     - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
     - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
-    - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
+    - ${AIRFLOW_PROJ_DIR:-.}/conf:/opt/airflow/config
     - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
-    # ── Project source tree (read-write so scripts can write processed data)
     - ${AIRFLOW_PROJ_DIR:-.}/scripts:/opt/airflow/project/scripts
     - ${AIRFLOW_PROJ_DIR:-.}/pipelines:/opt/airflow/project/pipelines
     - ${AIRFLOW_PROJ_DIR:-.}/global_descriptors:/opt/airflow/project/global_descriptors
     - ${AIRFLOW_PROJ_DIR:-.}/preprocesses:/opt/airflow/project/preprocesses
     - ${AIRFLOW_PROJ_DIR:-.}/postprocesses:/opt/airflow/project/postprocesses
-    # ── Data (read-only for safety; only scripts write to data/processed/)
     - ${AIRFLOW_PROJ_DIR:-.}/data:/opt/airflow/project/data
-    # ── MLflow artifact store shared between host and containers ──────────
     - mlflow-artifacts:/opt/mlflow/artifacts
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
@@ -101,7 +46,7 @@ x-airflow-common:
 
 services:
 
-  # ── Infrastructure ────────────────────────────────────────────────────────
+  # ── Infrastructure ──────────────────────────────────────────────────────────
 
   postgres:
     image: postgres:16
@@ -130,10 +75,8 @@ services:
       start_period: 30s
     restart: always
 
-  # ── MLflow tracking server ─────────────────────────────────────────────────
-  # Accessible at http://localhost:5000
-  # Artifacts stored in the shared named volume mlflow-artifacts.
-  # The Airflow containers write to this server via MLFLOW_TRACKING_URI env var.
+  # ── MLflow tracking server ──────────────────────────────────────────────────
+
   mlflow:
     image: ghcr.io/mlflow/mlflow:v2.13.0
     command: >
@@ -141,22 +84,93 @@ services:
       --host 0.0.0.0
       --port 5000
       --backend-store-uri sqlite:////opt/mlflow/mlflow.db
-      --serve-artifacts
-      --artifacts-destination /opt/mlflow/artifacts
+      --default-artifact-root /opt/mlflow/artifacts
     ports:
       - "5000:5000"
     volumes:
       - mlflow-artifacts:/opt/mlflow/artifacts
       - mlflow-db:/opt/mlflow
     healthcheck:
-      test: ["CMD", "curl", "--fail", "http://localhost:5000/health"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 20s
     restart: always
 
-  # ── Airflow components ─────────────────────────────────────────────────────
+  # ── FastAPI gateway ─────────────────────────────────────────────────────────
+  # CPU-only — delegates all ML work to model-server.
+  # Exposes /health, /ready, /reconstruct, /metrics, /experiments
+
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      MODEL_SERVER_URL: "http://model-server:8001"
+      MLFLOW_TRACKING_URI: "http://mlflow:5000"
+      DEFAULT_DATASET_DIR: "/app/data"
+    volumes:
+      - ${AIRFLOW_PROJ_DIR:-.}/data:/app/data:ro
+    depends_on:
+      mlflow:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: always
+    profiles:
+      - inference
+
+  # ── Model server ────────────────────────────────────────────────────────────
+  # Holds the GPU exclusively.
+  # Workers=1 enforced; concurrency guard inside server.py.
+  # start_period=120s because MASt3R weight loading takes ~90s.
+
+  model-server:
+    build:
+      context: .
+      dockerfile: model_server/Dockerfile
+    ports:
+      - "8001:8001"
+    environment:
+      MLFLOW_TRACKING_URI: "http://mlflow:5000"
+      DEFAULT_DATASET_DIR: "/app/data"
+      PIPELINE_CONFIG: "/app/conf/mast3r.yaml"
+      RESULTS_DIR: "/app/results"
+      CUDA_VISIBLE_DEVICES: "0"
+    volumes:
+      - ${MODEL_WEIGHTS_DIR:-./weights}:/app/weights:ro
+      - ${AIRFLOW_PROJ_DIR:-.}/data:/app/data:ro
+      - ${AIRFLOW_PROJ_DIR:-.}/conf:/app/conf:ro
+      - reconstruction-results:/app/results
+      - mlflow-artifacts:/opt/mlflow/artifacts
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    depends_on:
+      mlflow:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8001/health"]
+      interval: 60s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    restart: on-failure
+    profiles:
+      - inference
+
+  # ── Airflow components ──────────────────────────────────────────────────────
 
   airflow-apiserver:
     <<: *airflow-common
@@ -247,29 +261,16 @@ services:
       - -c
       - |
         if [[ -z "${AIRFLOW_UID}" ]]; then
-          echo
-          echo -e "\033[1;33mWARNING!!!: AIRFLOW_UID not set!\e[0m"
-          echo "Add AIRFLOW_UID=$(id -u) to your .env file."
-          echo
+          echo -e "\033[1;33mWARNING: AIRFLOW_UID not set. Add AIRFLOW_UID=$(id -u) to .env\e[0m"
           export AIRFLOW_UID=$$(id -u)
         fi
         one_meg=1048576
         mem_available=$$(($$(getconf _PHYS_PAGES) * $$(getconf PAGE_SIZE) / one_meg))
         cpus_available=$$(grep -cE 'cpu[0-9]+' /proc/stat)
         disk_available=$$(df / | tail -1 | awk '{print $$4}')
-        warning_resources="false"
-        if (( mem_available < 4000 )) ; then
-          echo -e "\033[1;33mWARNING!!!: Not enough memory (need 4 GB, have $$(numfmt --to iec $$((mem_available * one_meg))))\e[0m"
-          warning_resources="true"
-        fi
-        if (( cpus_available < 2 )); then
-          echo -e "\033[1;33mWARNING!!!: Not enough CPUs (need 2, have $${cpus_available})\e[0m"
-          warning_resources="true"
-        fi
-        if (( disk_available < one_meg * 10 )); then
-          echo -e "\033[1;33mWARNING!!!: Not enough disk (need 10 GB, have $$(numfmt --to iec $$((disk_available * 1024))))\e[0m"
-          warning_resources="true"
-        fi
+        if (( mem_available < 4000 ));        then echo -e "\033[1;33mWARNING: <4 GB RAM\e[0m"; fi
+        if (( cpus_available < 2 ));          then echo -e "\033[1;33mWARNING: <2 CPUs\e[0m"; fi
+        if (( disk_available < one_meg*10 )); then echo -e "\033[1;33mWARNING: <10 GB disk\e[0m"; fi
         mkdir -v -p /opt/airflow/{logs,dags,plugins,config}
         /entrypoint airflow version
         /entrypoint airflow config list >/dev/null
@@ -317,7 +318,53 @@ services:
       airflow-init:
         condition: service_completed_successfully
 
+  # ── Monitoring ──────────────────────────────────────────────────────────────
+
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    ports:
+      - "9090:9090"
+    volumes:
+      - ${AIRFLOW_PROJ_DIR:-.}/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=30d'
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--tries=1", "-O-", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: always
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/scene_reconstruction.json
+    volumes:
+      - ${AIRFLOW_PROJ_DIR:-.}/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ${AIRFLOW_PROJ_DIR:-.}/monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: always
+
 volumes:
   postgres-db-volume:
   mlflow-artifacts:
   mlflow-db:
+  reconstruction-results:
+  prometheus-data:
+  grafana-data:

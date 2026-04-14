@@ -1,0 +1,14 @@
+# AMI: 0.040681769127519155
+type: dbscan
+dbscan:
+  global_desc:
+    global_desc_model: mast3r_retrieval_spoc
+    batch_size: 1
+    mast3r_retrieval_spoc:
+      mast3r:
+        weight_path: MAST3R
+        retrieval_weight_path: MAST3R_RETRIEVAL
+        retrieval_codebook_path: MAST3R_RETRIEVAL_CODEBOOK
+      global_desc_type: retrieval_spoc
+  eps: 0.25
+  min_samples: 2

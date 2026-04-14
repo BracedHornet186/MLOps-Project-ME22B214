@@ -1,0 +1,15 @@
+# AMI: 
+type: vggt
+vggt:
+  model:
+    pretrained_model: VGGT
+  image_size: 378
+  window_size: 8
+  num_cycles: 5
+
+  depth_score_threshold: null
+  # world_points_score_threshold: 1.2
+  world_points_score_threshold: 1.001
+
+  seed: 2025
+  verbose: true

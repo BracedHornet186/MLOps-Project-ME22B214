@@ -1,0 +1,78 @@
+# mlsuperpoint-shortlist-rw-loftr-001
+type: pre_matching_ensemble
+
+pre_matching_ensemble_pipeline:
+  shortlist_generator: 
+    type: random_walk
+    global_desc_fallback_threshold: 20
+    random_walk_matching_threshold: 30
+    random_walk_num_trials_per_sample: 30
+    random_walk_num_references_per_sample: 10
+    random_walk_ransac:
+      threshold: 2.0
+      confidence: 0.9999
+      max_iters: 10000
+      min_inliers: 16
+      method: magsac
+
+  pre_matcher:
+    type: loftr
+    loftr:
+      weight_path: LOFTR_OUTDOOR_KORNIA
+      resize:
+        func: kornia
+        long_edge_length: 800
+        antialias: true
+      paired_pre_resize:
+        func: same_longest_edge
+        img_object_type: cv2
+        cv2_interpolation: LANCZOS4
+  
+  local_features:
+    - type: magicleap_superpoint
+      magicleap_superpoint:
+        weight_path: MAGICLEAP_SUPERPOINT
+        nms_radius: 4
+        keypoint_threshold: 0.005
+        max_keypoints: 4096
+        remove_borders: 4
+      resize:
+        func: magicleap
+        ml_resize: 1280
+    - type: magicleap_superpoint
+      magicleap_superpoint:
+        weight_path: MAGICLEAP_SUPERPOINT
+        nms_radius: 4
+        keypoint_threshold: 0.005
+        max_keypoints: 4096
+        remove_borders: 4
+      resize:
+        func: magicleap
+        ml_resize: 1600
+
+  local_feature_matchers:
+    - type: magicleap_superglue
+      magicleap_superglue:
+        weight_path: MAGICLEAP_SUPERGLUE
+        min_matches: null
+        weights: outdoor
+        sinkhorn_iterations: 30
+        match_threshold: 0.2
+    - type: magicleap_superglue
+      magicleap_superglue:
+        weight_path: MAGICLEAP_SUPERGLUE
+        min_matches: null
+        weights: outdoor
+        sinkhorn_iterations: 30
+        match_threshold: 0.2
+
+  detector_free_matchers: []
+
+  verification:
+    type: custom
+    ransac:
+      threshold: 2.0
+      confidence: 0.999999
+      max_iters: 100000
+      min_inliers: 16
+      method: magsac

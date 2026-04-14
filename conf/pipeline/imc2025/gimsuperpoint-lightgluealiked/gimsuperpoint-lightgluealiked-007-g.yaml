@@ -1,0 +1,58 @@
+# conf/pipeline/imc2025/gimsuperpoint-lightgluealiked/gimsuperpoint-lightgluealiked-007-g.yaml
+# ------------------
+# ------------------
+type: imc2025
+
+imc2025_pipeline:
+  local_features:
+    - type: gim_superpoint
+      gim_superpoint:
+        weight_path: GIM_SUPERPOINT_LIGHTGLUE
+      resize:
+        func: gim
+        gim_resize: 1280
+    - type: lightglue_aliked
+      lightglue_aliked:
+        weight_path: ALIKED_LIGHTGLUE_N16
+      resize:
+        func: lightglue
+        lg_resize: 1280
+
+  local_feature_matchers:
+    - type: gim_lightglue
+      gim_lightglue:
+        weight_path: GIM_SUPERPOINT_LIGHTGLUE
+        min_matches: 15
+    - type: lightglue
+      lightglue:
+        weight_path: LIGHTGLUE_WITH_ALIKED_N16
+        feature_name: aliked
+        min_matches: 15
+        width_confidence: -1.0
+        depth_confidence: -1.0
+        mp: true
+
+  shortlist_generator: 
+    type: all_pairs
+
+  reconstruction:
+    fill_zero_Rt: false
+    fill_nan_Rt: false
+    fill_nearest_position: false
+    mapper_min_model_size: 3
+    mapper_max_num_models: 25
+  
+  clustering:
+    type: connected_component
+    connected_component:
+      global_desc:
+        global_desc_model: mast3r_retrieval_spoc
+        batch_size: 1
+        mast3r_retrieval_spoc:
+          mast3r:
+            weight_path: MAST3R
+            retrieval_weight_path: MAST3R_RETRIEVAL
+            retrieval_codebook_path: MAST3R_RETRIEVAL_CODEBOOK
+          global_desc_type: retrieval_spoc
+      topk: 30
+      dist_threshold: 0.9

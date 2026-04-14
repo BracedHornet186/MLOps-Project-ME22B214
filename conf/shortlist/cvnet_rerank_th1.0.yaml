@@ -1,0 +1,9 @@
+type: cvnet_rerank
+cvnet_rerank_batch_size: 1
+cvnet_rerank_num_workers: 1
+cvnet_rerank_alpha: 0.5
+cvnet_rerank_threshold: 1.0
+cvnet:
+  weight_path: CVNET_R101
+  depth: 101
+  reduction_dim: 2048

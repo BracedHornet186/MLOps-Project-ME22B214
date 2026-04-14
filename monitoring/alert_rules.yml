@@ -1,0 +1,56 @@
+# Prometheus alert rules for Scene Reconstruction pipeline
+# ─────────────────────────────────────────────────────────────────────────────
+
+groups:
+  - name: scene_reconstruction_alerts
+    rules:
+
+      # Alert 1: High API error rate (> 5% over 5 minutes)
+      - alert: HighAPIErrorRate
+        expr: rate(api_errors_total[5m]) / rate(api_requests_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "API error rate > 5%"
+          description: "Error rate is {{ $value | humanizePercentage }} over the last 5 minutes."
+
+      # Alert 2: Low reconstruction mAA (below 0.45)
+      - alert: LowReconstructionMAA
+        expr: reconstruction_maa < 0.45
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Reconstruction mAA below threshold"
+          description: "mAA is {{ $value }} (threshold: 0.45). Consider promoting a better model."
+
+      # Alert 3: High inference latency (p99 > 600s)
+      - alert: HighInferenceLatency
+        expr: histogram_quantile(0.99, rate(inference_latency_seconds_bucket[1h])) > 600
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Inference p99 latency > 600s"
+          description: "P99 latency is {{ $value }}s. Auto-scale or throttle request queue."
+
+      # Alert 4: Feature drift detected
+      - alert: FeatureDriftDetected
+        expr: feature_drift_status >= 2
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical feature drift detected"
+          description: "Drift status is critical. Check drift_report.json and review input data."
+
+      # Alert 5: Model server down
+      - alert: ModelServerDown
+        expr: model_server_ready == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Model server is not ready"
+          description: "Model server has been unreachable for 5 minutes."

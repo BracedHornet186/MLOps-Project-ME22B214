@@ -1,0 +1,143 @@
+# conf/pipeline/imc2024/lightglue_aliked/lightgluealiked-064.yaml
+
+type: imc2024
+
+imc2024_pipeline:
+  shortlist_generator: 
+    type: all_pairs
+  
+  depth_estimation:
+    type: depth_anything
+    hf_weight_path: HF_DEPTH_ANYTHING_LARGE
+    keep_raw_prediction: true
+  
+  pre_matching:
+    matchers:
+      - type: local_feature
+        local_feature:
+          type: lightglue_aliked
+          lightglue_aliked:
+            weight_path: ALIKED_LIGHTGLUE_N16
+          resize:
+            func: lightglue
+            lg_resize: 960
+        local_feature_matcher:
+          type: lightglue
+          lightglue:
+            weight_path: LIGHTGLUE_WITH_ALIKED_N16
+            feature_name: aliked
+            min_matches: 15
+            width_confidence: -1.0
+            depth_confidence: -1.0
+            mp: true
+      - type: local_feature
+        local_feature:
+          type: lightglue_sift
+          lightglue_sift:
+            max_num_keypoints: 4096
+        local_feature_matcher:
+          type: lightglue
+          lightglue:
+            weight_path: LIGHTGLUE_WITH_SIFT
+            feature_name: sift
+            min_matches: 15
+            width_confidence: -1.0
+            depth_confidence: -1.0
+            mp: true
+  
+  overlap_region_estimation:
+    method: lof
+    bidirectional: true
+    bidirectional_merging: intersection
+    bbox_expansion: 16
+    border_padding: 8
+    lof_n_neighbors: 100
+  
+  masking:
+    make_watermark_masks: true
+    watermark_overlap_delta: 10
+    watermark_border_delta: 30
+    rerun_overlap_estimation: true
+  
+  shortlist_updater:
+    type: pre_matching_topk
+    pre_matching_topk:
+      topk: 3
+      global_descriptors:
+        - type: dinov2_salad
+          similar_distance_threshold: 1.1
+          batch_size: 1
+          num_workers: 0
+          dinov2_salad:
+            weight_path: DINOV2_SALAD
+            image_size: [322, 322]
+        #- type: cvnet 
+        #  similar_distance_threshold: 0.6
+        #  batch_size: 1
+        #  num_workers: 1
+        #  cvnet:
+        #    weight_path: CVNET_R101
+        #    depth: 101
+        #    reduction_dim: 2048
+        #- type: dinov2
+        #  similar_distance_threshold: 0.2
+        #  batch_size: 1
+        #  num_workers: 1
+        #  dinov2:
+        #    pretrained_model: DINOV2_BASE
+  
+  local_features:
+    - type: featureset
+      featureset:
+        local_features:
+          - type: lightglue_aliked
+            lightglue_aliked:
+              weight_path: ALIKED_LIGHTGLUE_N16
+            resize:
+              func: lightglue
+              lg_resize: 1024
+          - type: lightglue_aliked
+            lightglue_aliked:
+              weight_path: ALIKED_LIGHTGLUE_N16
+            resize:
+              func: lightglue
+              lg_resize: 1280
+          - type: lightglue_aliked
+            lightglue_aliked:
+              weight_path: ALIKED_LIGHTGLUE_N16
+            resize:
+              func: lightglue
+              lg_resize: 1600
+
+  local_feature_matchers:
+    - type: lightglue
+      lightglue:
+        weight_path: LIGHTGLUE_WITH_ALIKED_N16
+        feature_name: aliked
+        min_matches: 15
+        width_confidence: -1.0
+        depth_confidence: -1.0
+        mp: true
+
+  detector_free_matchers: []
+
+  post_localizer:
+    type: mapfree
+    mapfree:
+      matcher:
+        type: dkm
+        mkpts_decoupling_method: detector_free_sfm
+        cropper_type: overlap
+        dkm:
+          weight_path: DKM_V3_OUTDOOR
+          model_type: DKMv3_outdoor
+          upsample_preds: false
+          sample_nums: 4096
+          confidence_threshold: 0.4
+          topk: 2048
+      pose_solver: pnp
+
+  reconstruction:
+    use_localize_sfm: true
+    mapper_min_model_size: 4
+    mapper_max_num_models: 3

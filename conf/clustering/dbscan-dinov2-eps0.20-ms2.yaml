@@ -1,0 +1,10 @@
+# AMI: 0.3064629707135568
+type: dbscan
+dbscan:
+  global_desc:
+    global_desc_model: dinov2
+    batch_size: 8
+    dinov2:
+      pretrained_model: DINOV2_BASE
+  eps: 0.2
+  min_samples: 2

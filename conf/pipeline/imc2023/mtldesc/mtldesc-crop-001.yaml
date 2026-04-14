@@ -1,0 +1,70 @@
+# mtldesc-crop-001
+type: pre_matching_ensemble
+
+pre_matching_ensemble_pipeline:
+  pre_matcher:
+    type: dkm
+    dkm:
+      weight_path: DKM_V3_OUTDOOR
+      model_type: DKMv3_outdoor
+      upsample_preds: false
+      height: 320
+      width: 320
+      sample_mode: threshold
+      sample_threshold: 0.5
+      sample_nums: 2048
+  
+  overlap_region_estimation:
+    method: lof
+    bidirectional: true
+    bidirectional_merging: intersection
+    bbox_expansion: 16
+    border_padding: 8
+    lof_n_neighbors: 100
+
+  local_features:
+    - type: mtldesc
+      mtldesc:
+        model:
+          weight_path: MTLDESC
+          detection_threshold: 0.3
+        topk: 10000
+      resize:
+        func: kornia
+        long_edge_length: 1600
+        antialias: true
+
+  local_feature_matchers:
+    - type: openglue
+      openglue:
+        experiment_path: OPENGLUE_MTLDESC_V4
+        checkpoint_name: superglue-step125000.ckpt
+        descriptor_dim: 128
+        max_features: 2048    # No used
+        resize_to: original
+        match_threshold: 0.05
+
+  detector_free_matchers: []
+
+  shortlist_generator: 
+    type: global_desc
+    global_desc_model: cvnet
+    global_desc_batch_size: 1
+    global_desc_num_workers: 1
+    global_desc_similar_distance_threshold: 1.0
+    global_desc_topk: 10
+    global_desc_fallback_threshold: 20
+    global_desc_remove_swapped_pairs: true
+    cvnet:
+      weight_path: CVNET_R101
+      depth: 101
+      reduction_dim: 2048
+
+  verification:
+    type: custom
+    ransac:
+      threshold: 2.0
+      confidence: 0.999999
+      max_iters: 100000
+      min_inliers: 16
+      method: magsac

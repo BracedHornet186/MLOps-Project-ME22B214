@@ -1,0 +1,35 @@
+# conf/pipeline/imc2025/gimloftr/gimloftr-003.yaml
+# -----------------------
+# -------------------------
+type: imc2025
+
+imc2025_pipeline:
+  detector_free_matchers:
+    - type: gim_loftr
+      gim_loftr:
+        weight_path: GIM_LOFTR
+        min_matches: 15
+        confidence_threshold: 0.02
+        topk: 1024
+        resize:
+          func: gim
+          gim_resize: 960
+
+  shortlist_generator: 
+    type: global_desc
+    global_desc_model: dinov2
+    global_desc_batch_size: 1
+    global_desc_num_workers: 1
+    global_desc_similar_distance_threshold: 0.3
+    global_desc_topk: 30
+    global_desc_fallback_threshold: 30
+    global_desc_remove_swapped_pairs: true
+    global_desc_num_refills_when_no_matches: 30
+    dinov2:
+      pretrained_model: DINOV2_BASE
+  
+  reconstruction:
+    mapper_min_model_size: 3
+    mapper_max_num_models: 25
+  
+  clustering: null

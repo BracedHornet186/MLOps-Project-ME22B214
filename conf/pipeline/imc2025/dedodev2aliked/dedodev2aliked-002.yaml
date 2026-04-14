@@ -1,0 +1,40 @@
+# conf/pipeline/imc2025/dedodev2aliked/dedodev2aliked-002.yaml
+type: imc2025
+
+imc2025_pipeline:
+  local_features:
+    - type: lightglue_aliked_dedode_v2
+      lightglue_aliked_dedode_v2:
+        weight_path: ALIKED_LIGHTGLUE_N16
+        weight_path_dedode_detector: DEDODE_V2_DETECTOR_L
+        max_num_keypoints: 4096
+      resize:
+        func: lightglue
+        lg_resize: 1280
+
+  local_feature_matchers:
+    - type: dual_softmax
+      dual_softmax:
+        normalize: true
+        inv_temp: 20.0
+        min_matches: 15
+        threshold: 0.1
+
+  shortlist_generator: 
+    type: global_desc
+    global_desc_model: dinov2
+    global_desc_batch_size: 1
+    global_desc_num_workers: 1
+    global_desc_similar_distance_threshold: 0.3
+    global_desc_topk: 30
+    global_desc_fallback_threshold: 30
+    global_desc_remove_swapped_pairs: true
+    global_desc_num_refills_when_no_matches: 30
+    dinov2:
+      pretrained_model: DINOV2_BASE
+  
+  reconstruction:
+    mapper_min_model_size: 3
+    mapper_max_num_models: 25
+  
+  clustering: null

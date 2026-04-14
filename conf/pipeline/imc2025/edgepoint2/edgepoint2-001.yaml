@@ -1,0 +1,47 @@
+# conf/pipeline/imc2025/edgepoint2/edgepoint2-001.yaml
+# ------------------
+# ------------------
+type: imc2025
+
+imc2025_pipeline:
+  local_features:
+    - type: edgepoint2
+      edgepoint2:
+        model_type: L64
+        weight_path: EDGEPOINT2_L64
+        top_k: 2048
+      resize:
+        func: opencv-divisible
+        long_edge_length: 640
+
+  local_feature_matchers:
+    - type: nn
+      nn:
+        match_mode: mnn
+        min_matches: 15
+        # th: 0.9
+
+  shortlist_generator: 
+    type: all_pairs
+
+  reconstruction:
+    fill_zero_Rt: false
+    fill_nan_Rt: false
+    fill_nearest_position: false
+    mapper_min_model_size: 3
+    mapper_max_num_models: 25
+  
+  clustering:
+    type: connected_component
+    connected_component:
+      global_desc:
+        global_desc_model: mast3r_retrieval_spoc
+        batch_size: 1
+        mast3r_retrieval_spoc:
+          mast3r:
+            weight_path: MAST3R
+            retrieval_weight_path: MAST3R_RETRIEVAL
+            retrieval_codebook_path: MAST3R_RETRIEVAL_CODEBOOK
+          global_desc_type: retrieval_spoc
+      topk: 30
+      dist_threshold: 0.9

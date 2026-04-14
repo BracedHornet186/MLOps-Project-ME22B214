@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import distutils.util
 import os
 import random
 import time
@@ -16,6 +15,18 @@ import yaml
 
 from config import SubmissionConfig
 from data_schema import DataSchema
+
+
+def _strtobool(val: str) -> int:
+    """Replacement for deprecated distutils.util.strtobool."""
+    val = val.strip().lower()
+    if val in ("y", "yes", "t", "true", "on", "1"):
+        return 1
+    elif val in ("n", "no", "f", "false", "off", "0"):
+        return 0
+    else:
+        raise ValueError(f"invalid truth value {val!r}")
+
 
 # Const
 # -------------------------------------
@@ -38,18 +49,18 @@ DISTRIBUTED_SPLIT_OFFSET = int(os.environ.get("DISTRIBUTED_SPLIT_OFFSET", 0))
 
 # Flags
 # -------------------------------------
-IS_SCENE_SPACE_DIR_PERSISTENT = distutils.util.strtobool(
+IS_SCENE_SPACE_DIR_PERSISTENT = _strtobool(
     os.environ.get("SCENE_SPACE_DIR_PERSISTENT", "no")
 )
-SAVE_CAMERA_DEBUG_INFO = distutils.util.strtobool(
+SAVE_CAMERA_DEBUG_INFO = _strtobool(
     os.environ.get("SAVE_CAMERA_DEBUG_INFO", "no")
 )
-SHOW_STATS = distutils.util.strtobool(os.environ.get("SHOW_STATS", "no"))
-SHOW_MATCHED_KEYPOINT_COUNT = distutils.util.strtobool(
+SHOW_STATS = _strtobool(os.environ.get("SHOW_STATS", "no"))
+SHOW_MATCHED_KEYPOINT_COUNT = _strtobool(
     os.environ.get("SHOW_MATCHED_KEYPOINT_COUNT", "no")
 )
-SHOW_PREF_TIME = distutils.util.strtobool(os.environ.get("SHOW_PREF_TIME", "no"))
-SHOW_MEM_USAGE = distutils.util.strtobool(os.environ.get("SHOW_MEM_USAGE", "no"))
+SHOW_PREF_TIME = _strtobool(os.environ.get("SHOW_PREF_TIME", "no"))
+SHOW_MEM_USAGE = _strtobool(os.environ.get("SHOW_MEM_USAGE", "no"))
 
 # Typing
 # -------------------------------------

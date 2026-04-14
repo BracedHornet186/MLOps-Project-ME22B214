@@ -1,0 +1,156 @@
+# conf/pipeline/imc2024/ensemble2/lightgluealiked-gimsuperpoint-009.yaml
+# **005: + segmentation (w/ dilation, add labels)
+#        + ransac in prematching
+# lizard(n=20)
+# dilation=0: 0.588
+# dilation=1: 0.608
+# dilation=2: 0.578
+
+type: imc2024
+
+imc2024_pipeline:
+  shortlist_generator: 
+    type: all_pairs
+
+  segmentation:
+    type: grounded_sam
+    resize: 800
+    skip_when_identical_camera_scene: true
+    dilation: 1
+
+    grounded_sam:
+      detector:
+        pretrained_model: HF_GROUNDING_DINO_BASE
+      segmentator:
+        pretrained_model: HF_SAM_VIT_BASE
+
+      threshold: 0.35
+      labels: ["a tree.", "a bush.", "a pond.", "a lake.", "a sea.",
+               "a river.", "a house.", "a building.", "a landmark.",
+               "a monument.", "a block.", "a rock.", "a stone.", "a wall.",
+               "a fence.", "a bridge.", "an architecture.", "a sky.",
+               "a tower", "a pole", "a mountain", "a traffic sign", "a signboard", "a streetlight"]
+      positive_labels: ["a house.", "a building.", "a landmark.", "a monument.",
+                        "a block.", "a rock.", "a stone.", "a wall.",
+                        "a fence.", "a bridge.", "an architecture.",
+                        "a tower", "a pole", "a mountain", "a traffic sign", "a signboard", "a streetlight"]
+      negative_labels: ["a tree.", "a bush.", "a pond.", "a lake.", "a sea.", "a river.", "a sky."]
+  
+  pre_matching:
+    filter_by_segmentation_if_provided: true
+    matchers:
+      - type: local_feature
+        local_feature:
+          type: lightglue_aliked
+          lightglue_aliked:
+            weight_path: ALIKED_LIGHTGLUE_N16
+          resize:
+            func: lightglue
+            lg_resize: 960
+        local_feature_matcher:
+          type: lightglue
+          lightglue:
+            weight_path: LIGHTGLUE_WITH_ALIKED_N16
+            feature_name: aliked
+            min_matches: 15
+            width_confidence: -1.0
+            depth_confidence: -1.0
+            mp: true
+      - type: local_feature
+        local_feature:
+          type: lightglue_sift
+          lightglue_sift:
+            max_num_keypoints: 4096
+        local_feature_matcher:
+          type: lightglue
+          lightglue:
+            weight_path: LIGHTGLUE_WITH_SIFT
+            feature_name: sift
+            min_matches: 15
+            width_confidence: -1.0
+            depth_confidence: -1.0
+            mp: true
+  
+  overlap_region_estimation:
+    method: lof
+    bidirectional: true
+    bidirectional_merging: intersection
+    bbox_expansion: 16
+    border_padding: 8
+    lof_n_neighbors: 100
+  
+  masking:
+    make_watermark_masks: true
+    watermark_overlap_delta: 10
+    watermark_border_delta: 30
+    rerun_overlap_estimation: true
+  
+  shortlist_updater:
+    type: pre_matching_topk
+    pre_matching_topk:
+      topk: 3
+      path_length_for_additional_pairs: 2
+      satisfied_edges_threshold: 6
+      ransac:
+        threshold: 0.25
+        confidence: 0.99999
+        max_iters: 40000
+        method: magsac
+      global_descriptors:
+        - type: dinov2_salad
+          similar_distance_threshold: 1.1
+          batch_size: 1
+          num_workers: 0
+          dinov2_salad:
+            weight_path: DINOV2_SALAD
+            image_size: [322, 322]
+        #- type: cvnet 
+        #  similar_distance_threshold: 0.6
+        #  batch_size: 1
+        #  num_workers: 1
+        #  cvnet:
+        #    weight_path: CVNET_R101
+        #    depth: 101
+        #    reduction_dim: 2048
+        #- type: dinov2
+        #  similar_distance_threshold: 0.2
+        #  batch_size: 1
+        #  num_workers: 1
+        #  dinov2:
+        #    pretrained_model: DINOV2_BASE
+  
+  local_features:
+    - type: lightglue_aliked
+      lightglue_aliked:
+        weight_path: ALIKED_LIGHTGLUE_N16
+      resize:
+        func: lightglue
+        lg_resize: 1280
+    - type: gim_superpoint
+      gim_superpoint:
+        weight_path: GIM_SUPERPOINT_LIGHTGLUE
+        max_num_keypoints: 4096
+      resize:
+        func: gim
+        gim_resize: 1280
+
+  local_feature_matchers:
+    - type: lightglue
+      lightglue:
+        weight_path: LIGHTGLUE_WITH_ALIKED_N16
+        feature_name: aliked
+        min_matches: 15
+        width_confidence: -1.0
+        depth_confidence: -1.0
+        mp: true
+    - type: gim_lightglue
+      gim_lightglue:
+        weight_path: GIM_SUPERPOINT_LIGHTGLUE
+        min_matches: 15
+
+  detector_free_matchers: []
+
+  reconstruction:
+    use_localize_sfm: true
+    mapper_min_model_size: 3
+    mapper_max_num_models: 3

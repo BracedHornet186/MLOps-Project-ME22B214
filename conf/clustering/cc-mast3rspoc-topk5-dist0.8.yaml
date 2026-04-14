@@ -1,0 +1,12 @@
+# AMI: 0.2060651122643044
+type: connected_component
+connected_component:
+  global_desc:
+    global_desc_model: mast3r_spoc
+    batch_size: 1
+    mast3r_spoc:
+      mast3r:
+        weight_path: MAST3R
+      global_desc_type: spoc
+  topk: 5
+  dist_threshold: 0.8

@@ -38,7 +38,7 @@ from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
 
 # ── Path bootstrap (same PYTHONPATH as set in docker-compose.yaml) ────────────
-PROJECT_ROOT = Path(os.environ.get("PYTHONPATH", "/opt/airflow/project")).split(":")[0]
+PROJECT_ROOT = Path(os.environ.get("PYTHONPATH", "/opt/airflow/project").split(":")[0])
 sys.path.insert(0, str(PROJECT_ROOT))
 
 DATA_DIR = Path(os.environ.get("DEFAULT_DATASET_DIR", f"{PROJECT_ROOT}/data"))

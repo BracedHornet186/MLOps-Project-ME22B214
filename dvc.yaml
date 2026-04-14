@@ -28,9 +28,6 @@ stages:
     outs:
       - data/processed/validation_report.json:
           cache: false
-    metrics:
-      - data/processed/validation_metrics.json:
-          cache: false
 
   eda_baselines:
     cmd: python scripts/eda_baselines.py

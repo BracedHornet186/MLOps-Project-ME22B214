@@ -1,0 +1,84 @@
+# conf/pipeline/imc2025/gimsuperpoint-lightgluealiked/gimsuperpoint-lightgluealiked-008-b.yaml
+# ------------------
+# ------------------
+type: imc2025
+
+imc2025_pipeline:
+  local_features:
+    - type: gim_superpoint
+      gim_superpoint:
+        weight_path: GIM_SUPERPOINT_LIGHTGLUE
+      resize:
+        func: gim
+        gim_resize: 1280
+    - type: lightglue_aliked
+      lightglue_aliked:
+        weight_path: ALIKED_LIGHTGLUE_N16
+      resize:
+        func: lightglue
+        lg_resize: 1280
+
+  local_feature_matchers:
+    - type: gim_lightglue
+      gim_lightglue:
+        weight_path: GIM_SUPERPOINT_LIGHTGLUE
+        min_matches: 15
+    - type: lightglue
+      lightglue:
+        weight_path: LIGHTGLUE_WITH_ALIKED_N16
+        feature_name: aliked
+        min_matches: 15
+        width_confidence: -1.0
+        depth_confidence: -1.0
+        mp: true
+
+  shortlist_generator: 
+    type: all_pairs
+
+  pre_matching:
+    matchers:
+      - type: local_feature
+        local_feature:
+          type: lightglue_aliked
+          lightglue_aliked:
+            weight_path: ALIKED_LIGHTGLUE_N16
+          resize:
+            func: lightglue
+            lg_resize: 960
+        local_feature_matcher:
+          type: lightglue
+          lightglue:
+            weight_path: LIGHTGLUE_WITH_ALIKED_N16
+            feature_name: aliked
+            min_matches: 15
+            width_confidence: -1.0
+            depth_confidence: -1.0
+            mp: true
+      - type: local_feature
+        local_feature:
+          type: lightglue_sift
+          lightglue_sift:
+            max_num_keypoints: 4096
+        local_feature_matcher:
+          type: lightglue
+          lightglue:
+            weight_path: LIGHTGLUE_WITH_SIFT
+            feature_name: sift
+            min_matches: 15
+            width_confidence: -1.0
+            depth_confidence: -1.0
+            mp: true
+
+  shortlist_updater:
+    type: pre_matching_topk
+    pre_matching_topk:
+      topk: 50
+
+  reconstruction:
+    fill_zero_Rt: false
+    fill_nan_Rt: false
+    fill_nearest_position: false
+    mapper_min_model_size: 3
+    mapper_max_num_models: 25
+  
+  clustering: null

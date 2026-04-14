@@ -1,0 +1,49 @@
+# superpoint-001
+type: detector_based
+
+detector_based_pipeline:
+  local_features:
+    - type: superpoint
+      superpoint:
+        weight_path: SUPERPOINT_COCO
+        max_keypoints: 2048
+        nms_kernel: 3
+        remove_borders_size: 4
+        keypoint_threshold: 0.0
+      resize:
+        func: superpoint
+        target_size_height: 720
+        target_size_width: 960
+
+  shortlist_generator: 
+    type: global_desc
+    global_desc_model: cvnet
+    global_desc_batch_size: 1
+    global_desc_num_workers: 1
+    global_desc_similar_distance_threshold: 1.0
+    global_desc_topk: 10
+    global_desc_fallback_threshold: 20
+    global_desc_remove_swapped_pairs: true
+    cvnet:
+      weight_path: CVNET_R101
+      depth: 101
+      reduction_dim: 2048
+  
+  matcher:
+    type: openglue
+    openglue:
+      experiment_path: OPENGLUE_SUPERPOINT_COCO
+      checkpoint_name: openglue_superpoint-coco.ckpt
+      descriptor_dim: 256
+      max_features: 2048    # No used
+      resize_to: original
+      match_threshold: 0.2
+
+  verification:
+    type: custom
+    ransac:
+      threshold: 2.0
+      confidence: 0.999999
+      max_iters: 100000
+      min_inliers: 16
+      method: magsac

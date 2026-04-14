@@ -1,0 +1,189 @@
+# conf/pipeline/imc2025/mast3rhybrid/mast3rhybrid-016-a.yaml
+# ------------------------------------
+# ------------------------------------
+type: imc2025_mast3r
+
+imc2025_mast3r_pipeline:
+  clustering_neighbor_metric: pair
+  matching_stage_mode: hybrid_matcher_override
+
+  clustering:
+    type: mast3r_fps
+    mast3r_fps:
+      mast3r_retrieval_model:
+        mast3r:
+          weight_path: MAST3R
+          retrieval_weight_path: MAST3R_RETRIEVAL
+          retrieval_codebook_path: MAST3R_RETRIEVAL_CODEBOOK
+        global_desc_type: retrieval_spoc
+
+      mast3r_matcher:
+        min_matches: 15 # todo
+        size: 512
+        mast3r:
+          use_amp: true
+          weight_path: MAST3R
+
+      initial_point_type: simsum_max
+      fps_n: 20
+      fps_dist_threshold: 0.7
+
+      limit_depth_for_exhaustive_matching: 1
+      topk_for_partial_matching: 10
+      num_query_from_target: 5
+
+      min_cluster_size: 3
+      use_noisy_cluster_as_one_cluster: false
+
+      seed: 2025
+      verbose: true
+
+  matcher:
+    min_matches: 15 # todo
+    size: 512
+    mast3r:
+      use_amp: true
+      weight_path: MAST3R
+
+  matcher_hybrid:
+    type: mast3r_hybrid
+    impl_version: v2
+    local_features:
+      - type: lightglue_aliked
+        lightglue_aliked:
+          weight_path: ALIKED_LIGHTGLUE_N16
+          max_num_keypoints: 2048
+        resize:
+          func: lightglue
+          lg_resize: 1280
+      - type: dad
+        dad:
+          weight_path: DAD
+          num_keypoints: 2048
+    mast3r_hybrid:
+      size: 512
+      dense_min_matches: 15
+      dense_subsample: 8
+      dense_pixel_tol: 5
+      dense_match_threshold: 1.001
+      dense_match_topk: null  # Use all
+      sparse_min_matches: 15
+      sparse_match_threshold: 1.001
+      sparse_match_topk: null  
+      model:
+        use_amp: true
+        weight_path: MAST3R
+
+  shortlist_generator_in_clustering: 
+    type: ensemble
+    ensemble:
+      all_pairs_fallback_threshold: 0
+      shortlist_generators:
+        - type: global_desc
+          global_desc_model: mast3r_retrieval_spoc
+          global_desc_batch_size: 1
+          global_desc_num_workers: 1
+          global_desc_similar_distance_threshold: 9999
+          global_desc_topk: 4
+          global_desc_fallback_threshold: 0
+          global_desc_remove_swapped_pairs: true
+          global_desc_num_refills_when_no_matches: 4
+          mast3r_retrieval_spoc:
+            mast3r:
+              weight_path: MAST3R
+              retrieval_weight_path: MAST3R_RETRIEVAL
+              retrieval_codebook_path: MAST3R_RETRIEVAL_CODEBOOK
+            global_desc_type: retrieval_spoc
+        - type: global_desc
+          global_desc_model: dinov2
+          global_desc_batch_size: 1
+          global_desc_num_workers: 1
+          global_desc_similar_distance_threshold: 9999
+          global_desc_topk: 4
+          global_desc_fallback_threshold: 0
+          global_desc_remove_swapped_pairs: true
+          global_desc_num_refills_when_no_matches: 4
+          dinov2:
+            pretrained_model: DINOV2_BASE
+        - type: global_desc
+          global_desc_model: isc
+          global_desc_batch_size: 1
+          global_desc_num_workers: 1
+          global_desc_similar_distance_threshold: 9999
+          global_desc_topk: 4
+          global_desc_fallback_threshold: 0
+          global_desc_remove_swapped_pairs: true
+          global_desc_num_refills_when_no_matches: 4
+          isc:
+            weight_path: ISC
+
+  shortlist_generator: 
+    type: ensemble
+    ensemble:
+      all_pairs_fallback_threshold: 0
+      shortlist_generators:
+        - type: mast3r_retrieval_asmk
+          mast3r_retrieval_asmk_fallback_threshold: 0
+          mast3r_retrieval_asmk_remove_swapped_pairs: true
+          mast3r_retrieval_asmk_make_pairs_fps_n: 10
+          mast3r_retrieval_asmk_make_pairs_fps_k: 30
+          mast3r_retrieval_asmk_make_pairs_fps_dist_threshold: null
+          mast3r_retrieval_asmk:
+            mast3r:
+              weight_path: MAST3R
+              retrieval_weight_path: MAST3R_RETRIEVAL
+              retrieval_codebook_path: MAST3R_RETRIEVAL_CODEBOOK
+        - type: global_desc
+          global_desc_model: mast3r_retrieval_spoc
+          global_desc_batch_size: 1
+          global_desc_num_workers: 1
+          global_desc_similar_distance_threshold: 9999
+          global_desc_topk: 10
+          global_desc_fallback_threshold: 0
+          global_desc_remove_swapped_pairs: true
+          global_desc_num_refills_when_no_matches: 10
+          mast3r_retrieval_spoc:
+            mast3r:
+              weight_path: MAST3R
+              retrieval_weight_path: MAST3R_RETRIEVAL
+              retrieval_codebook_path: MAST3R_RETRIEVAL_CODEBOOK
+            global_desc_type: retrieval_spoc
+        - type: global_desc
+          global_desc_model: dinov2
+          global_desc_batch_size: 1
+          global_desc_num_workers: 1
+          global_desc_similar_distance_threshold: 9999
+          global_desc_topk: 10
+          global_desc_fallback_threshold: 0
+          global_desc_remove_swapped_pairs: true
+          global_desc_num_refills_when_no_matches: 10
+          dinov2:
+            pretrained_model: DINOV2_BASE
+        - type: global_desc
+          global_desc_model: isc
+          global_desc_batch_size: 1
+          global_desc_num_workers: 1
+          global_desc_similar_distance_threshold: 9999
+          global_desc_topk: 10
+          global_desc_fallback_threshold: 0
+          global_desc_remove_swapped_pairs: true
+          global_desc_num_refills_when_no_matches: 10
+          isc:
+            weight_path: ISC
+
+  verification:
+    type: custom
+    ransac:
+      threshold: 1.25
+      confidence: 0.9999
+      max_iters: 100000
+      min_inliers: 16
+      method: magsac
+  
+  reconstruction:
+    fill_zero_Rt: false
+    fill_nan_Rt: false
+    fill_nearest_position: false
+    mapper_min_model_size: 3
+    mapper_max_num_models: 25
+  

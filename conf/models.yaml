@@ -1,0 +1,65 @@
+# conf/models.yaml
+# ─────────────────────────────────────────────────────────────────────────────
+# Model weight registry.
+# resolve_model_path(key) reads this file and returns the correct path
+# based on the DEFAULT_ENV_NAME environment variable.
+#
+# Usage:
+#   export DEFAULT_ENV_NAME=local    # development on your machine
+#   export DEFAULT_ENV_NAME=docker   # inside Docker containers
+#   export DEFAULT_ENV_NAME=kernel   # Kaggle notebook
+#
+# Place downloaded weights under weights/ (gitignored, tracked via DVC LFS).
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── MASt3R ────────────────────────────────────────────────────────────────────
+MAST3R:
+  local:  weights/mast3r/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric.pth
+  docker: /app/weights/mast3r/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric.pth
+  kernel: ../input/imc2025models/mast3r/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric.pth
+
+MAST3R_RETRIEVAL:
+  local:  weights/mast3r_retrieval/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric_retrieval_trainingfree.pth
+  docker: /app/weights/mast3r_retrieval/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric_retrieval_trainingfree.pth
+  kernel: ../input/imc2025models/mast3r_retrieval/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric_retrieval_trainingfree.pth
+
+MAST3R_RETRIEVAL_CODEBOOK:
+  local:  weights/mast3r_retrieval/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric_retrieval_codebook.pkl
+  docker: /app/weights/mast3r_retrieval/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric_retrieval_codebook.pkl
+  kernel: ../input/imc2025models/mast3r_retrieval/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric_retrieval_codebook.pkl
+
+# ── ALIKED + LightGlue ────────────────────────────────────────────────────────
+ALIKED_LIGHTGLUE_N16:
+  local:  weights/aliked/aliked-n16.pth
+  docker: /app/weights/aliked/aliked-n16.pth
+  kernel: /kaggle/input/aliked/pytorch/aliked-n16/1/aliked-n16.pth
+
+# ── SuperPoint (MagicLeap research-only) ─────────────────────────────────────
+MAGICLEAP_SUPERPOINT:
+  local:  weights/superpoint/superpoint_v1.pth
+  docker: /app/weights/superpoint/superpoint_v1.pth
+  kernel: ../input/imc2023models/research_only/magicleap/superpoint_v1.pth
+
+# ── DINOv2 ────────────────────────────────────────────────────────────────────
+DINOV2_BASE:
+  local:  weights/dinov2-base
+  docker: /app/weights/dinov2-base
+  kernel: /kaggle/input/dinov2/pytorch/base/1
+
+# ── ISC (Copy-detection, 256-dim) ─────────────────────────────────────────────
+ISC:
+  local:  weights/isc/isc_ft_v107.pth.tar
+  docker: /app/weights/isc/isc_ft_v107.pth.tar
+  kernel: ../input/imc2025models/isc/isc_ft_v107.pth.tar
+
+# ── DaD (Dense-and-Diverse keypoints) ────────────────────────────────────────
+DAD:
+  local:  weights/dad/dad.pth
+  docker: /app/weights/dad/dad.pth
+  kernel: ../input/imc2025models/dad/dad.pth
+
+# ── Check orientation (ResNeXt-50, for preprocessing) ────────────────────────
+CHECK_ORIENTATION:
+  local:  weights/check_orientation/resnet50_model.pth
+  docker: /app/weights/check_orientation/resnet50_model.pth
+  kernel: ../input/imc2025models/check_orientation/resnet50_model.pth

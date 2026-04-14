@@ -1,0 +1,43 @@
+# mtldesc-022
+type: detector_based
+
+detector_based_pipeline:
+  local_features:
+    - type: mtldesc
+      mtldesc:
+        model:
+          weight_path: MTLDESC
+          detection_threshold: 0.3
+        topk: 10000
+      resize:
+        func: kornia
+        long_edge_length: 2112
+        antialias: true
+
+  shortlist_generator: 
+    type: global_desc
+    global_desc_model: cvnet
+    global_desc_batch_size: 1
+    global_desc_num_workers: 1
+    global_desc_similar_distance_threshold: 1.0
+    global_desc_topk: 10
+    global_desc_fallback_threshold: 20
+    global_desc_remove_swapped_pairs: true
+    cvnet:
+      weight_path: CVNET_R101
+      depth: 101
+      reduction_dim: 2048
+  
+  matcher:
+    type: nn
+    nn:
+      match_mode: mnn
+
+  verification:
+    type: custom
+    ransac:
+      threshold: 2.0
+      confidence: 0.999999
+      max_iters: 100000
+      min_inliers: 16
+      method: magsac

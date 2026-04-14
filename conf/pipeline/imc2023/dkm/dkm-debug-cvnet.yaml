@@ -1,0 +1,31 @@
+# dkm-debug-cvnet
+type: detector_free
+
+detector_free_pipeline:
+  shortlist_generator: 
+    type: cvnet_rerank
+    cvnet_rerank_batch_size: 1
+    cvnet_rerank_num_workers: 1
+    cvnet_rerank_alpha: 0.5
+    cvnet_rerank_threshold: 1.0
+    cvnet:
+      weight_path: CVNET_R101
+      depth: 101
+      reduction_dim: 2048
+  
+  matcher:
+    type: dkm
+    dkm:
+      weight_path: DKM_V3_OUTDOOR
+      model_type: DKMv3_outdoor
+      upsample_preds: false
+      sample_nums: 4096
+
+  verification:
+    type: custom
+    ransac:
+      threshold: 2.0
+      confidence: 0.999999
+      max_iters: 100000
+      min_inliers: 16
+      method: magsac

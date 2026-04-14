@@ -1,0 +1,53 @@
+# conf/pipeline/imc2025/vggt/vggt-002-d.yaml
+# ------------------------------------
+# GLOMAP
+# ETs: score=18.75% (mAA=11.54%, clusterness=50.00%)
+# stairs: score=19.64% (mAA=12.22%, clusterness=50.00%)
+# 
+# COLMAP
+# stairs: score=3.23% (mAA=1.67%, clusterness=50.00%)
+# ------------------------------------
+type: imc2025
+
+imc2025_pipeline:
+  point_tracking_matchers:
+    - type: vggt
+      local_features:
+        - type: gim_superpoint
+          gim_superpoint:
+            weight_path: GIM_SUPERPOINT_LIGHTGLUE
+          resize:
+            func: gim
+            gim_resize: 1280
+      vggt:
+        min_matches: 15
+        conf_score_threshold: 0.5
+        vis_score_threshold: 0.5
+        track_iters: 2
+        model:
+          pretrained_model: VGGT
+
+  shortlist_generator: 
+    type: mast3r_retrieval_asmk
+    mast3r_retrieval_asmk_fallback_threshold: 30
+    mast3r_retrieval_asmk_remove_swapped_pairs: true
+    mast3r_retrieval_asmk_make_pairs_fps_n: 20
+    mast3r_retrieval_asmk_make_pairs_fps_k: 10
+    mast3r_retrieval_asmk_make_pairs_fps_dist_threshold: null
+    mast3r_retrieval_asmk:
+      mast3r:
+        weight_path: MAST3R
+        retrieval_weight_path: MAST3R_RETRIEVAL
+        retrieval_codebook_path: MAST3R_RETRIEVAL_CODEBOOK
+  
+  reconstruction:
+    fill_zero_Rt: false
+    fill_nan_Rt: false
+    fill_nearest_position: false
+    mapper_min_model_size: 3
+    mapper_max_num_models: 25
+  
+  clustering:
+    type: debug_array_split
+    debug_array_split:
+      n_clusters: 1

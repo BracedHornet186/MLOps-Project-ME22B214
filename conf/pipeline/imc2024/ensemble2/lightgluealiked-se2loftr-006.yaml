@@ -1,0 +1,115 @@
+# conf/pipeline/imc2024/ensemble2/lightgluealiked-se2loftr-006.yaml
+type: imc2024
+
+imc2024_pipeline:
+  shortlist_generator: 
+    type: all_pairs
+  
+  pre_matching:
+    matchers:
+      - type: local_feature
+        local_feature:
+          type: lightglue_aliked
+          lightglue_aliked:
+            weight_path: ALIKED_LIGHTGLUE_N16
+          resize:
+            func: lightglue
+            lg_resize: 960
+        local_feature_matcher:
+          type: lightglue
+          lightglue:
+            weight_path: LIGHTGLUE_WITH_ALIKED_N16
+            feature_name: aliked
+            min_matches: 15
+            width_confidence: -1.0
+            depth_confidence: -1.0
+            mp: true
+      - type: local_feature
+        local_feature:
+          type: lightglue_sift
+          lightglue_sift:
+            max_num_keypoints: 4096
+        local_feature_matcher:
+          type: lightglue
+          lightglue:
+            weight_path: LIGHTGLUE_WITH_SIFT
+            feature_name: sift
+            min_matches: 15
+            width_confidence: -1.0
+            depth_confidence: -1.0
+            mp: true
+  
+  overlap_region_estimation:
+    method: lof
+    bidirectional: true
+    bidirectional_merging: intersection
+    bbox_expansion: 16
+    border_padding: 8
+    lof_n_neighbors: 100
+  
+  shortlist_updater:
+    type: pre_matching
+    pre_matching:
+      match_threshold: 50
+      aggregation_type: union
+      global_descriptors:
+        - type: cvnet 
+          similar_distance_threshold: 0.6
+          batch_size: 1
+          num_workers: 1
+          cvnet:
+            weight_path: CVNET_R101
+            depth: 101
+            reduction_dim: 2048
+        #- type: dinov2
+        #  similar_distance_threshold: 0.2
+        #  batch_size: 1
+        #  num_workers: 1
+        #  dinov2:
+        #    pretrained_model: DINOV2_BASE
+  
+  local_features:
+    - type: lightglue_aliked
+      lightglue_aliked:
+        weight_path: ALIKED_LIGHTGLUE_N16
+      resize:
+        func: lightglue
+        lg_resize: 1280
+
+  local_feature_matchers:
+    - type: lightglue
+      lightglue:
+        weight_path: LIGHTGLUE_WITH_ALIKED_N16
+        feature_name: aliked
+        min_matches: 15
+        width_confidence: -1.0
+        depth_confidence: -1.0
+        mp: true
+
+  detector_free_matchers:
+    - type: se2loftr
+      se2loftr:
+        weight_path: SE2LOFTR_BIG
+        config_file_path: SE2LOFTR_BIG_CONFIG_FILE
+        match_coarse_thr: null
+        confidence_threshold: 0.4
+        topk: 1024
+        resize:
+          func: opencv-divisible
+          long_edge_length: 960
+          antialias: true
+          divisible_factor: 8
+          pad_bottom_right: true
+
+  verification:
+    type: custom
+    ransac:
+      threshold: 2.0
+      confidence: 0.99999
+      max_iters: 100000
+      min_inliers: 16
+      method: magsac
+
+  reconstruction:
+    mapper_min_model_size: 3
+    mapper_max_num_models: 2
