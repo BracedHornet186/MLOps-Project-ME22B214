@@ -1,4 +1,4 @@
-git from __future__ import annotations
+from __future__ import annotations
 
 import contextlib
 import io

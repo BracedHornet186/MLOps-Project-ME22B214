@@ -1,0 +1,46 @@
+# conf/pipeline/imc2025/mast3r/mast3r-013-b.yaml
+# ------------------------------------
+# ------------------------------------
+# ------------------------------------
+type: imc2025
+
+imc2025_pipeline:
+  detector_free_matchers:
+    - type: mast3r
+      mast3r:
+        min_matches: 15 # todo
+        size: 640
+        mast3r:
+          use_amp: true
+          weight_path: MAST3R
+
+  shortlist_generator: 
+    type: mast3r_retrieval_asmk
+    mast3r_retrieval_asmk_fallback_threshold: 40
+    mast3r_retrieval_asmk_remove_swapped_pairs: true
+    mast3r_retrieval_asmk_make_pairs_fps_n: 20
+    mast3r_retrieval_asmk_make_pairs_fps_k: 40
+    mast3r_retrieval_asmk_make_pairs_fps_dist_threshold: null
+    mast3r_retrieval_asmk:
+      mast3r:
+        weight_path: MAST3R
+        retrieval_weight_path: MAST3R_RETRIEVAL
+        retrieval_codebook_path: MAST3R_RETRIEVAL_CODEBOOK
+
+  verification:
+    type: custom
+    ransac:
+      threshold: 0.25
+      confidence: 0.9999
+      max_iters: 100000
+      min_inliers: 16
+      method: magsac
+
+  reconstruction:
+    fill_zero_Rt: false
+    fill_nan_Rt: false
+    fill_nearest_position: false
+    mapper_min_model_size: 3
+    mapper_max_num_models: 25
+  
+  clustering: null

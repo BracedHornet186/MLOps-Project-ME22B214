@@ -63,3 +63,9 @@ CHECK_ORIENTATION:
   local:  weights/check_orientation/resnet50_model.pth
   docker: /app/weights/check_orientation/resnet50_model.pth
   kernel: ../input/imc2025models/check_orientation/resnet50_model.pth
+
+# ── PixLoc MegaDepth ──────────────────────────────────────────────────────────
+PIXLOC_MEGADEPTH:
+  local:  weights/pixloc/megadepth.pt
+  docker: /app/weights/pixloc/megadepth.pt
+  kernel: ../input/imc2025models/pixloc/megadepth.pt

@@ -1,0 +1,70 @@
+# conf/pipeline/imc2025/mast3r/mast3r-018-d.yaml
+# ------------------------------------
+# fps_dist_threshold: 0.9 -> 0.8
+# ------------------------------------
+type: imc2025_mast3r
+
+imc2025_mast3r_pipeline:
+  clustering:
+    type: mast3r_fps
+    mast3r_fps:
+      mast3r_retrieval_model:
+        mast3r:
+          weight_path: MAST3R
+          retrieval_weight_path: MAST3R_RETRIEVAL
+          retrieval_codebook_path: MAST3R_RETRIEVAL_CODEBOOK
+        global_desc_type: retrieval_spoc
+
+      mast3r_matcher:
+        min_matches: 15 # todo
+        size: 512
+        mast3r:
+          use_amp: true
+          weight_path: MAST3R
+
+      initial_point_type: simsum_max
+      fps_n: 10
+      fps_dist_threshold: 0.8
+
+      limit_depth_for_exhaustive_matching: 1
+      topk_for_partial_matching: 10
+      num_query_from_target: 5
+
+      min_cluster_size: 3
+      use_noisy_cluster_as_one_cluster: false
+
+      seed: 2025
+      verbose: false
+
+  shortlist_generator: 
+    type: mast3r_retrieval_asmk
+    mast3r_retrieval_asmk_fallback_threshold: 30
+    mast3r_retrieval_asmk_remove_swapped_pairs: true
+    mast3r_retrieval_asmk_make_pairs_fps_n: 20
+    mast3r_retrieval_asmk_make_pairs_fps_k: 20
+    mast3r_retrieval_asmk_make_pairs_fps_dist_threshold: null
+    mast3r_retrieval_asmk:
+      mast3r:
+        weight_path: MAST3R
+        retrieval_weight_path: MAST3R_RETRIEVAL
+        retrieval_codebook_path: MAST3R_RETRIEVAL_CODEBOOK
+
+  cropper_type: ignore
+
+  matcher:
+    min_matches: 15 # todo
+    size: 512
+    mast3r:
+      use_amp: true
+      weight_path: MAST3R
+
+  verification:
+    type: colmap
+  
+  reconstruction:
+    fill_zero_Rt: false
+    fill_nan_Rt: false
+    fill_nearest_position: false
+    mapper_min_model_size: 3
+    mapper_max_num_models: 25
+  

@@ -15,60 +15,65 @@ imc2025_mast3r_pipeline:
   clustering:
     type: mast3r_fps
     mast3r_fps:
-      n_fps_seeds: 5          # number of FPS seed images per dataset
+      fps_n: 5          # number of FPS seed images per dataset
       min_cluster_size: 3
-      max_cluster_size: 60    # keep clusters small enough for 12 GB VRAM
+      mast3r_retrieval_model:
+        mast3r:
+          weight_path: MAST3R
+          retrieval_weight_path: MAST3R_RETRIEVAL
+          retrieval_codebook_path: MAST3R_RETRIEVAL_CODEBOOK
+      mast3r_matcher:
+        mast3r:
+          weight_path: MAST3R
+        size: 512
 
   # ── Shortlist generation ──────────────────────────────────────────────────
   # Union of three retrievers; ASMK dominates, DINOv2+ISC add diversity.
   shortlist_generator:
     type: ensemble
     ensemble:
-      generators:
+      shortlist_generators:
         - type: mast3r_retrieval_asmk
+          mast3r_retrieval_asmk_make_pairs_fps_k: 20
           mast3r_retrieval_asmk:
-            retriever:
-              type: mast3r_retrieval_asmk
-              mast3r_retrieval_asmk:
-                mast3r:
-                  weight_path: MAST3R
-                  retrieval_weight_path: MAST3R_RETRIEVAL
-                  retrieval_codebook_path: MAST3R_RETRIEVAL_CODEBOOK
-            topk: 20          # top-20 neighbors per image from ASMK
-        - type: global_descriptor
-          global_descriptor:
-            global_desc_model: dinov2
-            dinov2:
-              pretrained_model: DINOV2_BASE
-              options:
-                pooling_type: max
-            batch_size: 8
-            topk: 10
-        - type: global_descriptor
-          global_descriptor:
-            global_desc_model: isc
-            isc:
-              weight_path: ISC
-            batch_size: 8
-            topk: 10
+            mast3r:
+              weight_path: MAST3R
+              retrieval_weight_path: MAST3R_RETRIEVAL
+              retrieval_codebook_path: MAST3R_RETRIEVAL_CODEBOOK
+        - type: global_desc
+          global_desc_model: dinov2
+          dinov2:
+            pretrained_model: DINOV2_BASE
+            options:
+              pooling_type: max
+          global_desc_batch_size: 8
+          global_desc_topk: 10
+        - type: global_desc
+          global_desc_model: isc
+          isc:
+            weight_path: ISC
+          global_desc_batch_size: 8
+          global_desc_topk: 10
       dedup: true             # remove duplicate pairs across generators
 
   # ── MASt3R hybrid matcher ─────────────────────────────────────────────────
   # Mode: complementary — reuse clustering matches, fill gaps with MASt3R.
   matcher:
-    model_path: MAST3R
-    imsize: 512
-    dense_subsample: 8        # subsample factor for semi-dense grid
-    dense_pixel_tol: 5        # pixel tolerance for reciprocal NN
-    threshold: 1.001
+    mast3r:
+      weight_path: MAST3R
+    size: 512
+    subsample: 8              # subsample factor for semi-dense grid
+    pixel_tol: 5              # pixel tolerance for reciprocal NN
+    match_threshold: 1.001
 
   # ── Additional sparse detectors (fed into MASt3R local descriptor head) ──
   # Inspired by MP-SfM — ALIKED keypoints improve coverage in textureless areas.
   matcher_hybrid:
     type: mast3r_hybrid
     mast3r_hybrid:
-      model_path: MAST3R
-      imsize: 512
+      model:
+        weight_path: MAST3R
+      size: 512
       local_features:
         - type: aliked
           aliked:

@@ -38,7 +38,7 @@ dependencies = [
     "loguru>=0.7.3",
     "mast3r",
     "matplotlib>=3.10.1",
-    "mmcv>=2.2.0",
+    "mmcv-lite",
     "moge",
     "mono",
     "mpsfm",
@@ -121,3 +121,8 @@ unfixable = [
 required-imports = [
     "from __future__ import annotations"
 ]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["api", "core", "dags", "models", "plugins", "matchers", "features", "pipelines", "retrievers", "shortlists", "monitoring", "localizers", "clusterings", "model_server", "preprocesses", "postprocesses", "global_descriptors", "scripts", "tools", "utils"]
+exclude = ["logs", "data", "weights"]

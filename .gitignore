@@ -1,5 +1,5 @@
-mast3r/
-venv/
+ns64_imc2025.egg-info/
+.venv/
 build/
 install/
 logs/
