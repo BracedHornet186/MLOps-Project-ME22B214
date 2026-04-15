@@ -118,7 +118,7 @@ imc2025_mast3r_pipeline:
     mapper_multiple_models: true
 
   # ── Shortlist inside each cluster ─────────────────────────────────────────
-  shortlist_generator_in_clustering:
-    type: topk
-    topk:
-      k: 15
+  # shortlist_generator_in_clustering:
+  #   type: topk
+  #   topk:
+  #     k: 15
