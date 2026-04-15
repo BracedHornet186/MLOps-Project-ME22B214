@@ -1,1 +1,0 @@
-from models.ecotr.models.base.resnet import *

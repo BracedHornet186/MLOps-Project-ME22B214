@@ -6,7 +6,7 @@ authors = [
 description = "IMC25 1st place solution"
 readme = "README.md"
 version = "0.1.0"
-requires-python = ">=3.11"
+requires-python = "==3.11.*"
 dependencies = [
     "asmk",
     "build>=1.2.2.post1",

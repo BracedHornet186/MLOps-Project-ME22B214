@@ -1,71 +1,321 @@
-# conf/models.yaml
-# ─────────────────────────────────────────────────────────────────────────────
-# Model weight registry.
-# resolve_model_path(key) reads this file and returns the correct path
-# based on the DEFAULT_ENV_NAME environment variable.
-#
-# Usage:
-#   export DEFAULT_ENV_NAME=local    # development on your machine
-#   export DEFAULT_ENV_NAME=docker   # inside Docker containers
-#   export DEFAULT_ENV_NAME=kernel   # Kaggle notebook
-#
-# Place downloaded weights under weights/ (gitignored, tracked via DVC LFS).
-# ─────────────────────────────────────────────────────────────────────────────
-
-# ── MASt3R ────────────────────────────────────────────────────────────────────
-MAST3R:
-  local:  weights/mast3r/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric.pth
-  docker: /app/weights/mast3r/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric.pth
-  kernel: ../input/imc2025models/mast3r/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric.pth
-
-MAST3R_RETRIEVAL:
-  local:  weights/mast3r_retrieval/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric_retrieval_trainingfree.pth
-  docker: /app/weights/mast3r_retrieval/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric_retrieval_trainingfree.pth
-  kernel: ../input/imc2025models/mast3r_retrieval/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric_retrieval_trainingfree.pth
-
-MAST3R_RETRIEVAL_CODEBOOK:
-  local:  weights/mast3r_retrieval/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric_retrieval_codebook.pkl
-  docker: /app/weights/mast3r_retrieval/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric_retrieval_codebook.pkl
-  kernel: ../input/imc2025models/mast3r_retrieval/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric_retrieval_codebook.pkl
-
-# ── ALIKED + LightGlue ────────────────────────────────────────────────────────
-ALIKED_LIGHTGLUE_N16:
-  local:  weights/aliked/aliked-n16.pth
-  docker: /app/weights/aliked/aliked-n16.pth
-  kernel: /kaggle/input/aliked/pytorch/aliked-n16/1/aliked-n16.pth
-
-# ── SuperPoint (MagicLeap research-only) ─────────────────────────────────────
+CVNET_R101:
+  local: extra/pretrained_models/cvnet/CVPR2022_CVNet_R101.pyth
+  docker: /app/extra/pretrained_models/cvnet/CVPR2022_CVNet_R101.pyth
+LOFTR_OUTDOOR_KORNIA:
+  local: extra/pretrained_models/loftr/loftr_outdoor.ckpt
+  docker: /app/extra/pretrained_models/loftr/loftr_outdoor.ckpt
+LOFTR_INDOOR_KORNIA:
+  local: extra/pretrained_models/loftr/loftr_indoor.ckpt
+  docker: /app/extra/pretrained_models/loftr/loftr_indoor.ckpt
+DISK_DEPTH:
+  local: extra/pretrained_models/disk/disk_depth.pth
+  docker: /app/extra/pretrained_models/disk/disk_depth.pth
+MTLDESC:
+  local: extra/pretrained_models
+  docker: /app/extra/pretrained_models
+MATCHFORMER_OUTDOOR_LARGE_LA:
+  local: extra/pretrained_models/matchformer/outdoor-large-LA.ckpt
+  docker: /app/extra/pretrained_models/matchformer/outdoor-large-LA.ckpt
+SE2LOFTR_BIG:
+  local: extra/pretrained_models/se2loftr/4rot-big.ckpt
+  docker: /app/extra/pretrained_models/se2loftr/4rot-big.ckpt
+SE2LOFTR_BIG_CONFIG_FILE:
+  local: extra/pretrained_models/se2loftr/loftr_ds_e2_dense_big.py
+  docker: /app/extra/pretrained_models/se2loftr/loftr_ds_e2_dense_big.py
+POSFEAT_IMC2022:
+  local: extra/pretrained_models/posfeat/keypoint_imc2022_2_1/006
+  docker: /app/extra/pretrained_models/posfeat/keypoint_imc2022_2_1/006
+ALIKED_N32:
+  local: extra/pretrained_models/aliked/aliked-n32.pth
+  docker: /app/extra/pretrained_models/aliked/aliked-n32.pth
+LANET_V1:
+  local: extra/pretrained_models/lanet/PointModel_v1.pth
+  docker: /app/extra/pretrained_models/lanet/PointModel_v1.pth
+DKM_V3_OUTDOOR:
+  local: extra/pretrained_models/dkm/DKMv3_outdoor.pth
+  docker: /app/extra/pretrained_models/dkm/DKMv3_outdoor.pth
+OPENGLUE_MTLDESC:
+  local: extra/pretrained_models/openglue/sg_mtldesc_v2
+  docker: /app/extra/pretrained_models/openglue/sg_mtldesc_v2
+ECOTR:
+  local: extra/pretrained_models/eco-tr/checkpoint.pth.tar
+  docker: /app/extra/pretrained_models/eco-tr/checkpoint.pth.tar
+QUADTREE_OUTDOOR:
+  local: extra/pretrained_models/quadtree/outdoor.ckpt
+  docker: /app/extra/pretrained_models/quadtree/outdoor.ckpt
+SFD2:
+  local: extra/pretrained_models/sfd2/20220810_ressegnetv2_wapv2_ce_sd2mfsf_uspg.pth
+  docker: /app/extra/pretrained_models/sfd2/20220810_ressegnetv2_wapv2_ce_sd2mfsf_uspg.pth
+SUPERPOINT_COCO:
+  local: extra/pretrained_models/superpoint/superpoint_coco_heat2_0/checkpoints/superPointNet_170000_checkpoint.pth.tar
+  docker: /app/extra/pretrained_models/superpoint/superpoint_coco_heat2_0/checkpoints/superPointNet_170000_checkpoint.pth.tar
+SUPERPOINT_KITTI:
+  local: extra/pretrained_models/superpoint/superpoint_kitti_heat2_0/checkpoints/superPointNet_50000_checkpoint.pth.tar
+  docker: /app/extra/pretrained_models/superpoint/superpoint_kitti_heat2_0/checkpoints/superPointNet_50000_checkpoint.pth.tar
+OPENGLUE_SUPERPOINT_COCO:
+  local: extra/pretrained_models/openglue_superpoint/coco
+  docker: /app/extra/pretrained_models/openglue_superpoint/coco
+OPENGLUE_SUPERPOINT_KITTI:
+  local: extra/pretrained_models/openglue_superpoint/kitti
+  docker: /app/extra/pretrained_models/openglue_superpoint/kitti
+APGEM_RESNET101:
+  local: extra/pretrained_models/apgem/Resnet-101-AP-GeM.pt
+  docker: /app/extra/pretrained_models/apgem/Resnet-101-AP-GeM.pt
+ALIKE_L:
+  local: extra/pretrained_models/alike/alike-l.pth
+  docker: /app/extra/pretrained_models/alike/alike-l.pth
+FEATUREBOOSTER_ALIKE_BOOST_F:
+  local: extra/pretrained_models/featurebooster/ALIKE+Boost-F.pth
+  docker: /app/extra/pretrained_models/featurebooster/ALIKE+Boost-F.pth
+ADAMATCHER:
+  local: extra/pretrained_models/adamatcher/adamatcher.ckpt
+  docker: /app/extra/pretrained_models/adamatcher/adamatcher.ckpt
+ADAMATCHER_ASPAN:
+  local: extra/pretrained_models/adamatcher/adamatcher_aspan.ckpt
+  docker: /app/extra/pretrained_models/adamatcher/adamatcher_aspan.ckpt
+ADAMATCHER_QUAD:
+  local: extra/pretrained_models/adamatcher/adamatcher_quad.ckpt
+  docker: /app/extra/pretrained_models/adamatcher/adamatcher_quad.ckpt
+NCMNET_YFCC:
+  local: extra/pretrained_models/ncmnet/yfcc/model_best.pth
+  docker: /app/extra/pretrained_models/ncmnet/yfcc/model_best.pth
 MAGICLEAP_SUPERPOINT:
-  local:  weights/superpoint/superpoint_v1.pth
-  docker: /app/weights/superpoint/superpoint_v1.pth
-  kernel: ../input/imc2023models/research_only/magicleap/superpoint_v1.pth
-
-# ── DINOv2 ────────────────────────────────────────────────────────────────────
-DINOV2_BASE:
-  local:  weights/dinov2-base
-  docker: /app/weights/dinov2-base
-  kernel: /kaggle/input/dinov2/pytorch/base/1
-
-# ── ISC (Copy-detection, 256-dim) ─────────────────────────────────────────────
-ISC:
-  local:  weights/isc/isc_ft_v107.pth.tar
-  docker: /app/weights/isc/isc_ft_v107.pth.tar
-  kernel: ../input/imc2025models/isc/isc_ft_v107.pth.tar
-
-# ── DaD (Dense-and-Diverse keypoints) ────────────────────────────────────────
-DAD:
-  local:  weights/dad/dad.pth
-  docker: /app/weights/dad/dad.pth
-  kernel: ../input/imc2025models/dad/dad.pth
-
-# ── Check orientation (ResNeXt-50, for preprocessing) ────────────────────────
-CHECK_ORIENTATION:
-  local:  weights/check_orientation/resnet50_model.pth
-  docker: /app/weights/check_orientation/resnet50_model.pth
-  kernel: ../input/imc2025models/check_orientation/resnet50_model.pth
-
-# ── PixLoc MegaDepth ──────────────────────────────────────────────────────────
+  local: extra/pretrained_models/magicleap/superpoint_v1.pth
+  docker: /app/extra/pretrained_models/magicleap/superpoint_v1.pth
+MAGICLEAP_SUPERGLUE:
+  local: extra/pretrained_models/magicleap/superglue_outdoor.pth
+  docker: /app/extra/pretrained_models/magicleap/superglue_outdoor.pth
+OPENGLUE_ALIKED_V1:
+  local: extra/pretrained_models/openglue/sg_aliked_v1
+  docker: /app/extra/pretrained_models/openglue/sg_aliked_v1
+ROMA_OUTDOOR:
+  local: extra/pretrained_models/roma/roma_outdoor.pth
+  docker: /app/extra/pretrained_models/roma/roma_outdoor.pth
+ROMA_DINO_V2:
+  local: extra/pretrained_models/roma/dinov2_vitl14_pretrain.pth
+  docker: /app/extra/pretrained_models/roma/dinov2_vitl14_pretrain.pth
+OPENGLUE_MTLDESC_V4:
+  local: extra/pretrained_models/openglue/sg_mtldesc_v4
+  docker: /app/extra/pretrained_models/openglue/sg_mtldesc_v4
+SILK:
+  local: extra/pretrained_models/silk/coco-rgb-aug.ckpt
+  docker: /app/extra/pretrained_models/silk/coco-rgb-aug.ckpt
+FSNET_OUTDOOR:
+  local: extra/pretrained_models/fsnet/weights/outdoor_fundamentals.pth
+  docker: /app/extra/pretrained_models/fsnet/weights/outdoor_fundamentals.pth
+FSNET_OUTDOOR_CONFIG:
+  local: extra/pretrained_models/fsnet/config/conf.yaml
+  docker: /app/extra/pretrained_models/fsnet/config/conf.yaml
+FSNET_F:
+  local: extra/pretrained_models/fsnet/fundamentals.npy
+  docker: /app/extra/pretrained_models/fsnet/fundamentals.npy
+ASPANFORMER_OUTDOOR:
+  local: extra/pretrained_models/aspanformer/weights/outdoor.ckpt
+  docker: /app/extra/pretrained_models/aspanformer/weights/outdoor.ckpt
+ORINET:
+  local: extra/pretrained_models/hardnet/OriNet.pth
+  docker: /app/extra/pretrained_models/hardnet/OriNet.pth
+KEYNET:
+  local: extra/pretrained_models/hardnet/keynet_pytorch.pth
+  docker: /app/extra/pretrained_models/hardnet/keynet_pytorch.pth
+AFFNET:
+  local: extra/pretrained_models/hardnet/AffNet.pth
+  docker: /app/extra/pretrained_models/hardnet/AffNet.pth
+HARDNET_LIB:
+  local: extra/pretrained_models/hardnet/checkpoint_liberty_with_aug.pth
+  docker: /app/extra/pretrained_models/hardnet/checkpoint_liberty_with_aug.pth
+HARDNET_PP:
+  local: extra/pretrained_models/hardnet/hardnet_pp.pth
+  docker: /app/extra/pretrained_models/hardnet/hardnet_pp.pth
+HARDNET8:
+  local: extra/pretrained_models/hardnet/hardnet8v2.pt
+  docker: /app/extra/pretrained_models/hardnet/hardnet8v2.pt
+OPENGLUE_HARDNET:
+  local: extra/pretrained_models/hardnet/openglue
+  docker: /app/extra/pretrained_models/hardnet/openglue
+PANET:
+  local: extra/pretrained_models/panet/checkpoint.pth
+  docker: /app/extra/pretrained_models/panet/checkpoint.pth
 PIXLOC_MEGADEPTH:
-  local:  weights/pixloc/megadepth.pt
-  docker: /app/weights/pixloc/megadepth.pt
-  kernel: ../input/imc2025models/pixloc/megadepth.pt
+  local: extra/pretrained_models/pixloc_megadepth
+  docker: /app/extra/pretrained_models/pixloc_megadepth
+DINOV2_BASE:
+  local: facebook/dinov2-base
+  docker: facebook/dinov2-base
+DINOV2_VIT_L14:
+  local: extra/pretrained_models/dinov2/dinov2_vitl14_pretrain.pth
+  docker: /app/extra/pretrained_models/dinov2/dinov2_vitl14_pretrain.pth
+ALIKED_LIGHTGLUE_N16:
+  local: extra/aliked-n16/aliked-n16.pth
+  docker: /app/extra/aliked-n16/aliked-n16.pth
+LIGHTGLUE_WITH_ALIKED_N16:
+  local: ETH-CVG/lightglue_superpoint
+  docker: ETH-CVG/lightglue_superpoint
+LIGHTGLUE_WITH_DEDODE_B:
+  local: extra/pretrained_models/lightglue/dedodeb_lightglue.pth
+  docker: /app/extra/pretrained_models/lightglue/dedodeb_lightglue.pth
+LIGHTGLUE_WITH_DEDODE_G:
+  local: extra/pretrained_models/lightglue/dedodeg_lightglue.pth
+  docker: /app/extra/pretrained_models/lightglue/dedodeg_lightglue.pth
+LIGHTGLUE_WITH_DISK:
+  local: extra/pretrained_models/lightglue/disk_lightglue.pth
+  docker: /app/extra/pretrained_models/lightglue/disk_lightglue.pth
+LIGHTGLUE_WITH_SIFT:
+  local: extra/pretrained_models/lightglue/sift_lightglue.pth
+  docker: /app/extra/pretrained_models/lightglue/sift_lightglue.pth
+LIGHTGLUE_WITH_DOGHARDNET:
+  local: extra/pretrained_models/lightglue/doghardnet_lightglue.pth
+  docker: /app/extra/pretrained_models/lightglue/doghardnet_lightglue.pth
+LIGHTGLUE_WITH_SUPERPOINT:
+  local: extra/pretrained_models/lightglue/superpoint_lightglue.pth
+  docker: /app/extra/pretrained_models/lightglue/superpoint_lightglue.pth
+DEDODE_DETECTOR_L:
+  local: extra/pretrained_models/dedode/dedode_detector_L.pth
+  docker: /app/extra/pretrained_models/dedode/dedode_detector_L.pth
+DEDODE_DESCRIPTOR_B:
+  local: extra/pretrained_models/dedode/dedode_descriptor_B.pth
+  docker: /app/extra/pretrained_models/dedode/dedode_descriptor_B.pth
+DEDODE_DESCRIPTOR_G:
+  local: extra/pretrained_models/dedode/dedode_descriptor_G.pth
+  docker: /app/extra/pretrained_models/dedode/dedode_descriptor_G.pth
+DOPPELGANGERS:
+  local: extra/pretrained_models/doppelgangers/doppelgangers_classifier_loftr.pt
+  docker: /app/extra/pretrained_models/doppelgangers/doppelgangers_classifier_loftr.pt
+DOPPELGANGERS_LOFTR:
+  local: extra/pretrained_models/doppelgangers/outdoor_ds.ckpt
+  docker: /app/extra/pretrained_models/doppelgangers/outdoor_ds.ckpt
+RELF_RN18:
+  local: extra/pretrained_models/relf/best_model.pt
+  docker: /app/extra/pretrained_models/relf/best_model.pt
+RELF_WRN:
+  local: extra/pretrained_models/relf/best_model_wrn.pt
+  docker: /app/extra/pretrained_models/relf/best_model_wrn.pt
+XFEAT:
+  local: extra/pretrained_models/xfeat/xfeat.pt
+  docker: /app/extra/pretrained_models/xfeat/xfeat.pt
+STEERER_B_C4_PERM_DEDODE_DESC_SETTING_C:
+  local: extra/pretrained_models/steerers/B_C4_Perm_descriptor_setting_C.pth
+  docker: /app/extra/pretrained_models/steerers/B_C4_Perm_descriptor_setting_C.pth
+STEERER_B_C4_PERM_STEERER_SETTING_C:
+  local: extra/pretrained_models/steerers/B_C4_Perm_steerer_setting_C.pth
+  docker: /app/extra/pretrained_models/steerers/B_C4_Perm_steerer_setting_C.pth
+STEERER_B_C4_STEERER_SETTING_A:
+  local: extra/pretrained_models/steerers/B_C4_steerer_setting_A.pth
+  docker: /app/extra/pretrained_models/steerers/B_C4_steerer_setting_A.pth
+STEERER_B_SO2_SPREAD_DEDODE_DESC_SETTING_B:
+  local: extra/pretrained_models/steerers/B_SO2_Spread_descriptor_setting_B.pth
+  docker: /app/extra/pretrained_models/steerers/B_SO2_Spread_descriptor_setting_B.pth
+STEERER_B_SO2_SPREAD_STEERER_SETTING_B:
+  local: extra/pretrained_models/steerers/B_SO2_Spread_steerer_setting_B.pth
+  docker: /app/extra/pretrained_models/steerers/B_SO2_Spread_steerer_setting_B.pth
+CHECK_ORIENTATION_MODEL:
+  local: extra/pretrained_models/check_orientation/2020-11-16_resnext50_32x4d.pth
+  docker: /app/extra/pretrained_models/check_orientation/2020-11-16_resnext50_32x4d.pth
+CHECK_ORIENTATION_CONFIG:
+  local: extra/pretrained_models/check_orientation/2020-11-16.yaml
+  docker: /app/extra/pretrained_models/check_orientation/2020-11-16.yaml
+EFFICIENT_LOFTR_OUTDOOR:
+  local: extra/pretrained_models/efficient_loftr/eloftr_outdoor.ckpt
+  docker: /app/extra/pretrained_models/efficient_loftr/eloftr_outdoor.ckpt
+FFTFORMER_REALBLUR_J:
+  local: extra/pretrained_models/fftformer/net_g_Realblur_J.pth
+  docker: /app/extra/pretrained_models/fftformer/net_g_Realblur_J.pth
+FFTFORMER_REALBLUR_R:
+  local: extra/pretrained_models/fftformer/net_g_Realblur_R.pth
+  docker: /app/extra/pretrained_models/fftformer/net_g_Realblur_R.pth
+FFTFORMER_GOPRO:
+  local: extra/pretrained_models/fftformer/fftformer_GoPro.pth
+  docker: /app/extra/pretrained_models/fftformer/fftformer_GoPro.pth
+LIMAP_MODELS:
+  local: extra/pretrained_models/limap
+  docker: /app/extra/pretrained_models/limap
+HF_DEPTH_ANYTHING_LARGE:
+  local: extra/pretrained_models/depth_anything/models--LiheYoung--depth-anything-large-hf/snapshots/27ccb0920352c0c37b3a96441873c8d37bd52fb6
+  docker: /app/extra/pretrained_models/depth_anything/models--LiheYoung--depth-anything-large-hf/snapshots/27ccb0920352c0c37b3a96441873c8d37bd52fb6
+DINOV2_SALAD:
+  local: extra/pretrained_models/dinov2_salad/dino_salad.ckpt
+  docker: /app/extra/pretrained_models/dinov2_salad/dino_salad.ckpt
+DINOV2_VITB14:
+  local: extra/pretrained_models/dinov2_salad/dinov2_vitb14_pretrain.pth
+  docker: /app/extra/pretrained_models/dinov2_salad/dinov2_vitb14_pretrain.pth
+OMNIGLUE_ONNX:
+  local: extra/pretrained_models/omniglue_onnx/omniglue.onnx
+  docker: /app/extra/pretrained_models/omniglue_onnx/omniglue.onnx
+OMNIGLUE_ONNX_SP_V6:
+  local: extra/pretrained_models/omniglue_onnx/sp_v6.onnx
+  docker: /app/extra/pretrained_models/omniglue_onnx/sp_v6.onnx
+PATCH_NETVLAD_LANDMARKS:
+  local: extra/pretrained_models/patch_netvlad/landmarks_WPCA4096.pth.tar
+  docker: /app/extra/pretrained_models/patch_netvlad/landmarks_WPCA4096.pth.tar
+VGG16:
+  local: extra/pretrained_models/vgg16/vgg16-397923af.pth
+  docker: /app/extra/pretrained_models/vgg16/vgg16-397923af.pth
+MICKEY_MODEL:
+  local: extra/pretrained_models/mickey/mickey_weights/mickey.ckpt
+  docker: /app/extra/pretrained_models/mickey/mickey_weights/mickey.ckpt
+MICKEY_CONFIG:
+  local: extra/pretrained_models/mickey/mickey_weights/config.yaml
+  docker: /app/extra/pretrained_models/mickey/mickey_weights/config.yaml
+GIM_SUPERPOINT_LIGHTGLUE:
+  local: extra/pretrained_models/gim/gim_lightglue_100h.ckpt
+  docker: /app/extra/pretrained_models/gim/gim_lightglue_100h.ckpt
+GIM_DKM:
+  local: extra/pretrained_models/gim/gim_dkm_100h.ckpt
+  docker: /app/extra/pretrained_models/gim/gim_dkm_100h.ckpt
+GIM_LIGHTGLUE_WITH_SUPERPOINT:
+  local: extra/pretrained_models/gim/superpoint_lightglue_v0-1_arxiv.pth
+  docker: /app/extra/pretrained_models/gim/superpoint_lightglue_v0-1_arxiv.pth
+HF_GROUNDING_DINO_BASE:
+  local: extra/pretrained_models/grounded_sam/models--IDEA-Research--grounding-dino-base/snapshots/12bdfa3120f3e7ec7b434d90674b3396eccf88eb
+  docker: /app/extra/pretrained_models/grounded_sam/models--IDEA-Research--grounding-dino-base/snapshots/12bdfa3120f3e7ec7b434d90674b3396eccf88eb
+HF_SAM_VIT_BASE:
+  local: extra/pretrained_models/grounded_sam/models--facebook--sam-vit-base/snapshots/70c1a07f894ebb5b307fd9eaaee97b9dfc16068f
+  docker: /app/extra/pretrained_models/grounded_sam/models--facebook--sam-vit-base/snapshots/70c1a07f894ebb5b307fd9eaaee97b9dfc16068f
+DARKFEAT:
+  local: extra/pretrained_models/darkfeat/DarkFeat.pth
+  docker: /app/extra/pretrained_models/darkfeat/DarkFeat.pth
+DELF_PYTORCH:
+  local: extra/pretrained_models/delf_pytorch/fix.pth.tar
+  docker: /app/extra/pretrained_models/delf_pytorch/fix.pth.tar
+DEDODE_V2_DETECTOR_L:
+  local: extra/pretrained_models/dedode_v2/dedode_detector_L_v2.pth
+  docker: /app/extra/pretrained_models/dedode_v2/dedode_detector_L_v2.pth
+MAST3R:
+  local: naver/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric
+  docker: naver/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric
+MAST3R_RETRIEVAL:
+  local: extra/pretrained_models/mast3r_retrieval/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric_retrieval_trainingfree.pth
+  docker: /app/extra/pretrained_models/mast3r_retrieval/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric_retrieval_trainingfree.pth
+MAST3R_RETRIEVAL_CODEBOOK:
+  local: extra/pretrained_models/mast3r_retrieval/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric_retrieval_codebook.pkl
+  docker: /app/extra/pretrained_models/mast3r_retrieval/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric_retrieval_codebook.pkl
+GIM_LOFTR:
+  local: extra/pretrained_models/gim_loftr/gim_loftr_50h.ckpt
+  docker: /app/extra/pretrained_models/gim_loftr/gim_loftr_50h.ckpt
+VGGT:
+  local: /home/ns64/.cache/huggingface/hub/models--facebook--VGGT-1B/snapshots/860abec7937da0a4c03c41d3c269c366e82abdf9
+  docker: /home/ns64/.cache/huggingface/hub/models--facebook--VGGT-1B/snapshots/860abec7937da0a4c03c41d3c269c366e82abdf9
+DAD:
+  local: extra/pretrained_models/dad/dad.pth
+  docker: /app/extra/pretrained_models/dad/dad.pth
+EDGEPOINT2_L64:
+  local: extra/pretrained_models/edgepoint2/L64.pth
+  docker: /app/extra/pretrained_models/edgepoint2/L64.pth
+VGGT_FIX:
+  local: extra/pretrained_models/vggt/model_tracker_fixed_e20.pt
+  docker: /app/extra/pretrained_models/vggt/model_tracker_fixed_e20.pt
+SIGLIP2_SO400M_PATCH14_384:
+  local: extra/pretrained_models/siglip2/models--google--siglip2-so400m-patch14-384/snapshots/e8e487298228002f3d8a82e0cd5c8ea9c567f57f
+  docker: /app/extra/pretrained_models/siglip2/models--google--siglip2-so400m-patch14-384/snapshots/e8e487298228002f3d8a82e0cd5c8ea9c567f57f
+ISC:
+  local: extra/pretrained_models/isc/isc_ft_v107.pth.tar
+  docker: /app/extra/pretrained_models/isc/isc_ft_v107.pth.tar
+DEPTH_ANYTHING_V2_L:
+  local: extra/pretrained_models/depth_anything_v2/depth_anything_v2_vitl.pth
+  docker: /app/extra/pretrained_models/depth_anything_v2/depth_anything_v2_vitl.pth
+MINIMA_LG:
+  local: extra/pretrained_models/minima/minima_lightglue.pth
+  docker: /app/extra/pretrained_models/minima/minima_lightglue.pth
+MINIMA_LOFTR:
+  local: extra/pretrained_models/minima/minima_loftr.ckpt
+  docker: /app/extra/pretrained_models/minima/minima_loftr.ckpt

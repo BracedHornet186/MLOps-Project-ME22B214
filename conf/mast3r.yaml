@@ -78,10 +78,10 @@ imc2025_mast3r_pipeline:
         - type: aliked
           aliked:
             weight_path: ALIKED_LIGHTGLUE_N16
-            max_num_keypoints: 2048   # 2048 keeps VRAM under 10 GB on RTX 3060
+            max_num_keypoints: 2048
             resize:
               func: lightglue
-              lg_resize: 1024         # downscale to 1024 for VRAM budget
+              lg_resize: 1024
         - type: superpoint
           superpoint:
             weight_path: MAGICLEAP_SUPERPOINT

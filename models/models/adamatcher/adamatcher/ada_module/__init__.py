@@ -1,1 +1,0 @@
-from models.adamatcher.adamatcher.ada_module.transformer import LocalFeatureTransformer
