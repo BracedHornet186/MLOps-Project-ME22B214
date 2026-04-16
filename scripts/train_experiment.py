@@ -13,16 +13,9 @@ Wraps evaluate_imc2025.py with full MLflow instrumentation:
 
 Usage:
     python3 scripts/train_experiment.py \
-        --config conf/pipeline/imc2025/mast3r_rtx3060.yaml \
+        --config conf/mast3r.yaml \
         --datasets ETs stairs \
-        --experiment-name scene_reconstruction \
-        --run-name mast3r_rtx3060_v1
-
-    # Run multiple configs and compare:
-    python3 scripts/train_experiment.py \
-        --config conf/pipeline/imc2025/mast3r_rtx3060.yaml \
-        --compare-with conf/pipeline/imc2025/mast3r_rtx3060_v2.yaml \
-        --datasets ETs
+        --experiment-name scene_reconstruction
 """
 
 from __future__ import annotations
@@ -147,7 +140,7 @@ def run_pipeline_and_collect_metrics(
     user_df = pd.read_csv(submission_csv)
     gt_df = IMC2025TrainData.create(DEFAULT_DATASET_DIR).df
 
-    final_score, dataset_scores = imc25_metric.score(
+    final_scores_tuple, dataset_scores_tuple = imc25_metric.score(
         gt_csv=DEFAULT_DATASET_DIR / "train_labels.csv",
         user_csv=submission_csv,
         thresholds_csv=DEFAULT_DATASET_DIR / "train_thresholds.csv",
@@ -157,6 +150,9 @@ def run_pipeline_and_collect_metrics(
         verbose=True,
     )
 
+    final_score = final_scores_tuple[0]
+    dataset_scores = dataset_scores_tuple[0]
+    
     per_dataset = {ds: float(sc) for ds, sc in dataset_scores.items()}
     return float(final_score), per_dataset, elapsed
 
@@ -248,25 +244,31 @@ def run_experiment(
         mlflow.set_tag("pipeline_status", "SUCCESS")
 
         # ── Artifacts ─────────────────────────────────────────────────────
-        mlflow.log_artifact(str(config_path), artifact_path="config")
-        mlflow.log_artifact(str(submission_csv), artifact_path="predictions")
-
-        # Write per-dataset JSON for easy downstream comparison
-        per_dataset_path = ROOT / "per_dataset_scores.json"
-        per_dataset_path.write_text(json.dumps(per_dataset, indent=2))
-        mlflow.log_artifact(str(per_dataset_path), artifact_path="metrics")
+        try:
+            mlflow.log_artifact(str(config_path), artifact_path="config")
+            mlflow.log_artifact(str(submission_csv), artifact_path="predictions")
+    
+            # Write per-dataset JSON for easy downstream comparison
+            per_dataset_path = ROOT / "per_dataset_scores.json"
+            per_dataset_path.write_text(json.dumps(per_dataset, indent=2))
+            mlflow.log_artifact(str(per_dataset_path), artifact_path="metrics")
+        except Exception as e:
+            log.warning("Could not log artifacts (likely local execution without access to /opt/mlflow): %s", e)
 
         # ── MLflow Model Registry ─────────────────────────────────────────
         # We register the config YAML as a "model" artifact so it can be
         # transitioned through Staging → Production in the Registry UI.
         if register_if_best:
-            _maybe_register_model(
-                run_id=run_id,
-                model_name=f"scene_reconstruction_{config_path.stem}",
-                overall_maa=overall_maa,
-                experiment_name=experiment_name,
-                mlflow_uri=mlflow_uri,
-            )
+            try:
+                _maybe_register_model(
+                    run_id=run_id,
+                    model_name=f"scene_reconstruction_{config_path.stem}",
+                    overall_maa=overall_maa,
+                    experiment_name=experiment_name,
+                    mlflow_uri=mlflow_uri,
+                )
+            except Exception as e:
+                log.warning("Could not register model: %s", e)
 
         log.info(
             "Run complete — mAA=%.4f  reg_rate=%.2f%%  elapsed=%.1fs  run_id=%s",

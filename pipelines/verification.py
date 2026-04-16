@@ -65,16 +65,21 @@ def verify_matches(
         #    multiple_models = False
         #    guided_matching = False
         #    planar_scene = False
-        if conf.ransac:
-            options = pycolmap.SiftMatchingOptions()
-            options.num_threads = 1
-            options.max_error = conf.ransac.threshold
-            options.confidence = conf.ransac.confidence
-            options.max_num_trials = conf.ransac.max_iters
-            pycolmap.match_exhaustive(database_path, options)
+        if hasattr(pycolmap, "TwoViewGeometryOptions"):
+            verification_options = pycolmap.TwoViewGeometryOptions()
+            if conf.ransac:
+                verification_options.max_error = conf.ransac.threshold
+                verification_options.confidence = conf.ransac.confidence
+                verification_options.max_num_trials = conf.ransac.max_iters
+            pycolmap.match_exhaustive(database_path, verification_options=verification_options)
         else:
             options = pycolmap.SiftMatchingOptions()
-            options.num_threads = 1
+            if hasattr(options, "num_threads"):
+                options.num_threads = 1
+            if conf.ransac:
+                options.max_error = conf.ransac.threshold
+                options.confidence = conf.ransac.confidence
+                options.max_num_trials = conf.ransac.max_iters
             pycolmap.match_exhaustive(database_path, options)
         g_storage = export_two_view_geometries_from_colmap(
             database_path=str(database_path)

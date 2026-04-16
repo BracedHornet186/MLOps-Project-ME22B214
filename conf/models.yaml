@@ -28,6 +28,9 @@ POSFEAT_IMC2022:
 ALIKED_N32:
   local: extra/pretrained_models/aliked/aliked-n32.pth
   docker: /app/extra/pretrained_models/aliked/aliked-n32.pth
+ALIKED_LIGHTGLUE_N16:
+  local: extra/pretrained_models/aliked/aliked-n16.pth
+  docker: /app/extra/pretrained_models/aliked/aliked-n16.pth
 LANET_V1:
   local: extra/pretrained_models/lanet/PointModel_v1.pth
   docker: /app/extra/pretrained_models/lanet/PointModel_v1.pth
@@ -146,8 +149,8 @@ DINOV2_VIT_L14:
   local: extra/pretrained_models/dinov2/dinov2_vitl14_pretrain.pth
   docker: /app/extra/pretrained_models/dinov2/dinov2_vitl14_pretrain.pth
 ALIKED_LIGHTGLUE_N16:
-  local: extra/aliked-n16/aliked-n16.pth
-  docker: /app/extra/aliked-n16/aliked-n16.pth
+  local: extra/pretrained_models/aliked-n16/aliked-n16.pth
+  docker: /app/extra/pretrained_models/aliked-n16/aliked-n16.pth
 LIGHTGLUE_WITH_ALIKED_N16:
   local: ETH-CVG/lightglue_superpoint
   docker: ETH-CVG/lightglue_superpoint

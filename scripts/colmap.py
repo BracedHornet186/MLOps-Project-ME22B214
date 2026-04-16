@@ -604,9 +604,10 @@ def get_best_reconstruction(
                 scene.scene,
                 im.name,
             )
+            pose = im.cam_from_world() if callable(im.cam_from_world) else im.cam_from_world
             outputs[key1] = {
-                "R": copy.deepcopy(im.cam_from_world.rotation.matrix()),
-                "t": copy.deepcopy(np.array(im.cam_from_world.translation)),
+                "R": copy.deepcopy(pose.rotation.matrix()),
+                "t": copy.deepcopy(np.array(pose.translation)),
                 "metadata": meta,
             }
 
@@ -677,9 +678,10 @@ def get_best_reconstruction(
             key1 = scene.data_schema.format_output_key(
                 scene.dataset, scene.scene, im.name
             )
+            pose = im.cam_from_world() if callable(im.cam_from_world) else im.cam_from_world
             outputs[key1] = {
-                "R": copy.deepcopy(im.cam_from_world.rotation.matrix()),
-                "t": copy.deepcopy(np.array(im.cam_from_world.translation)),
+                "R": copy.deepcopy(pose.rotation.matrix()),
+                "t": copy.deepcopy(np.array(pose.translation)),
             }
 
         no_registered_query_full_keys = []
@@ -723,9 +725,10 @@ def get_best_reconstruction(
                 scene.scene,
                 im.name,
             )
+            pose = im.cam_from_world() if callable(im.cam_from_world) else im.cam_from_world
             outputs[key1] = {
-                "R": copy.deepcopy(im.cam_from_world.rotation.matrix()),
-                "t": copy.deepcopy(np.array(im.cam_from_world.translation)),
+                "R": copy.deepcopy(pose.rotation.matrix()),
+                "t": copy.deepcopy(np.array(pose.translation)),
                 "metadata": metadata,
             }
             infos["localization_by"][key1] = "colmap"
@@ -872,9 +875,10 @@ def get_reconstructions(
                 scene.scene,
                 im.name,
             )
+            pose = im.cam_from_world() if callable(im.cam_from_world) else im.cam_from_world
             outputs[key1] = {
-                "R": copy.deepcopy(im.cam_from_world.rotation.matrix()),
-                "t": copy.deepcopy(np.array(im.cam_from_world.translation)),
+                "R": copy.deepcopy(pose.rotation.matrix()),
+                "t": copy.deepcopy(np.array(pose.translation)),
                 "cluster_name": f"cluster{map_index}",
                 "metadata": metadata,
             }

@@ -4,121 +4,105 @@
 # Uses MASt3R hybrid matcher (semi-dense + ALIKED keypoints).
 # Shortlist: MASt3R-ASMK + DINOv2 + ISC (SPoC skipped to save VRAM).
 # ─────────────────────────────────────────────────────────────────────────────
-type: imc2025_mast3r
 
-imc2025_mast3r_pipeline:
+type: imc2025
 
-  seed: 2025
-
-  # ── Clustering ────────────────────────────────────────────────────────────
-  # FPS-based pre-clustering so large scenes are split before matching.
-  clustering:
-    type: mast3r_fps
-    mast3r_fps:
-      fps_n: 5          # number of FPS seed images per dataset
-      min_cluster_size: 3
-      mast3r_retrieval_model:
-        mast3r:
-          weight_path: MAST3R
-          retrieval_weight_path: MAST3R_RETRIEVAL
-          retrieval_codebook_path: MAST3R_RETRIEVAL_CODEBOOK
-      mast3r_matcher:
-        mast3r:
-          weight_path: MAST3R
+imc2025_pipeline:
+  point_tracking_matchers:
+    - type: mast3r_hybrid
+      impl_version: v2
+      local_features:
+        - type: lightglue_aliked
+          lightglue_aliked:
+            weight_path: ALIKED_LIGHTGLUE_N16
+            max_num_keypoints: 4096
+          resize:
+            func: lightglue
+            lg_resize: 1280
+        - type: magicleap_superpoint
+          magicleap_superpoint:
+            weight_path: MAGICLEAP_SUPERPOINT
+            nms_radius: 4
+            keypoint_threshold: 0.0005
+            max_keypoints: 4096
+            remove_borders: 4
+            fix_sampling: true
+          resize:
+            func: magicleap
+            ml_resize: 1600
+      mast3r_hybrid:
         size: 512
+        dense_min_matches: 15
+        dense_subsample: 8
+        dense_pixel_tol: 5
+        dense_match_threshold: 1.001
+        dense_match_topk: null  # Use all
+        sparse_min_matches: 15
+        sparse_match_threshold: 1.001
+        sparse_match_topk: null  
+        model:
+          use_amp: true
+          weight_path: MAST3R
 
-  # ── Shortlist generation ──────────────────────────────────────────────────
-  # Union of three retrievers; ASMK dominates, DINOv2+ISC add diversity.
-  shortlist_generator:
+  shortlist_generator: 
     type: ensemble
     ensemble:
+      all_pairs_fallback_threshold: 0
       shortlist_generators:
         - type: mast3r_retrieval_asmk
-          mast3r_retrieval_asmk_make_pairs_fps_k: 20
+          mast3r_retrieval_asmk_fallback_threshold: 0
+          mast3r_retrieval_asmk_remove_swapped_pairs: true
+          mast3r_retrieval_asmk_make_pairs_fps_n: 10
+          mast3r_retrieval_asmk_make_pairs_fps_k: 25
+          mast3r_retrieval_asmk_make_pairs_fps_dist_threshold: null
           mast3r_retrieval_asmk:
             mast3r:
               weight_path: MAST3R
               retrieval_weight_path: MAST3R_RETRIEVAL
               retrieval_codebook_path: MAST3R_RETRIEVAL_CODEBOOK
         - type: global_desc
+          global_desc_model: mast3r_retrieval_spoc
+          global_desc_batch_size: 1
+          global_desc_num_workers: 1
+          global_desc_similar_distance_threshold: 9999
+          global_desc_topk: 10
+          global_desc_fallback_threshold: 0
+          global_desc_remove_swapped_pairs: true
+          global_desc_num_refills_when_no_matches: 10
+          mast3r_retrieval_spoc:
+            mast3r:
+              weight_path: MAST3R
+              retrieval_weight_path: MAST3R_RETRIEVAL
+              retrieval_codebook_path: MAST3R_RETRIEVAL_CODEBOOK
+            global_desc_type: retrieval_spoc
+        - type: global_desc
           global_desc_model: dinov2
+          global_desc_batch_size: 1
+          global_desc_num_workers: 1
+          global_desc_similar_distance_threshold: 9999
+          global_desc_topk: 10
+          global_desc_fallback_threshold: 0
+          global_desc_remove_swapped_pairs: true
+          global_desc_num_refills_when_no_matches: 10
           dinov2:
             pretrained_model: DINOV2_BASE
-            options:
-              pooling_type: max
-          global_desc_batch_size: 8
-          global_desc_topk: 10
         - type: global_desc
           global_desc_model: isc
+          global_desc_batch_size: 1
+          global_desc_num_workers: 1
+          global_desc_similar_distance_threshold: 9999
+          global_desc_topk: 10
+          global_desc_fallback_threshold: 0
+          global_desc_remove_swapped_pairs: true
+          global_desc_num_refills_when_no_matches: 10
           isc:
             weight_path: ISC
-          global_desc_batch_size: 8
-          global_desc_topk: 10
-      dedup: true             # remove duplicate pairs across generators
-
-  # ── MASt3R hybrid matcher ─────────────────────────────────────────────────
-  # Mode: complementary — reuse clustering matches, fill gaps with MASt3R.
-  matcher:
-    mast3r:
-      weight_path: MAST3R
-    size: 512
-    subsample: 8              # subsample factor for semi-dense grid
-    pixel_tol: 5              # pixel tolerance for reciprocal NN
-    match_threshold: 1.001
-
-  # ── Additional sparse detectors (fed into MASt3R local descriptor head) ──
-  # Inspired by MP-SfM — ALIKED keypoints improve coverage in textureless areas.
-  matcher_hybrid:
-    type: mast3r_hybrid
-    mast3r_hybrid:
-      model:
-        weight_path: MAST3R
-      size: 512
-      local_features:
-        - type: aliked
-          aliked:
-            weight_path: ALIKED_LIGHTGLUE_N16
-            max_num_keypoints: 2048
-            resize:
-              func: lightglue
-              lg_resize: 1024
-        - type: superpoint
-          superpoint:
-            weight_path: MAGICLEAP_SUPERPOINT
-            max_num_keypoints: 2048
-            resize:
-              func: superpoint
-              target_size_height: 1024
-              target_size_width: 1024
-            nms_radius: 3
-            keypoint_threshold: 0.0005
-      apply_round: true
-      impl_version: v2
-      mkpts_decoupling_method: imc2023
-
-  matching_stage_mode: hybrid_matcher_override
-
-  round_matched_keypoints: true
-
-  # ── Geometric verification ────────────────────────────────────────────────
-  verification:
-    type: colmap
-    ransac:
-      threshold: 4.0
-      confidence: 0.999999
-      max_iters: 100000
-
-  # ── COLMAP reconstruction ─────────────────────────────────────────────────
+  
   reconstruction:
-    camera_model: simple-radial
-    fill_nan_Rt: true           # unregistered cameras → NaN (not zero)
+    fill_zero_Rt: false
+    fill_nan_Rt: false
+    fill_nearest_position: false
     mapper_min_model_size: 3
     mapper_max_num_models: 25
-    mapper_min_num_matches: 15
-    mapper_multiple_models: true
-
-  # ── Shortlist inside each cluster ─────────────────────────────────────────
-  # shortlist_generator_in_clustering:
-  #   type: topk
-  #   topk:
-  #     k: 15
+  
+  clustering: null
