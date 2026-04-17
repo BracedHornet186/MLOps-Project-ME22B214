@@ -61,6 +61,9 @@ def main() -> None:
     rng = np.random.default_rng(42)
     sampled = rng.choice(sample_paths, size=sample_size, replace=False)
 
+    brightness_scores = []
+    contrast_scores = []
+
     for img_path in sampled:
         img = cv2.imread(str(img_path))
         if img is None:
@@ -70,10 +73,14 @@ def main() -> None:
         heights.append(h)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         sharpness_scores.append(float(cv2.Laplacian(gray, cv2.CV_64F).var()))
+        brightness_scores.append(float(gray.mean()))
+        contrast_scores.append(float(gray.std()))
 
     widths_arr = np.array(widths, dtype=float)
     heights_arr = np.array(heights, dtype=float)
     sharpness_arr = np.array(sharpness_scores, dtype=float)
+    brightness_arr = np.array(brightness_scores, dtype=float)
+    contrast_arr = np.array(contrast_scores, dtype=float)
 
     # --- Determine blurry threshold (10th percentile of sharpness) ---
     blurry_threshold = float(np.percentile(sharpness_arr, 10)) if len(sharpness_arr) > 0 else 100.0
@@ -99,6 +106,18 @@ def main() -> None:
             "blurry_threshold": blurry_threshold,
             "non_upright_pct": 0.0,  # populated by orientation check
         },
+        "brightness": {
+            "mean": float(brightness_arr.mean()) if len(brightness_arr) else 128.0,
+            "std": float(brightness_arr.std()) if len(brightness_arr) else 1.0,
+            "p10": float(np.percentile(brightness_arr, 10)) if len(brightness_arr) else 0,
+            "p90": float(np.percentile(brightness_arr, 90)) if len(brightness_arr) else 255,
+        },
+        "contrast": {
+            "mean": float(contrast_arr.mean()) if len(contrast_arr) else 50.0,
+            "std": float(contrast_arr.std()) if len(contrast_arr) else 1.0,
+            "p10": float(np.percentile(contrast_arr, 10)) if len(contrast_arr) else 0,
+            "p90": float(np.percentile(contrast_arr, 90)) if len(contrast_arr) else 100,
+        },
         "descriptor": {
             "norm_mean": 0.0,   # populated after feature extraction
             "norm_std": 0.0,
@@ -123,6 +142,8 @@ def main() -> None:
         "resolution_width_mean": baselines["resolution"]["width_mean"],
         "resolution_height_mean": baselines["resolution"]["height_mean"],
         "blurry_threshold": blurry_threshold,
+        "brightness_mean": baselines["brightness"]["mean"],
+        "contrast_mean": baselines["contrast"]["mean"],
     }
     with open(output_dir / "eda_metrics.json", "w") as f:
         json.dump(eda_metrics, f, indent=2)

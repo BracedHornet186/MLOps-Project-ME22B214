@@ -54,3 +54,33 @@ groups:
         annotations:
           summary: "Model server is not ready"
           description: "Model server has been unreachable for 5 minutes."
+
+      # Alert 6: Input quality drift (brightness)
+      - alert: InputBrightnessDrift
+        expr: brightness_drift_z > 3
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Image brightness drift detected"
+          description: "Brightness z-score is {{ $value }}. Input images may be significantly brighter/darker than training data."
+
+      # Alert 7: Input quality drift (contrast)
+      - alert: InputContrastDrift
+        expr: contrast_drift_z > 3
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Image contrast drift detected"
+          description: "Contrast z-score is {{ $value }}. Input images may have very different contrast than training data."
+
+      # Alert 8: Performance proxy decay
+      - alert: PerformanceDecay
+        expr: performance_proxy_status >= 1
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Model performance decay detected"
+          description: "Performance proxy status is {{ $value }}. Registration rate or mAA has dropped significantly."

@@ -1,0 +1,46 @@
+# monitoring/alertmanager.yml
+# ─────────────────────────────────────────────────────────────────────────────
+# Alertmanager config for Scene Reconstruction MLOps.
+#
+# Routes drift and performance alerts to a webhook that triggers
+# the Airflow drift_retrain_pipeline DAG.
+# ─────────────────────────────────────────────────────────────────────────────
+
+global:
+  resolve_timeout: 5m
+
+route:
+  group_by: ['alertname']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  receiver: 'default'
+  routes:
+    # Route drift/performance alerts to the Airflow webhook trigger
+    - match_re:
+        alertname: 'FeatureDriftDetected|InputBrightnessDrift|InputContrastDrift|PerformanceDecay'
+      receiver: 'airflow_retrain_webhook'
+      group_wait: 1m
+      repeat_interval: 6h
+
+receivers:
+  - name: 'default'
+    # Default receiver — logs only (no external notification)
+
+  - name: 'airflow_retrain_webhook'
+    webhook_configs:
+      - url: 'http://airflow-apiserver:8080/api/v2/dags/drift_retrain_pipeline/dagRuns'
+        send_resolved: false
+        http_config:
+          # Uses Airflow's internal API — no auth needed within Docker network.
+          # For external access, configure JWT auth here.
+          basic_auth:
+            username: 'airflow'
+            password: 'airflow'
+
+inhibit_rules:
+  # If ModelServerDown is firing, suppress drift alerts (they're unreliable)
+  - source_match:
+      alertname: 'ModelServerDown'
+    target_match_re:
+      alertname: 'FeatureDriftDetected|InputBrightnessDrift|InputContrastDrift|PerformanceDecay'

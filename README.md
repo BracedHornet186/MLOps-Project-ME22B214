@@ -48,3 +48,10 @@ Build the packages as *.whl file and move them into bundle/oss before uv sync.
 python -m build --no-isolation
 
 export LD_LIBRARY_PATH=.venv/lib/python3.11/site-packages/torch/lib:$LD_LIBRARY_PATH
+
+```
+./venv/bin/python3 scripts/train_experiment.py \ 
+        --config conf/mast3r.yaml \ 
+        --datasets ETs stairs \ 
+        --experiment-name scene_reconstruction
+```

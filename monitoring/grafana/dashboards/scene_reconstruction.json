@@ -128,13 +128,73 @@
       "targets": [
         { "expr": "feature_drift_alert_count", "legendFormat": "Alerts" }
       ]
+    },
+    {
+      "title": "Brightness Drift Z-Score",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 24 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 3 },
+              { "color": "red", "value": 5 }
+            ]
+          },
+          "custom": { "thresholdsStyle": { "mode": "line" } }
+        }
+      },
+      "targets": [
+        { "expr": "brightness_drift_z", "legendFormat": "Brightness Z" }
+      ]
+    },
+    {
+      "title": "Contrast Drift Z-Score",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 24 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 3 },
+              { "color": "red", "value": 5 }
+            ]
+          },
+          "custom": { "thresholdsStyle": { "mode": "line" } }
+        }
+      },
+      "targets": [
+        { "expr": "contrast_drift_z", "legendFormat": "Contrast Z" }
+      ]
+    },
+    {
+      "title": "Performance Proxy Status",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 24 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "options": { "0": { "text": "OK", "color": "green" }, "1": { "text": "WARNING", "color": "yellow" }, "2": { "text": "CRITICAL", "color": "red" } }, "type": "value" }
+          ]
+        }
+      },
+      "targets": [
+        { "expr": "performance_proxy_status", "legendFormat": "Perf Proxy" }
+      ]
     }
   ],
   "schemaVersion": 39,
-  "tags": ["scene_reconstruction", "mlops"],
+  "tags": ["scene_reconstruction", "mlops", "drift"],
   "templating": { "list": [] },
   "time": { "from": "now-6h", "to": "now" },
   "title": "Scene Reconstruction MLOps",
   "uid": "scene_reconstruction_mlops",
-  "version": 1
+  "version": 2
 }

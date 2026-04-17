@@ -12,6 +12,13 @@ global:
 rule_files:
   - /etc/prometheus/alert_rules.yml
 
+# ── Alertmanager ─────────────────────────────────────────────────────────────
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9093"]
+
 # ── Scrape targets ───────────────────────────────────────────────────────────
 
 scrape_configs:
@@ -36,6 +43,3 @@ scrape_configs:
     scrape_interval: 30s
     static_configs:
       - targets: ["mlflow:5000"]
-
-# ── Alerting rules (inline) ─────────────────────────────────────────────────
-# These are referenced via rule_files above.  We create the alert file below.

@@ -33,17 +33,17 @@
     "n_images": 100,
     "descriptor_dim": 34020,
     "norm_mean": 30.65304183959961,
-    "norm_std": 0.14397242665290833,
-    "norm_min": 29.773611068725586,
+    "norm_std": 0.143972247838974,
+    "norm_min": 29.77361297607422,
     "norm_max": 30.70563507080078,
-    "norm_p10": 30.64184513092041,
+    "norm_p10": 30.64184684753418,
     "norm_p50": 30.691889762878418,
     "norm_p90": 30.70468044281006
   },
   "scene_difficulty": {
     "ETs/outliers": {
       "n_images": 3,
-      "mean_pairwise_similarity": 0.6254899501800537,
+      "mean_pairwise_similarity": 0.6254899899164835,
       "difficulty": "easy"
     },
     "imc2023_heritage/outliers": {

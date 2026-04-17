@@ -4,6 +4,7 @@ scripts/drift_monitor.py
 Standalone drift detection module.
 Used by:
   - The Airflow preprocessing DAG (task: check_feature_drift)
+  - The Airflow retraining DAG (task: run_drift_check)
   - The FastAPI /metrics endpoint (Prometheus gauge)
   - Stage 6 monitoring callbacks
 
@@ -44,6 +45,14 @@ DEFAULT_REPORT_PATH = Path(
 
 # KS-test p-value threshold — alert when p < this value
 DEFAULT_KS_ALPHA = float(os.environ.get("DRIFT_KS_ALPHA", "0.01"))
+
+# Performance proxy thresholds
+DEFAULT_REG_RATE_DROP_THRESHOLD = float(
+    os.environ.get("DRIFT_REG_RATE_DROP", "0.20")
+)  # alert if registration_rate drops >20% from baseline
+DEFAULT_MAA_THRESHOLD = float(
+    os.environ.get("DRIFT_MAA_THRESHOLD", "0.45")
+)
 
 
 # ── Data classes ───────────────────────────────────────────────────────────────
@@ -96,7 +105,9 @@ class DriftMonitor:
       1. Descriptor norm distribution (z-score + KS-test)
       2. Image resolution distribution (mean drift)
       3. Sharpness score distribution (mean drift)
-      4. Match count distribution (if available from a prior run)
+      4. Brightness distribution (mean pixel intensity drift)
+      5. Contrast distribution (pixel intensity std drift)
+      6. Performance proxy (registration_rate / mAA from MLflow)
     """
 
     def __init__(
@@ -104,10 +115,18 @@ class DriftMonitor:
         baselines_path: Path = DEFAULT_BASELINES_PATH,
         features_dir: Path = DEFAULT_FEATURES_DIR,
         ks_alpha: float = DEFAULT_KS_ALPHA,
+        mlflow_uri: Optional[str] = None,
+        reg_rate_drop_threshold: float = DEFAULT_REG_RATE_DROP_THRESHOLD,
+        maa_threshold: float = DEFAULT_MAA_THRESHOLD,
     ):
         self.features_dir = features_dir
         self.ks_alpha = ks_alpha
         self.baselines = self._load_baselines(baselines_path)
+        self.mlflow_uri = mlflow_uri or os.environ.get(
+            "MLFLOW_TRACKING_URI", "http://localhost:5000"
+        )
+        self.reg_rate_drop_threshold = reg_rate_drop_threshold
+        self.maa_threshold = maa_threshold
 
     # ── Public API ─────────────────────────────────────────────────────────────
 
@@ -115,6 +134,7 @@ class DriftMonitor:
         self,
         live_stats: Optional[dict] = None,
         report_path: Path = DEFAULT_REPORT_PATH,
+        check_performance: bool = False,
     ) -> DriftReport:
         """
         Run all drift checks.
@@ -123,6 +143,7 @@ class DriftMonitor:
             live_stats: Optional dict of live scalar statistics.
                         If None, reads from saved feature .npy files.
             report_path: Where to write the JSON report.
+            check_performance: If True, query MLflow for performance proxy.
 
         Returns:
             DriftReport with all alerts.
@@ -156,6 +177,24 @@ class DriftMonitor:
         # ── 3. Resolution drift ────────────────────────────────────────────
         if live_stats:
             alerts = self._check_resolution(live_stats)
+            report.alerts.extend(alerts)
+            report.n_features_checked += 1
+
+        # ── 4. Brightness drift ────────────────────────────────────────────
+        if live_stats:
+            alerts = self._check_brightness(live_stats)
+            report.alerts.extend(alerts)
+            report.n_features_checked += 1
+
+        # ── 5. Contrast drift ──────────────────────────────────────────────
+        if live_stats:
+            alerts = self._check_contrast(live_stats)
+            report.alerts.extend(alerts)
+            report.n_features_checked += 1
+
+        # ── 6. Performance proxy drift ─────────────────────────────────────
+        if check_performance:
+            alerts = self._check_performance_proxy()
             report.alerts.extend(alerts)
             report.n_features_checked += 1
 
@@ -335,6 +374,146 @@ class DriftMonitor:
                 ))
         return alerts
 
+    def _check_brightness(self, live_stats: dict) -> list[DriftAlert]:
+        """Check if mean pixel brightness has drifted from baseline."""
+        alerts: list[DriftAlert] = []
+        baseline_bright = self.baselines.get("brightness", {})
+        if not baseline_bright:
+            return alerts
+
+        b_mean = baseline_bright.get("mean", 128.0)
+        b_std = baseline_bright.get("std", 1.0) or 1.0
+        live_val = live_stats.get("brightness_mean")
+        if live_val is None:
+            return alerts
+
+        z = abs(float(live_val) - b_mean) / b_std
+        if z > 3.0:
+            alerts.append(DriftAlert(
+                feature="brightness_mean",
+                stat_name="z_score",
+                baseline_val=b_mean,
+                live_val=float(live_val),
+                severity="warning" if z < 5 else "critical",
+                message=(
+                    f"BRIGHTNESS DRIFT: live={live_val:.1f}, "
+                    f"baseline={b_mean:.1f}, z={z:.2f}. "
+                    "Images may be significantly brighter/darker than training data."
+                ),
+            ))
+        return alerts
+
+    def _check_contrast(self, live_stats: dict) -> list[DriftAlert]:
+        """Check if image contrast (std of pixel intensity) has drifted."""
+        alerts: list[DriftAlert] = []
+        baseline_contrast = self.baselines.get("contrast", {})
+        if not baseline_contrast:
+            return alerts
+
+        b_mean = baseline_contrast.get("mean", 50.0)
+        b_std = baseline_contrast.get("std", 1.0) or 1.0
+        live_val = live_stats.get("contrast_mean")
+        if live_val is None:
+            return alerts
+
+        z = abs(float(live_val) - b_mean) / b_std
+        if z > 3.0:
+            alerts.append(DriftAlert(
+                feature="contrast_mean",
+                stat_name="z_score",
+                baseline_val=b_mean,
+                live_val=float(live_val),
+                severity="warning" if z < 5 else "critical",
+                message=(
+                    f"CONTRAST DRIFT: live={live_val:.1f}, "
+                    f"baseline={b_mean:.1f}, z={z:.2f}. "
+                    "Images may have very different contrast than training data."
+                ),
+            ))
+        return alerts
+
+    def _check_performance_proxy(self) -> list[DriftAlert]:
+        """
+        Query MLflow for recent runs and check if registration_rate or mAA
+        have dropped significantly from prior production baselines.
+        """
+        alerts: list[DriftAlert] = []
+        try:
+            import mlflow
+
+            mlflow.set_tracking_uri(self.mlflow_uri)
+            client = mlflow.tracking.MlflowClient(tracking_uri=self.mlflow_uri)
+
+            # Find the scene_reconstruction experiment
+            experiment = client.get_experiment_by_name("scene_reconstruction")
+            if experiment is None:
+                logger.info("No scene_reconstruction experiment found — skipping performance check")
+                return alerts
+
+            # Get the most recent finished runs
+            runs = client.search_runs(
+                experiment_ids=[experiment.experiment_id],
+                filter_string="attributes.status = 'FINISHED'",
+                order_by=["attributes.start_time DESC"],
+                max_results=5,
+            )
+            if not runs:
+                return alerts
+
+            latest_run = runs[0]
+            latest_maa = latest_run.data.metrics.get("mAA_overall")
+            latest_reg_rate = latest_run.data.metrics.get("registration_rate")
+
+            # Check mAA threshold
+            if latest_maa is not None and latest_maa < self.maa_threshold:
+                severity = "critical" if latest_maa < (self.maa_threshold * 0.8) else "warning"
+                alerts.append(DriftAlert(
+                    feature="mAA_overall",
+                    stat_name="threshold_check",
+                    baseline_val=self.maa_threshold,
+                    live_val=latest_maa,
+                    severity=severity,
+                    message=(
+                        f"PERFORMANCE DECAY [mAA]: latest={latest_maa:.4f} "
+                        f"< threshold={self.maa_threshold:.2f}. "
+                        f"Model accuracy may have degraded."
+                    ),
+                ))
+
+            # Check registration_rate drop across recent runs
+            if latest_reg_rate is not None and len(runs) >= 2:
+                # Compare against the average of previous runs
+                prev_reg_rates = [
+                    r.data.metrics.get("registration_rate", 0)
+                    for r in runs[1:]
+                    if r.data.metrics.get("registration_rate") is not None
+                ]
+                if prev_reg_rates:
+                    avg_prev = sum(prev_reg_rates) / len(prev_reg_rates)
+                    if avg_prev > 0:
+                        drop = (avg_prev - latest_reg_rate) / avg_prev
+                        if drop > self.reg_rate_drop_threshold:
+                            alerts.append(DriftAlert(
+                                feature="registration_rate",
+                                stat_name="relative_drop",
+                                baseline_val=avg_prev,
+                                live_val=latest_reg_rate,
+                                severity="critical" if drop > 0.4 else "warning",
+                                message=(
+                                    f"PERFORMANCE DECAY [registration_rate]: "
+                                    f"latest={latest_reg_rate:.3f}, "
+                                    f"avg_previous={avg_prev:.3f}, "
+                                    f"drop={drop:.1%}. "
+                                    f"Significantly fewer images are being registered."
+                                ),
+                            ))
+        except ImportError:
+            logger.warning("mlflow not available — skipping performance proxy check")
+        except Exception as e:
+            logger.warning(f"Performance proxy check failed: {e}")
+
+        return alerts
+
     # ── Helpers ────────────────────────────────────────────────────────────────
 
     @staticmethod
@@ -364,15 +543,45 @@ try:
         "Z-score of descriptor norm vs EDA baseline",
         ["model"],
     )
+    BRIGHTNESS_DRIFT_GAUGE = Gauge(
+        "brightness_drift_z",
+        "Z-score of brightness vs EDA baseline",
+    )
+    CONTRAST_DRIFT_GAUGE = Gauge(
+        "contrast_drift_z",
+        "Z-score of contrast vs EDA baseline",
+    )
+    PERFORMANCE_PROXY_GAUGE = Gauge(
+        "performance_proxy_status",
+        "Performance proxy drift: 0=ok, 1=warning, 2=critical",
+    )
 
     def update_prometheus_drift_metrics(report: DriftReport) -> None:
         status_map = {"ok": 0, "warning": 1, "critical": 2}
         DRIFT_STATUS_GAUGE.set(status_map.get(report.status, 0))
         DRIFT_ALERT_COUNT_GAUGE.set(len(report.alerts))
+
+        # Track per-feature gauges
+        perf_severity = 0
         for alert in report.alerts:
             if alert.stat_name == "norm_z_score":
                 model = alert.feature.replace("global_", "").replace("_norm_mean", "")
                 DESCRIPTOR_NORM_DRIFT_GAUGE.labels(model=model).set(alert.live_val)
+            elif alert.feature == "brightness_mean":
+                z = abs(alert.live_val - alert.baseline_val) / max(
+                    alert.baseline_val, 1
+                )
+                BRIGHTNESS_DRIFT_GAUGE.set(z)
+            elif alert.feature == "contrast_mean":
+                z = abs(alert.live_val - alert.baseline_val) / max(
+                    alert.baseline_val, 1
+                )
+                CONTRAST_DRIFT_GAUGE.set(z)
+            elif alert.feature in ("mAA_overall", "registration_rate"):
+                sev = 2 if alert.severity == "critical" else 1
+                perf_severity = max(perf_severity, sev)
+
+        PERFORMANCE_PROXY_GAUGE.set(perf_severity)
 
 except ImportError:
     def update_prometheus_drift_metrics(report) -> None:
@@ -394,17 +603,26 @@ def main() -> None:
     parser.add_argument("--features-dir", default=str(DEFAULT_FEATURES_DIR))
     parser.add_argument("--report-out", default=str(DEFAULT_REPORT_PATH))
     parser.add_argument("--alpha", type=float, default=DEFAULT_KS_ALPHA)
+    parser.add_argument("--check-performance", action="store_true",
+                        help="Also check MLflow performance proxy drift")
+    parser.add_argument("--mlflow-uri", default=None,
+                        help="MLflow tracking URI for performance checks")
     args = parser.parse_args()
 
     monitor = DriftMonitor(
         baselines_path=Path(args.baselines),
         features_dir=Path(args.features_dir),
         ks_alpha=args.alpha,
+        mlflow_uri=args.mlflow_uri,
     )
-    report = monitor.check(report_path=Path(args.report_out))
+    report = monitor.check(
+        report_path=Path(args.report_out),
+        check_performance=args.check_performance,
+    )
     print(json.dumps(report.as_dict(), indent=2))
     sys.exit(0 if report.status == "ok" else 1)
 
 
 if __name__ == "__main__":
     main()
+

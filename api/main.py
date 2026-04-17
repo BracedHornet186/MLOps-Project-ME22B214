@@ -433,6 +433,62 @@ async def list_experiments(top_n: int = 10):
         return {"error": str(e)}
 
 
+@app.get("/drift", tags=["monitoring"])
+async def drift_check():
+    """
+    Run on-demand drift detection against EDA baselines.
+    Returns the drift report with all alerts.
+    """
+    from scripts.drift_monitor import (
+        DriftMonitor,
+        update_prometheus_drift_metrics,
+    )
+
+    data_dir = Path(os.environ.get("DEFAULT_DATASET_DIR", "data"))
+    monitor = DriftMonitor(
+        baselines_path=data_dir / "processed" / "eda_baselines.json",
+        features_dir=data_dir / "processed" / "features",
+        mlflow_uri=MLFLOW_TRACKING_URI,
+    )
+    report = monitor.check(
+        report_path=data_dir / "processed" / "drift_report.json",
+        check_performance=True,
+    )
+    update_prometheus_drift_metrics(report)
+
+    api_requests_total.labels("GET", "/drift", "200").inc()
+    return report.as_dict()
+
+
+@app.post("/drift/trigger-retrain", tags=["monitoring"])
+async def trigger_retrain():
+    """
+    Trigger the drift_retrain_pipeline DAG via the Airflow REST API.
+    """
+    import datetime
+
+    airflow_url = os.environ.get("AIRFLOW_API_URL", "http://airflow-apiserver:8080")
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            r = await client.post(
+                f"{airflow_url}/api/v2/dags/drift_retrain_pipeline/dagRuns",
+                json={
+                    "logical_date": datetime.datetime.utcnow().isoformat() + "Z",
+                    "conf": {"triggered_by": "api"},
+                },
+                headers={"Content-Type": "application/json"},
+            )
+            if r.status_code in (200, 201):
+                api_requests_total.labels("POST", "/drift/trigger-retrain", "200").inc()
+                return {"status": "triggered", "response": r.json()}
+            else:
+                api_errors_total.labels("/drift/trigger-retrain").inc()
+                return {"status": "error", "code": r.status_code, "detail": r.text[:500]}
+    except Exception as e:
+        api_errors_total.labels("/drift/trigger-retrain").inc()
+        raise HTTPException(status_code=502, detail=f"Could not reach Airflow: {e}")
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Internal helpers
 # ─────────────────────────────────────────────────────────────────────────────
