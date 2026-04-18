@@ -246,6 +246,14 @@ def run_experiment(
         # ── Artifacts ─────────────────────────────────────────────────────
         try:
             mlflow.log_artifact(str(config_path), artifact_path="config")
+            
+            # create and log a minimal MLmodel file to satisfy model registry format
+            import tempfile
+            with tempfile.TemporaryDirectory() as tmpdir:
+                mlmodel_path = Path(tmpdir) / "MLmodel"
+                mlmodel_path.write_text("artifact_path: config\nflavors:\n  python_function:\n    loader_module: dummy\n")
+                mlflow.log_artifact(str(mlmodel_path), artifact_path="config")
+
             mlflow.log_artifact(str(submission_csv), artifact_path="predictions")
     
             # Write per-dataset JSON for easy downstream comparison

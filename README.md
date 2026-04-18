@@ -112,11 +112,3 @@ graph TD
 * **MLflow Tracking Server**: Keeps a historical record of all runs, metrics like registration rates, and final artifacts natively linked to the orchestration platform.
 * **Airflow Components**: Manages scheduled execution environments such as data ingestion pipelines, triggered model retraining, and scheduled drift checking reports.
 * **Observability Stack**: Prometheus aggregates operational metrics (latency, HTTP logs) alongside system components (Node Exporter). Grafana connects to Prometheus to visualize system health, model drift, and memory usage metrics.
-
-
-So for production promotion workflow:
-
-Promote best run in MLflow Registry (already implemented in training/DAG flow).
-Update deployed config/weights to match that promoted run.
-Restart model-server + api.
-I want to do this
