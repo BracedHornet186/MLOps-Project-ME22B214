@@ -1,28 +1,3 @@
-"""
-api/main.py
-────────────────────────────────────────────────────────────────────────────
-Stage 4 — Model Deployment: FastAPI inference server
-
-Endpoints
----------
-GET  /health          Liveness probe — returns 200 if process is alive
-GET  /ready           Readiness probe — 200 only after model weights loaded
-POST /reconstruct     Synchronous: upload ZIP of images → submission CSV
-POST /reconstruct/async  Async: returns job_id immediately
-GET  /jobs/{job_id}   Poll job status, download result when done
-GET  /metrics         Prometheus metrics endpoint
-GET  /experiments     List recent MLflow runs (leaderboard)
-
-Design
-------
-- Loose coupling: this file has NO import of pipeline code.
-  All ML work is delegated to model_server (http://model-server:8001)
-  via httpx async calls. The API and model server are independent.
-- Single GPU (RTX 3060): only one job runs at a time (concurrency=1).
-- MLflow run context is attached to every /reconstruct response so
-  the caller can trace the exact config that produced the result.
-"""
-
 from __future__ import annotations
 
 import asyncio
@@ -30,6 +5,7 @@ import io
 import json
 import logging
 import os
+import shutil
 import tempfile
 import time
 import uuid
@@ -42,7 +18,7 @@ from typing import Any, Optional
 import httpx
 from fastapi import BackgroundTasks, FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from prometheus_client import (
     CONTENT_TYPE_LATEST,
     Counter,
@@ -59,9 +35,13 @@ from pydantic import BaseModel
 MODEL_SERVER_URL = os.environ.get("MODEL_SERVER_URL", "http://model-server:8001")
 MLFLOW_TRACKING_URI = os.environ.get("MLFLOW_TRACKING_URI", "http://mlflow:5000")
 API_VERSION = "1.0.0"
-MAX_CONCURRENT_JOBS = 1          # single GPU — serialise all jobs
-MAX_UPLOAD_SIZE_MB = 500
-RESULT_TTL_SECONDS = 3600        # clean up job results after 1 hour
+MAX_CONCURRENT_JOBS = 1
+MAX_UPLOAD_SIZE_MB = int(os.environ.get("SCENE3D_MAX_UPLOAD_MB", "500"))
+
+# Scene3D decimation config
+VOXEL_SIZE = float(os.environ.get("SCENE3D_VOXEL_SIZE", "0.02"))
+MAX_POINT_COUNT = int(os.environ.get("SCENE3D_MAX_POINTS", "500000"))
+ALLOWED_IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".tif", ".tiff", ".bmp", ".webp"}
 
 logging.basicConfig(
     level=logging.INFO,
@@ -73,70 +53,60 @@ log = logging.getLogger("api")
 # Prometheus metrics
 # ─────────────────────────────────────────────────────────────────────────────
 
-api_requests_total = Counter(
-    "api_requests_total",
-    "Total HTTP requests",
-    ["method", "endpoint", "status"],
-)
-api_errors_total = Counter(
-    "api_errors_total",
-    "Total 4xx/5xx responses",
-    ["endpoint"],
-)
-inference_latency_seconds = Histogram(
-    "inference_latency_seconds",
-    "End-to-end inference wall-clock time per job",
-    buckets=[10, 30, 60, 120, 180, 300, 600, 900],
-)
-reconstruction_maa = Gauge(
-    "reconstruction_maa",
-    "mAA score from the most recent completed reconstruction job",
-)
-registration_rate_gauge = Gauge(
-    "registered_images_ratio",
-    "Fraction of images successfully placed in the last reconstruction",
-)
-active_jobs_gauge = Gauge(
-    "active_jobs_total",
-    "Number of reconstruction jobs currently running",
-)
-model_ready_gauge = Gauge(
-    "model_server_ready",
-    "1 if model server is ready, 0 otherwise",
-)
-data_valid_images_gauge = Gauge(
-    "data_valid_images_total",
-    "Valid images in current dataset version (from validation_report.json)",
-)
+api_requests_total = Counter("api_requests_total", "Total HTTP requests", ["method", "endpoint", "status"])
+api_errors_total = Counter("api_errors_total", "Total 4xx/5xx responses", ["endpoint"])
+inference_latency_seconds = Histogram("inference_latency_seconds", "End-to-end inference wall-clock time", buckets=[10, 30, 60, 120, 180, 300, 600, 900])
+reconstruction_maa = Gauge("reconstruction_maa", "mAA score from the most recent completed job")
+registration_rate_gauge = Gauge("registered_images_ratio", "Fraction of images successfully placed")
+active_jobs_gauge = Gauge("active_jobs_total", "Number of running jobs")
+model_ready_gauge = Gauge("model_server_ready", "1 if model server is ready, 0 otherwise")
+data_valid_images_gauge = Gauge("data_valid_images_total", "Valid images in current dataset version")
 
 # ─────────────────────────────────────────────────────────────────────────────
-# In-memory job store
+# Job Store (merging legacy and new UI)
 # ─────────────────────────────────────────────────────────────────────────────
 
-class JobStatus(str, Enum):
+class JobStage(str, Enum):
     QUEUED = "queued"
-    RUNNING = "running"
-    SUCCESS = "success"
+    EXTRACTING = "extracting"
+    MATCHING = "matching"         # When model-server is crunching
+    TRIANGULATING = "triangulating"
+    DECIMATING = "decimating"     # Local voxel grid
+    DONE = "success"              # Renamed to success to match legacy JobStatus.SUCCESS
     FAILED = "failed"
 
+_STAGE_PROGRESS = {
+    JobStage.QUEUED: 0,
+    JobStage.EXTRACTING: 10,
+    JobStage.MATCHING: 30,
+    JobStage.TRIANGULATING: 70,
+    JobStage.DECIMATING: 85,
+    JobStage.DONE: 100,
+    JobStage.FAILED: 0,
+}
 
 class JobRecord(BaseModel):
     job_id: str
-    status: JobStatus = JobStatus.QUEUED
+    stage: JobStage = JobStage.QUEUED
+    progress: int = 0
+    message: str = "Waiting in queue …"
     created_at: float = 0.0
     started_at: Optional[float] = None
     finished_at: Optional[float] = None
-    result_path: Optional[str] = None
-    error: Optional[str] = None
+    
     n_images: int = 0
+    n_points: int = 0
+    
+    # Legacy fields
+    result_path: Optional[str] = None
+    ply_path: Optional[str] = None
+    error: Optional[str] = None
     mlflow_run_id: Optional[str] = None
     maa: Optional[float] = None
     registration_rate: Optional[float] = None
 
-
 _jobs: dict[str, JobRecord] = {}
-_job_semaphore: asyncio.Semaphore  # initialised in lifespan
-
+_job_semaphore: asyncio.Semaphore
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Lifespan
@@ -146,18 +116,11 @@ _job_semaphore: asyncio.Semaphore  # initialised in lifespan
 async def lifespan(app: FastAPI):
     global _job_semaphore
     _job_semaphore = asyncio.Semaphore(MAX_CONCURRENT_JOBS)
-    log.info("API starting — model server: %s", MODEL_SERVER_URL)
-
-    # Refresh data metrics from validation report
     _refresh_data_metrics()
-
-    # Warm-up: check model server readiness
     asyncio.create_task(_poll_model_server_ready())
     yield
-    log.info("API shutting down")
 
-
-def _refresh_data_metrics() -> None:
+def _refresh_data_metrics():
     report_path = Path(os.environ.get("DEFAULT_DATASET_DIR", "data")) / "processed" / "validation_report.json"
     if report_path.exists():
         try:
@@ -166,34 +129,24 @@ def _refresh_data_metrics() -> None:
         except Exception as e:
             log.warning("Could not read validation_report.json: %s", e)
 
-
-async def _poll_model_server_ready() -> None:
-    """Background task: poll model-server /ready until it responds 200."""
+async def _poll_model_server_ready():
     for attempt in range(30):
         try:
             async with httpx.AsyncClient(timeout=5) as client:
                 r = await client.get(f"{MODEL_SERVER_URL}/ready")
                 if r.status_code == 200:
                     model_ready_gauge.set(1)
-                    log.info("Model server is ready.")
                     return
         except Exception:
             pass
         await asyncio.sleep(10)
     model_ready_gauge.set(0)
-    log.warning("Model server did not become ready within 300s.")
-
 
 # ─────────────────────────────────────────────────────────────────────────────
-# App
+# App & Schemas
 # ─────────────────────────────────────────────────────────────────────────────
 
-app = FastAPI(
-    title="Scene Reconstruction API",
-    description="3D scene reconstruction from multi-view images using MASt3R + COLMAP",
-    version=API_VERSION,
-    lifespan=lifespan,
-)
+app = FastAPI(title="Scene Reconstruction API (Unified)", version=API_VERSION, lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -202,23 +155,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Response schemas
-# ─────────────────────────────────────────────────────────────────────────────
-
 class HealthResponse(BaseModel):
     status: str
     version: str
     timestamp: float
-
-
-class ReadyResponse(BaseModel):
-    status: str
-    model_server: str
-    model_ready: bool
-    version: str
-
 
 class ReconstructResponse(BaseModel):
     job_id: str
@@ -229,192 +169,58 @@ class ReconstructResponse(BaseModel):
     mlflow_run_id: Optional[str]
     latency_seconds: Optional[float]
 
-
 class JobStatusResponse(BaseModel):
     job_id: str
-    status: str
+    stage: str
+    progress: int
+    message: str
     created_at: float
     started_at: Optional[float]
     finished_at: Optional[float]
     n_images: int
+    n_points: int
     maa: Optional[float]
     registration_rate: Optional[float]
     mlflow_run_id: Optional[str]
     error: Optional[str]
     download_url: Optional[str]
-
+    # For legacy backwards compat
+    status: str
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Endpoints
+# Endpoints - Legacy Infra
 # ─────────────────────────────────────────────────────────────────────────────
 
 @app.get("/health", response_model=HealthResponse, tags=["infra"])
 async def health():
-    """Liveness probe. Returns 200 immediately if the process is alive."""
     api_requests_total.labels("GET", "/health", "200").inc()
-    return HealthResponse(
-        status="ok",
-        version=API_VERSION,
-        timestamp=time.time(),
-    )
+    return HealthResponse(status="ok", version=API_VERSION, timestamp=time.time())
 
-
-@app.get("/ready", response_model=ReadyResponse, tags=["infra"])
+@app.get("/ready", tags=["infra"])
 async def ready():
-    """
-    Readiness probe. Returns 200 only when the model server has loaded
-    all weights and is accepting inference requests.
-    """
     is_ready = False
-    model_server_status = "unreachable"
+    status = "unreachable"
     try:
         async with httpx.AsyncClient(timeout=3) as client:
             r = await client.get(f"{MODEL_SERVER_URL}/ready")
             is_ready = r.status_code == 200
-            model_server_status = "ready" if is_ready else "loading"
+            status = "ready" if is_ready else "loading"
     except Exception as e:
-        model_server_status = f"error: {e}"
+        status = f"error: {e}"
 
     model_ready_gauge.set(1 if is_ready else 0)
-    status_code = 200 if is_ready else 503
-    api_requests_total.labels("GET", "/ready", str(status_code)).inc()
-
     if not is_ready:
         api_errors_total.labels("/ready").inc()
-        raise HTTPException(status_code=503, detail=f"Model server not ready: {model_server_status}")
-
-    return ReadyResponse(
-        status="ready",
-        model_server=model_server_status,
-        model_ready=is_ready,
-        version=API_VERSION,
-    )
-
+        raise HTTPException(status_code=503, detail=f"Model server not ready: {status}")
+    api_requests_total.labels("GET", "/ready", "200").inc()
+    return {"status": "ready", "model_server": status, "model_ready": is_ready}
 
 @app.get("/metrics", tags=["infra"])
 async def metrics():
-    """Prometheus metrics endpoint."""
-    return StreamingResponse(
-        io.BytesIO(generate_latest()),
-        media_type=CONTENT_TYPE_LATEST,
-    )
-
-
-@app.post("/reconstruct", response_model=ReconstructResponse, tags=["inference"])
-async def reconstruct_sync(
-    images: UploadFile = File(..., description="ZIP archive of images"),
-    dataset_name: str = "custom",
-    scene_name: str = "scene_01",
-):
-    """
-    Synchronous reconstruction endpoint.
-    Upload a ZIP of images; receive the submission CSV inline.
-    Blocks until inference is complete (may take several minutes).
-    """
-    job_id = str(uuid.uuid4())
-    t_start = time.perf_counter()
-
-
-    try:
-        result = await _run_reconstruction(
-            job_id=job_id,
-            upload=images,
-            dataset_name=dataset_name,
-            scene_name=scene_name,
-        )
-    except Exception as e:
-        api_errors_total.labels("/reconstruct").inc()
-        api_requests_total.labels("POST", "/reconstruct", "500").inc()
-        raise HTTPException(status_code=500, detail=str(e))
-
-    elapsed = time.perf_counter() - t_start
-    inference_latency_seconds.observe(elapsed)
-
-    if result.get("maa") is not None:
-        reconstruction_maa.set(result["maa"])
-    if result.get("registration_rate") is not None:
-        registration_rate_gauge.set(result["registration_rate"])
-
-    api_requests_total.labels("POST", "/reconstruct", "200").inc()
-
-    return ReconstructResponse(
-        job_id=job_id,
-        status="success",
-        n_images=result.get("n_images", 0),
-        maa=result.get("maa"),
-        registration_rate=result.get("registration_rate"),
-        mlflow_run_id=result.get("mlflow_run_id"),
-        latency_seconds=round(elapsed, 2),
-    )
-
-
-@app.post("/reconstruct/async", response_model=JobStatusResponse, tags=["inference"])
-async def reconstruct_async(
-    background_tasks: BackgroundTasks,
-    images: UploadFile = File(...),
-    dataset_name: str = "custom",
-    scene_name: str = "scene_01",
-):
-    """
-    Asynchronous reconstruction endpoint.
-    Returns a job_id immediately; poll /jobs/{job_id} for results.
-    """
-    job_id = str(uuid.uuid4())
-    record = JobRecord(job_id=job_id, created_at=time.time())
-    _jobs[job_id] = record
-
-    # Read the upload into memory now so the UploadFile isn't closed
-    # before the background task runs.
-    content = await images.read()
-
-    background_tasks.add_task(
-        _background_reconstruction,
-        job_id=job_id,
-        content=content,
-        filename=images.filename or "images.zip",
-        dataset_name=dataset_name,
-        scene_name=scene_name,
-    )
-
-    api_requests_total.labels("POST", "/reconstruct/async", "202").inc()
-    return _job_to_response(record)
-
-
-@app.get("/jobs/{job_id}", response_model=JobStatusResponse, tags=["inference"])
-async def get_job(job_id: str):
-    """Poll job status. When status='success', download_url is populated."""
-    if job_id not in _jobs:
-        api_errors_total.labels("/jobs").inc()
-        raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
-    api_requests_total.labels("GET", "/jobs", "200").inc()
-    return _job_to_response(_jobs[job_id])
-
-
-@app.get("/jobs/{job_id}/download", tags=["inference"])
-async def download_result(job_id: str):
-    """Download the submission CSV for a completed job."""
-    if job_id not in _jobs:
-        raise HTTPException(status_code=404, detail="Job not found")
-
-    record = _jobs[job_id]
-    if record.status != JobStatus.SUCCESS:
-        raise HTTPException(status_code=409, detail=f"Job status is {record.status}")
-    if not record.result_path or not Path(record.result_path).exists():
-        raise HTTPException(status_code=404, detail="Result file not found")
-
-    return FileResponse(
-        path=record.result_path,
-        filename=f"submission_{job_id[:8]}.csv",
-        media_type="text/csv",
-    )
-
+    return StreamingResponse(io.BytesIO(generate_latest()), media_type=CONTENT_TYPE_LATEST)
 
 @app.get("/experiments", tags=["mlflow"])
 async def list_experiments(top_n: int = 10):
-    """
-    Proxy to MLflow: return the top-N runs from the scene_reconstruction
-    experiment ordered by mAA descending.
-    """
     try:
         async with httpx.AsyncClient(timeout=10) as client:
             r = await client.get(
@@ -426,176 +232,207 @@ async def list_experiments(top_n: int = 10):
                     "max_results": top_n,
                 },
             )
-            if r.status_code == 200:
-                return r.json()
-            return {"error": f"MLflow returned {r.status_code}"}
+            return r.json() if r.status_code == 200 else {"error": f"MLflow {r.status_code}"}
     except Exception as e:
         return {"error": str(e)}
 
-
 @app.get("/drift", tags=["monitoring"])
 async def drift_check():
-    """
-    Run on-demand drift detection against EDA baselines.
-    Returns the drift report with all alerts.
-    """
-    from scripts.drift_monitor import (
-        DriftMonitor,
-        update_prometheus_drift_metrics,
-    )
-
+    from scripts.drift_monitor import DriftMonitor, update_prometheus_drift_metrics
     data_dir = Path(os.environ.get("DEFAULT_DATASET_DIR", "data"))
     monitor = DriftMonitor(
         baselines_path=data_dir / "processed" / "eda_baselines.json",
         features_dir=data_dir / "processed" / "features",
         mlflow_uri=MLFLOW_TRACKING_URI,
     )
-    report = monitor.check(
-        report_path=data_dir / "processed" / "drift_report.json",
-        check_performance=True,
-    )
+    report = monitor.check(report_path=data_dir / "processed" / "drift_report.json", check_performance=True)
     update_prometheus_drift_metrics(report)
-
     api_requests_total.labels("GET", "/drift", "200").inc()
     return report.as_dict()
 
-
 @app.post("/drift/trigger-retrain", tags=["monitoring"])
 async def trigger_retrain():
-    """
-    Trigger the drift_retrain_pipeline DAG via the Airflow REST API.
-    """
     import datetime
-
     airflow_url = os.environ.get("AIRFLOW_API_URL", "http://airflow-apiserver:8080")
     try:
         async with httpx.AsyncClient(timeout=10) as client:
             r = await client.post(
                 f"{airflow_url}/api/v2/dags/drift_retrain_pipeline/dagRuns",
-                json={
-                    "logical_date": datetime.datetime.utcnow().isoformat() + "Z",
-                    "conf": {"triggered_by": "api"},
-                },
+                json={"logical_date": datetime.datetime.utcnow().isoformat() + "Z", "conf": {"triggered_by": "api"}},
                 headers={"Content-Type": "application/json"},
             )
-            if r.status_code in (200, 201):
-                api_requests_total.labels("POST", "/drift/trigger-retrain", "200").inc()
-                return {"status": "triggered", "response": r.json()}
-            else:
-                api_errors_total.labels("/drift/trigger-retrain").inc()
-                return {"status": "error", "code": r.status_code, "detail": r.text[:500]}
+            return {"status": "triggered"} if r.status_code in (200, 201) else {"status": "error"}
     except Exception as e:
-        api_errors_total.labels("/drift/trigger-retrain").inc()
-        raise HTTPException(status_code=502, detail=f"Could not reach Airflow: {e}")
-
+        raise HTTPException(status_code=502, detail=str(e))
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Internal helpers
+# Endpoints - Inference (UI and Legacy)
 # ─────────────────────────────────────────────────────────────────────────────
 
-async def _run_reconstruction(
-    job_id: str,
-    upload: UploadFile,
-    dataset_name: str,
-    scene_name: str,
-) -> dict[str, Any]:
+@app.post("/upload", tags=["inference"])
+@app.post("/reconstruct/async", tags=["inference"])
+async def upload_zip(
+    background_tasks: BackgroundTasks,
+    file: UploadFile = File(..., description="ZIP archive of images"),
+    dataset_name: str = "custom",
+    scene_name: str = "scene_01",
+):
     """
-    Delegate inference to the model server via HTTP.
-    Returns a dict with keys: n_images, maa, registration_rate, mlflow_run_id.
+    Unified endpoint for the new UI (/upload) and old ML (/reconstruct/async).
     """
-    content = await upload.read()
+    content = await file.read()
     if len(content) > MAX_UPLOAD_SIZE_MB * 1024 * 1024:
-        raise ValueError(f"Upload exceeds {MAX_UPLOAD_SIZE_MB} MB limit")
+        raise HTTPException(status_code=413, detail=f"Upload exceeds {MAX_UPLOAD_SIZE_MB} MB")
+    if not zipfile.is_zipfile(io.BytesIO(content)):
+        raise HTTPException(status_code=400, detail="Invalid ZIP")
 
-    active_jobs_gauge.inc()
-    async with _job_semaphore:
-        try:
-            async with httpx.AsyncClient(timeout=600) as client:
-                r = await client.post(
-                    f"{MODEL_SERVER_URL}/infer",
-                    files={"images": (upload.filename, content, "application/zip")},
-                    data={
-                        "job_id": job_id,
-                        "dataset_name": dataset_name,
-                        "scene_name": scene_name,
-                    },
-                )
-                if r.status_code != 200:
-                    raise RuntimeError(
-                        f"Model server error {r.status_code}: {r.text[:500]}"
-                    )
-                return r.json()
-        finally:
-            active_jobs_gauge.dec()
+    job_id = str(uuid.uuid4())
+    record = JobRecord(job_id=job_id, created_at=time.time())
+    _jobs[job_id] = record
 
+    background_tasks.add_task(
+        _background_reconstruction,
+        job_id=job_id,
+        content=content,
+        filename=file.filename or "images.zip",
+        dataset_name=dataset_name,
+        scene_name=scene_name,
+    )
+    api_requests_total.labels("POST", "/upload", "202").inc()
+    return {"job_id": job_id, "message": "Pipeline started."}
+
+
+@app.get("/status/{job_id}", response_model=JobStatusResponse, tags=["inference"])
+@app.get("/jobs/{job_id}", response_model=JobStatusResponse, tags=["inference"])
+async def get_status(job_id: str):
+    if job_id not in _jobs:
+        raise HTTPException(status_code=404, detail="Job not found")
+    rec = _jobs[job_id]
+    
+    download_url = None
+    if rec.stage == JobStage.DONE and rec.result_path:
+        # Legacy compatibility uses /jobs/../download to fetch CSV
+        download_url = f"/jobs/{job_id}/download"
+        
+    return JobStatusResponse(
+        job_id=rec.job_id,
+        stage=rec.stage.value,
+        status=rec.stage.value,  # Legacy alias
+        progress=rec.progress,
+        message=rec.message,
+        created_at=rec.created_at,
+        started_at=rec.started_at,
+        finished_at=rec.finished_at,
+        n_images=rec.n_images,
+        n_points=rec.n_points,
+        maa=rec.maa,
+        registration_rate=rec.registration_rate,
+        mlflow_run_id=rec.mlflow_run_id,
+        error=rec.error,
+        download_url=download_url,
+    )
+
+@app.get("/download/{job_id}", tags=["inference"])
+async def download_ply(job_id: str):
+    """UI endpoint for getting the 3D PLY model."""
+    if job_id not in _jobs:
+        raise HTTPException(status_code=404)
+    rec = _jobs[job_id]
+    if rec.stage != JobStage.DONE:
+        raise HTTPException(status_code=409, detail="Not done yet")
+    if not rec.ply_path or not Path(rec.ply_path).exists():
+        raise HTTPException(status_code=404, detail="PLY not found")
+    return FileResponse(rec.ply_path, media_type="application/octet-stream")
+
+@app.get("/jobs/{job_id}/download", tags=["inference"])
+async def download_legacy_csv(job_id: str):
+    """Legacy endpoint for downloading submission CSV."""
+    if job_id not in _jobs:
+        raise HTTPException(status_code=404)
+    rec = _jobs[job_id]
+    if rec.stage != JobStage.DONE:
+        raise HTTPException(status_code=409)
+    if not rec.result_path or not Path(rec.result_path).exists():
+        raise HTTPException(status_code=404, detail="CSV not found")
+    return FileResponse(rec.result_path, filename=f"submission_{job_id[:8]}.csv", media_type="text/csv")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Background Task
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _update(job_id: str, stage: JobStage, message: str, **extra):
+    rec = _jobs[job_id]
+    rec.stage = stage
+    rec.progress = _STAGE_PROGRESS[stage]
+    rec.message = message
+    for k, v in extra.items():
+        setattr(rec, k, v)
 
 async def _background_reconstruction(
-    job_id: str,
-    content: bytes,
-    filename: str,
-    dataset_name: str,
-    scene_name: str,
-) -> None:
-    """Background task for async reconstruction endpoint."""
-    record = _jobs[job_id]
-    record.status = JobStatus.RUNNING
-    record.started_at = time.time()
+    job_id: str, content: bytes, filename: str, dataset_name: str, scene_name: str
+):
+    rec = _jobs[job_id]
+    rec.started_at = time.time()
     active_jobs_gauge.inc()
 
     async with _job_semaphore:
         try:
+            _update(job_id, JobStage.MATCHING, "Running MASt3R AI pipeline on GPU ...")
+            
             async with httpx.AsyncClient(timeout=600) as client:
                 r = await client.post(
                     f"{MODEL_SERVER_URL}/infer",
                     files={"images": (filename, content, "application/zip")},
-                    data={
-                        "job_id": job_id,
-                        "dataset_name": dataset_name,
-                        "scene_name": scene_name,
-                    },
+                    data={"job_id": job_id, "dataset_name": dataset_name, "scene_name": scene_name},
                 )
                 if r.status_code != 200:
-                    raise RuntimeError(f"Model server returned {r.status_code}: {r.text[:300]}")
-
+                    raise RuntimeError(f"Model server error {r.status_code}: {r.text[:300]}")
+                
                 result = r.json()
-                record.maa = result.get("maa")
-                record.registration_rate = result.get("registration_rate")
-                record.mlflow_run_id = result.get("mlflow_run_id")
-                record.n_images = result.get("n_images", 0)
-                record.result_path = result.get("result_csv_path")
-                record.status = JobStatus.SUCCESS
+                
+            # Parse result
+            _update(job_id, JobStage.TRIANGULATING, "Inference completed ...",
+                    maa=result.get("maa"),
+                    registration_rate=result.get("registration_rate"),
+                    mlflow_run_id=result.get("mlflow_run_id"),
+                    n_images=result.get("n_images", 0),
+                    result_path=result.get("result_csv_path"))
 
-                elapsed = time.time() - record.started_at
-                inference_latency_seconds.observe(elapsed)
-                if record.maa is not None:
-                    reconstruction_maa.set(record.maa)
-                if record.registration_rate is not None:
-                    registration_rate_gauge.set(record.registration_rate)
+            raw_ply_path = result.get("raw_ply_path")
+            
+            # Decimate
+            if raw_ply_path and Path(raw_ply_path).exists():
+                _update(job_id, JobStage.DECIMATING, "Optimising 3D point cloud for browser ...")
+                
+                import sys
+                project_root = Path(__file__).resolve().parent.parent
+                if str(project_root) not in sys.path:
+                    sys.path.insert(0, str(project_root))
+                from utils.decimate import voxel_downsample_ply, get_point_cloud_stats
+                
+                # Write to the same directory as the raw PLY
+                decimated_ply = str(Path(raw_ply_path).parent / f"decimated_{job_id[:8]}.ply")
+                voxel_downsample_ply(raw_ply_path, decimated_ply, voxel_size=VOXEL_SIZE, max_points=MAX_POINT_COUNT)
+                
+                stats = get_point_cloud_stats(decimated_ply)
+                _update(job_id, JobStage.DONE, f"Reconstruction successful ({stats.n_points:,} points)",
+                        ply_path=decimated_ply, n_points=stats.n_points)
+            else:
+                log.warning("No PLY received from model-server. Using default success state.")
+                _update(job_id, JobStage.DONE, "Reconstruction successful (no point cloud available).")
+
+            elapsed = time.time() - rec.started_at
+            inference_latency_seconds.observe(elapsed)
+            if rec.maa is not None:
+                reconstruction_maa.set(rec.maa)
+            if rec.registration_rate is not None:
+                registration_rate_gauge.set(rec.registration_rate)
 
         except Exception as e:
             log.error("Job %s failed: %s", job_id, e)
-            record.status = JobStatus.FAILED
-            record.error = str(e)
+            _update(job_id, JobStage.FAILED, f"Pipeline error: {e}", error=str(e))
             api_errors_total.labels("/reconstruct/async").inc()
         finally:
-            record.finished_at = time.time()
+            rec.finished_at = time.time()
             active_jobs_gauge.dec()
-
-
-def _job_to_response(record: JobRecord) -> JobStatusResponse:
-    download_url = None
-    if record.status == JobStatus.SUCCESS and record.result_path:
-        download_url = f"/jobs/{record.job_id}/download"
-    return JobStatusResponse(
-        job_id=record.job_id,
-        status=record.status.value,
-        created_at=record.created_at,
-        started_at=record.started_at,
-        finished_at=record.finished_at,
-        n_images=record.n_images,
-        maa=record.maa,
-        registration_rate=record.registration_rate,
-        mlflow_run_id=record.mlflow_run_id,
-        error=record.error,
-        download_url=download_url,
-    )

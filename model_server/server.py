@@ -314,6 +314,28 @@ def _run_inference(
                 job_id[:8], int(registered), n_images, 100 * reg_rate, elapsed, mlflow_run_id,
             )
 
+            # Export PLY for the 3D UI
+            persist_ply = None
+            try:
+                import pycolmap
+                max_pts = -1
+                best_rec_dir = None
+                for pts_file in tmpdir.rglob("points3D.bin"):
+                    try:
+                        rec = pycolmap.Reconstruction(str(pts_file.parent))
+                        if len(rec.points3D) > max_pts:
+                            max_pts = len(rec.points3D)
+                            best_rec_dir = pts_file.parent
+                    except Exception:
+                        pass
+                
+                if best_rec_dir:
+                    persist_ply = persist_dir / f"sparse_{job_id[:8]}.ply"
+                    pycolmap.Reconstruction(str(best_rec_dir)).export_PLY(str(persist_ply))
+                    log.info("Exported raw PLY from %s to %s with %d points", best_rec_dir, persist_ply, max_pts)
+            except Exception as e:
+                log.warning("Could not export PLY: %s", e)
+
     return {
         "job_id": job_id,
         "n_images": n_images,
@@ -322,6 +344,7 @@ def _run_inference(
         "mlflow_run_id": mlflow_run_id,
         "inference_latency_seconds": round(elapsed, 2),
         "result_csv_path": str(persist_csv),
+        "raw_ply_path": str(persist_ply) if persist_ply and persist_ply.exists() else None,
     }
 
 

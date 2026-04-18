@@ -55,3 +55,17 @@ export LD_LIBRARY_PATH=.venv/lib/python3.11/site-packages/torch/lib:$LD_LIBRARY_
         --datasets ETs stairs \ 
         --experiment-name scene_reconstruction
 ```
+
+UI
+# Backend (terminal 1)
+cd /home/abhiyaan-cu/Yash/MLOps-Project-ME22B214
+.venv/bin/uvicorn api.scene3d_server:app --reload --port 8002
+
+# Frontend (terminal 2)
+cd frontend && npm run dev
+# → http://localhost:5173
+
+
+docker compose -f docker-compose.scene3d.yaml up --build
+# → Frontend: http://localhost:5173
+# → API:      http://localhost:8002

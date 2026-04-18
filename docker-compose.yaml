@@ -123,6 +123,7 @@ services:
       DEFAULT_DATASET_DIR: "/app/data"
     volumes:
       - ${AIRFLOW_PROJ_DIR:-.}/data:/app/data:ro
+      - reconstruction-results:/app/results
     depends_on:
       mlflow:
         condition: service_healthy
@@ -135,6 +136,22 @@ services:
     restart: always
     profiles:
       - inference
+
+  # ── React + Three.js Frontend ───────────────────────────────────────────────
+  
+  scene3d-ui:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: /api
+    container_name: scene3d-ui
+    ports:
+      - "5173:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
 
   # ── Model server ────────────────────────────────────────────────────────────
   # Holds the GPU exclusively.
