@@ -41,6 +41,10 @@ export default function ProgressTracker({ jobId, onComplete, onFailed }) {
         }
       } catch (err) {
         console.error("Polling error:", err);
+        setStatus((prev) => 
+          prev ? { ...prev, message: "Network error, retrying...", error: "Connection lost. Retrying..." } 
+               : { stage: "queued", progress: 0, message: "Network error, retrying...", error: "Connection lost." }
+        );
       }
     };
 

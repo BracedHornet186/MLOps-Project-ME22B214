@@ -69,3 +69,54 @@ cd frontend && npm run dev
 docker compose -f docker-compose.scene3d.yaml up --build
 # → Frontend: http://localhost:5173
 # → API:      http://localhost:8002
+
+## Architecture
+
+```mermaid
+graph TD
+    subgraph Frontend
+        A[React UI]
+    end
+    subgraph Backend APIs
+        B[FastAPI Gateway]
+        C[Model Server API / GPU Worker]
+    end
+    subgraph MLOps & Orchestration
+        D[MLflow Tracking Server]
+        E[Airflow Scheduler & Workers]
+    end
+    subgraph Observability
+        F[Prometheus]
+        G[Grafana]
+        H[Node Exporter]
+    end
+    
+    A <-->|HTTP REST / Polling| B
+    B <-->|HTTP POST /infer| C
+    B <-->|Queried by API| D
+    C -->|Logs Experiments & Metrics| D
+    E -->|Scheduled DAGs & Jobs| C
+    
+    B -->|Scraped by| F
+    C -->|Scraped by| F
+    E -->|Scraped by| F
+    H -->|Scraped by| F
+    
+    F -->|Data Source| G
+```
+
+### Block Explanations
+* **Frontend (React UI)**: Handles user interaction, image point cloud viewing, and polls the FastAPI Gateway for job completion.
+* **FastAPI Gateway**: The primary API ingress for the application. It receives requests, controls job queuing natively over HTTP, and delegates GPU workloads to the model server.
+* **Model Server API & GPU Worker**: A dedicated process loaded precisely to handle memory-intensive PyTorch GPU inference pipelines like MASt3R, preventing global execution locks on the main gateway.
+* **MLflow Tracking Server**: Keeps a historical record of all runs, metrics like registration rates, and final artifacts natively linked to the orchestration platform.
+* **Airflow Components**: Manages scheduled execution environments such as data ingestion pipelines, triggered model retraining, and scheduled drift checking reports.
+* **Observability Stack**: Prometheus aggregates operational metrics (latency, HTTP logs) alongside system components (Node Exporter). Grafana connects to Prometheus to visualize system health, model drift, and memory usage metrics.
+
+
+So for production promotion workflow:
+
+Promote best run in MLflow Registry (already implemented in training/DAG flow).
+Update deployed config/weights to match that promoted run.
+Restart model-server + api.
+I want to do this

@@ -41,7 +41,7 @@ def load_array_from_s3(
 def imread_gray(path, augment_fn=None, client=SCANNET_CLIENT):
     cv_type = cv2.IMREAD_GRAYSCALE if augment_fn is None else cv2.IMREAD_COLOR
     if str(path).startswith('s3://'):
-        image = load_array_from_s3(str(path), client, cv_type)
+        raise ValueError('Zero Cloud Dependency Rule: Local-only, s3:// paths not allowed.')
     else:
         image = cv2.imread(str(path), cv_type)
 
@@ -200,7 +200,7 @@ def read_megadepth_depth(path, pad_to=None):
     if str(path).endswith('.jpg'):
         depth = cv2.imread(path, 0)
     elif str(path).startswith('s3://'):
-        depth = load_array_from_s3(path, MEGADEPTH_CLIENT, None, use_h5py=True)
+        raise ValueError('Zero Cloud Dependency Rule: Local-only, s3:// paths not allowed.')
     else:
         depth = np.array(h5py.File(path, 'r')['depth'])
     if pad_to is not None:
@@ -266,8 +266,7 @@ def read_scannet_gray(path, resize=(640, 480), augment_fn=None):
 
 def read_scannet_depth(path):
     if str(path).startswith('s3://'):
-        depth = load_array_from_s3(str(path), SCANNET_CLIENT,
-                                   cv2.IMREAD_UNCHANGED)
+        raise ValueError('Zero Cloud Dependency Rule: Local-only, s3:// paths not allowed.')
     else:
         depth = cv2.imread(str(path), cv2.IMREAD_UNCHANGED)
     depth = depth / 1000

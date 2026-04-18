@@ -188,6 +188,36 @@
       "targets": [
         { "expr": "performance_proxy_status", "legendFormat": "Perf Proxy" }
       ]
+    },
+    {
+      "title": "Node Memory Usage",
+      "type": "gauge",
+      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 32 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0, "max": 100
+        }
+      },
+      "targets": [
+        { "expr": "100 * (1 - ((node_memory_MemFree_bytes + node_memory_Cached_bytes + node_memory_Buffers_bytes) / node_memory_MemTotal_bytes))", "legendFormat": "Memory %" }
+      ]
+    },
+    {
+      "title": "Node Disk Usage",
+      "type": "gauge",
+      "gridPos": { "h": 8, "w": 6, "x": 6, "y": 32 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0, "max": 100
+        }
+      },
+      "targets": [
+        { "expr": "100 - ((node_filesystem_avail_bytes{mountpoint=\"/\"} * 100) / node_filesystem_size_bytes{mountpoint=\"/\"})", "legendFormat": "Disk %" }
+      ]
     }
   ],
   "schemaVersion": 39,

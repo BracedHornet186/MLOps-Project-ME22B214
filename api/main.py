@@ -105,17 +105,39 @@ class JobRecord(BaseModel):
     maa: Optional[float] = None
     registration_rate: Optional[float] = None
 
-_jobs: dict[str, JobRecord] = {}
-_job_semaphore: asyncio.Semaphore
+class JobManager:
+    def __init__(self, max_concurrent: int):
+        self.jobs: dict[str, JobRecord] = {}
+        self.semaphore: Optional[asyncio.Semaphore] = None
+        self.max_concurrent = max_concurrent
 
+    def init_semaphore(self):
+        self.semaphore = asyncio.Semaphore(self.max_concurrent)
+
+    def get_job(self, job_id: str) -> JobRecord:
+        return self.jobs[job_id]
+
+    def create_job(self, job_id: str) -> JobRecord:
+        record = JobRecord(job_id=job_id, created_at=time.time())
+        self.jobs[job_id] = record
+        return record
+
+    def update_job(self, job_id: str, stage: JobStage, message: str, **extra):
+        rec = self.jobs[job_id]
+        rec.stage = stage
+        rec.progress = _STAGE_PROGRESS.get(stage, 0)
+        rec.message = message
+        for k, v in extra.items():
+            setattr(rec, k, v)
+
+job_manager = JobManager(MAX_CONCURRENT_JOBS)
 # ─────────────────────────────────────────────────────────────────────────────
 # Lifespan
 # ─────────────────────────────────────────────────────────────────────────────
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global _job_semaphore
-    _job_semaphore = asyncio.Semaphore(MAX_CONCURRENT_JOBS)
+    job_manager.init_semaphore()
     _refresh_data_metrics()
     asyncio.create_task(_poll_model_server_ready())
     yield
@@ -287,8 +309,7 @@ async def upload_zip(
         raise HTTPException(status_code=400, detail="Invalid ZIP")
 
     job_id = str(uuid.uuid4())
-    record = JobRecord(job_id=job_id, created_at=time.time())
-    _jobs[job_id] = record
+    job_manager.create_job(job_id)
 
     background_tasks.add_task(
         _background_reconstruction,
@@ -305,9 +326,9 @@ async def upload_zip(
 @app.get("/status/{job_id}", response_model=JobStatusResponse, tags=["inference"])
 @app.get("/jobs/{job_id}", response_model=JobStatusResponse, tags=["inference"])
 async def get_status(job_id: str):
-    if job_id not in _jobs:
+    if job_id not in job_manager.jobs:
         raise HTTPException(status_code=404, detail="Job not found")
-    rec = _jobs[job_id]
+    rec = job_manager.get_job(job_id)
     
     download_url = None
     if rec.stage == JobStage.DONE and rec.result_path:
@@ -335,9 +356,9 @@ async def get_status(job_id: str):
 @app.get("/download/{job_id}", tags=["inference"])
 async def download_ply(job_id: str):
     """UI endpoint for getting the 3D PLY model."""
-    if job_id not in _jobs:
+    if job_id not in job_manager.jobs:
         raise HTTPException(status_code=404)
-    rec = _jobs[job_id]
+    rec = job_manager.get_job(job_id)
     if rec.stage != JobStage.DONE:
         raise HTTPException(status_code=409, detail="Not done yet")
     if not rec.ply_path or not Path(rec.ply_path).exists():
@@ -347,9 +368,9 @@ async def download_ply(job_id: str):
 @app.get("/jobs/{job_id}/download", tags=["inference"])
 async def download_legacy_csv(job_id: str):
     """Legacy endpoint for downloading submission CSV."""
-    if job_id not in _jobs:
+    if job_id not in job_manager.jobs:
         raise HTTPException(status_code=404)
-    rec = _jobs[job_id]
+    rec = job_manager.get_job(job_id)
     if rec.stage != JobStage.DONE:
         raise HTTPException(status_code=409)
     if not rec.result_path or not Path(rec.result_path).exists():
@@ -361,24 +382,18 @@ async def download_legacy_csv(job_id: str):
 # Background Task
 # ─────────────────────────────────────────────────────────────────────────────
 
-def _update(job_id: str, stage: JobStage, message: str, **extra):
-    rec = _jobs[job_id]
-    rec.stage = stage
-    rec.progress = _STAGE_PROGRESS[stage]
-    rec.message = message
-    for k, v in extra.items():
-        setattr(rec, k, v)
+# Moved to JobManager definition
 
 async def _background_reconstruction(
     job_id: str, content: bytes, filename: str, dataset_name: str, scene_name: str
 ):
-    rec = _jobs[job_id]
+    rec = job_manager.get_job(job_id)
     rec.started_at = time.time()
     active_jobs_gauge.inc()
 
-    async with _job_semaphore:
+    async with job_manager.semaphore:
         try:
-            _update(job_id, JobStage.MATCHING, "Running MASt3R AI pipeline on GPU ...")
+            job_manager.update_job(job_id, JobStage.MATCHING, "Running MASt3R AI pipeline on GPU ...")
             
             async with httpx.AsyncClient(timeout=600) as client:
                 r = await client.post(
@@ -392,7 +407,7 @@ async def _background_reconstruction(
                 result = r.json()
                 
             # Parse result
-            _update(job_id, JobStage.TRIANGULATING, "Inference completed ...",
+            job_manager.update_job(job_id, JobStage.TRIANGULATING, "Inference completed ...",
                     maa=result.get("maa"),
                     registration_rate=result.get("registration_rate"),
                     mlflow_run_id=result.get("mlflow_run_id"),
@@ -403,7 +418,7 @@ async def _background_reconstruction(
             
             # Decimate
             if raw_ply_path and Path(raw_ply_path).exists():
-                _update(job_id, JobStage.DECIMATING, "Optimising 3D point cloud for browser ...")
+                job_manager.update_job(job_id, JobStage.DECIMATING, "Optimising 3D point cloud for browser ...")
                 
                 import sys
                 project_root = Path(__file__).resolve().parent.parent
@@ -416,11 +431,11 @@ async def _background_reconstruction(
                 voxel_downsample_ply(raw_ply_path, decimated_ply, voxel_size=VOXEL_SIZE, max_points=MAX_POINT_COUNT)
                 
                 stats = get_point_cloud_stats(decimated_ply)
-                _update(job_id, JobStage.DONE, f"Reconstruction successful ({stats.n_points:,} points)",
+                job_manager.update_job(job_id, JobStage.DONE, f"Reconstruction successful ({stats.n_points:,} points)",
                         ply_path=decimated_ply, n_points=stats.n_points)
             else:
                 log.warning("No PLY received from model-server. Using default success state.")
-                _update(job_id, JobStage.DONE, "Reconstruction successful (no point cloud available).")
+                job_manager.update_job(job_id, JobStage.DONE, "Reconstruction successful (no point cloud available).")
 
             elapsed = time.time() - rec.started_at
             inference_latency_seconds.observe(elapsed)
@@ -431,7 +446,7 @@ async def _background_reconstruction(
 
         except Exception as e:
             log.error("Job %s failed: %s", job_id, e)
-            _update(job_id, JobStage.FAILED, f"Pipeline error: {e}", error=str(e))
+            job_manager.update_job(job_id, JobStage.FAILED, f"Pipeline error: {e}", error=str(e))
             api_errors_total.labels("/reconstruct/async").inc()
         finally:
             rec.finished_at = time.time()

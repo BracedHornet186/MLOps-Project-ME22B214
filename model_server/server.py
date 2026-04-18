@@ -63,9 +63,13 @@ SERVER_PORT = int(os.environ.get("MODEL_SERVER_PORT", "8001"))
 # Global state
 # ─────────────────────────────────────────────────────────────────────────────
 
-_model_ready: bool = False
-_inference_lock = threading.Lock()   # single GPU — one job at a time
-_pipeline = None                      # loaded at startup
+class PipelineState:
+    def __init__(self):
+        self.is_ready: bool = False
+        self.inference_lock = threading.Lock()
+        self.pipeline = None
+
+pipeline_state = PipelineState()
 
 # ─────────────────────────────────────────────────────────────────────────────
 # App
@@ -91,7 +95,7 @@ def health():
 
 @app.get("/ready")
 def ready():
-    if not _model_ready:
+    if not pipeline_state.is_ready:
         raise HTTPException(status_code=503, detail="Model weights still loading")
     return {"status": "ready", "device": _get_device_str()}
 
@@ -108,10 +112,10 @@ async def infer(
     Accepts a ZIP of images, runs the full reconstruction pipeline,
     returns metrics and the path to the resulting CSV.
     """
-    if not _model_ready:
+    if not pipeline_state.is_ready:
         raise HTTPException(status_code=503, detail="Model not ready")
 
-    if not _inference_lock.acquire(blocking=False):
+    if not pipeline_state.inference_lock.acquire(blocking=False):
         raise HTTPException(
             status_code=429,
             detail="Another inference job is already running. Try again shortly.",
@@ -130,7 +134,7 @@ async def infer(
         log.exception("Inference failed for job %s: %s", job_id, e)
         raise HTTPException(status_code=500, detail=str(e))
     finally:
-        _inference_lock.release()
+        pipeline_state.inference_lock.release()
         _cleanup_gpu()
 
 
@@ -139,9 +143,7 @@ async def infer(
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _load_pipeline() -> None:
-    """Load the IMC2025MASt3RPipeline once. Sets _model_ready = True on success."""
-    global _pipeline, _model_ready
-
+    """Load the IMC2025MASt3RPipeline once. Sets pipeline_state.is_ready = True on success."""
     log.info("Loading pipeline from config: %s", DEFAULT_CONFIG_PATH)
     t0 = time.perf_counter()
 
@@ -154,18 +156,18 @@ def _load_pipeline() -> None:
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         log.info("Using device: %s", device)
 
-        _pipeline = create_pipeline(
+        pipeline_state.pipeline = create_pipeline(
             conf=pipeline_conf,
             dist_conf=DistConfig.single(),
             device=device,
         )
-        _model_ready = True
+        pipeline_state.is_ready = True
         elapsed = time.perf_counter() - t0
         log.info("Pipeline loaded in %.1fs", elapsed)
 
     except Exception as e:
         log.error("Failed to load pipeline: %s", e)
-        _model_ready = False
+        pipeline_state.is_ready = False
         raise
 
 
@@ -272,7 +274,7 @@ def _run_inference(
 
             # ── Run pipeline ───────────────────────────────────────────────
             log.info("Job %s: starting pipeline...", job_id[:8])
-            submission_df = _pipeline.run(
+            submission_df = pipeline_state.pipeline.run(
                 df=submission_input_df,
                 data_schema=data_schema,
                 save_snapshot=False,
