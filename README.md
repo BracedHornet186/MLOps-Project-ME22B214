@@ -104,11 +104,12 @@ graph TD
     
     F -->|Data Source| G
 ```
+The system consists of two distinct layers: an offline MLOps pipeline and an online inference pipeline.
 
-### Block Explanations
-* **Frontend (React UI)**: Handles user interaction, image point cloud viewing, and polls the FastAPI Gateway for job completion.
-* **FastAPI Gateway**: The primary API ingress for the application. It receives requests, controls job queuing natively over HTTP, and delegates GPU workloads to the model server.
-* **Model Server API & GPU Worker**: A dedicated process loaded precisely to handle memory-intensive PyTorch GPU inference pipelines like MASt3R, preventing global execution locks on the main gateway.
-* **MLflow Tracking Server**: Keeps a historical record of all runs, metrics like registration rates, and final artifacts natively linked to the orchestration platform.
-* **Airflow Components**: Manages scheduled execution environments such as data ingestion pipelines, triggered model retraining, and scheduled drift checking reports.
-* **Observability Stack**: Prometheus aggregates operational metrics (latency, HTTP logs) alongside system components (Node Exporter). Grafana connects to Prometheus to visualize system health, model drift, and memory usage metrics.
+In the offline layer, Airflow orchestrates the execution of the pipeline, while DVC defines the pipeline stages and ensures reproducibility. Different configurations are experimented with using DVC, and each run logs parameters, metrics, and artifacts to MLflow using a local SQLite backend.
+
+The best-performing configuration is selected based on evaluation metrics and is associated with a specific Git commit and MLflow run. This combination of code version and configuration is promoted to production.
+
+In the production layer, FastAPI serves the application. When a user uploads a zip file of images, the same pipeline logic is executed directly (without DVC), using the selected configuration. The pipeline performs preprocessing, feature extraction, matching, and 3D reconstruction using COLMAP, producing a .ply file which is then visualized in the UI.
+
+This separation ensures reproducibility during development and efficiency during inference.

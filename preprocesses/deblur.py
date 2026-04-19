@@ -94,6 +94,8 @@ def run_deblurring(scene: Scene, conf: DeblurringConfig, device: torch.device,
             deblurred_image = handler(image)
         except Exception as e:
             print(f"Deblurring error: {e}")
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
             continue
 
         save_path = scene.deblur_image_dir / Path(path).name

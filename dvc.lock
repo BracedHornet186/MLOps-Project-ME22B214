@@ -1,0 +1,288 @@
+schema: '2.0'
+stages:
+  extract_features:
+    cmd: .venv/bin/python3 scripts/extract_features.py
+    deps:
+    - path: data/baselines/validation_report.json
+      hash: md5
+      md5: b428f61218ff3efcc9cc9b351c144446
+      size: 227
+    - path: data/processed/images
+      hash: md5
+      md5: c64ccd22c9a81e58e0dbcd7728dc6118.dir
+      size: 6057551158
+      nfiles: 2018
+    - path: data/processed/preprocess_report.json
+      hash: md5
+      md5: 7e4f6b2886a602ca7417d238c9c466a6
+      size: 13350
+    - path: data/test
+      hash: md5
+      md5: c7dec6cac387079d41b60421101985ac.dir
+      size: 83626946
+      nfiles: 75
+    - path: data/train
+      hash: md5
+      md5: 11d2518b261811cc9330913e36cd75ab.dir
+      size: 5134387059
+      nfiles: 1958
+    - path: scripts/extract_features.py
+      hash: md5
+      md5: 9bbd8258be8f058c046a4e99a3d4d004
+      size: 6145
+    outs:
+    - path: data/extracted
+      hash: md5
+      md5: d932c0a7847ea237bc8362d5dade685c.dir
+      size: 835869
+      nfiles: 1
+    - path: data/features
+      hash: md5
+      md5: 3c5a191172679df14cc4aa4dc5d66758.dir
+      size: 770940
+      nfiles: 2019
+  retrieval:
+    cmd: .venv/bin/python3 scripts/retrieval.py
+    deps:
+    - path: data/features
+      hash: md5
+      md5: 3c5a191172679df14cc4aa4dc5d66758.dir
+      size: 770940
+      nfiles: 2019
+    - path: scripts/retrieval.py
+      hash: md5
+      md5: b65751b049ba41833fa3c513ccec0018
+      size: 3749
+    outs:
+    - path: data/retrieval
+      hash: md5
+      md5: 3794fb4eb4ad675ac69f231eeaa7a1aa.dir
+      size: 2740005
+      nfiles: 1
+  generate_pairs:
+    cmd: .venv/bin/python3 scripts/generate_pairs.py
+    deps:
+    - path: data/retrieval
+      hash: md5
+      md5: 3794fb4eb4ad675ac69f231eeaa7a1aa.dir
+      size: 2740005
+      nfiles: 1
+    - path: scripts/generate_pairs.py
+      hash: md5
+      md5: 4d8a64b58de9ae69bc5accb4d2afd463
+      size: 2816
+    outs:
+    - path: data/pairs
+      hash: md5
+      md5: 2cbc781698ae71ce4787ef050a8e49cc.dir
+      size: 961860
+      nfiles: 1
+  detect_keypoints:
+    cmd: .venv/bin/python3 scripts/detect_keypoints.py
+    deps:
+    - path: data/extracted
+      hash: md5
+      md5: d932c0a7847ea237bc8362d5dade685c.dir
+      size: 835869
+      nfiles: 1
+    - path: data/pairs
+      hash: md5
+      md5: 2cbc781698ae71ce4787ef050a8e49cc.dir
+      size: 961860
+      nfiles: 1
+    - path: scripts/detect_keypoints.py
+      hash: md5
+      md5: 1c0f90a21916416b8158b3a91d8c6619
+      size: 4578
+    outs:
+    - path: data/keypoints
+      hash: md5
+      md5: 7daae71d20731616b66d8156fae87452.dir
+      size: 2235307
+      nfiles: 2019
+  match:
+    cmd: .venv/bin/python3 scripts/match.py
+    deps:
+    - path: data/keypoints
+      hash: md5
+      md5: 7daae71d20731616b66d8156fae87452.dir
+      size: 2235307
+      nfiles: 2019
+    - path: data/pairs
+      hash: md5
+      md5: 2cbc781698ae71ce4787ef050a8e49cc.dir
+      size: 961860
+      nfiles: 1
+    - path: scripts/match.py
+      hash: md5
+      md5: 6d326b5296d7313a4e7f7b1a049a07c5
+      size: 4064
+    outs:
+    - path: data/matches
+      hash: md5
+      md5: d5293c826506ec5a0fb2a7b3caef7ee4.dir
+      size: 4648722
+      nfiles: 1
+  reconstruct:
+    cmd: .venv/bin/python3 scripts/reconstruct.py
+    deps:
+    - path: data/matches
+      hash: md5
+      md5: d5293c826506ec5a0fb2a7b3caef7ee4.dir
+      size: 4648722
+      nfiles: 1
+    - path: scripts/reconstruct.py
+      hash: md5
+      md5: 15e6c07353dfb01be1465c9d77e01353
+      size: 4363
+    outs:
+    - path: data/reconstruction
+      hash: md5
+      md5: 6555d093d3c9cdd6f65598eef0fe53cb.dir
+      size: 206134
+      nfiles: 2
+  validate:
+    cmd: .venv/bin/python3 scripts/validate_data.py
+    deps:
+    - path: data/test
+      hash: md5
+      md5: c7dec6cac387079d41b60421101985ac.dir
+      size: 83626946
+      nfiles: 75
+    - path: data/train
+      hash: md5
+      md5: 11d2518b261811cc9330913e36cd75ab.dir
+      size: 5134387059
+      nfiles: 1958
+    - path: data/train_labels.csv
+      hash: md5
+      md5: 65d4ed3b1e80b4db596acadd29e09f29
+      size: 430314
+    - path: data/train_thresholds.csv
+      hash: md5
+      md5: 543f9a7c118d51027be86602f0ac1c49
+      size: 1806
+    - path: scripts/data.py
+      hash: md5
+      md5: f4f8fc8508df8eaadd835383da5c20dc
+      size: 16992
+    - path: scripts/data_schema.py
+      hash: md5
+      md5: 266cc683be0b08d73a85b842f2376371
+      size: 2515
+    - path: scripts/validate_data.py
+      hash: md5
+      md5: fee282b6d0535a68e37de0c5f254b67a
+      size: 3899
+    outs:
+    - path: data/baselines/validation_metrics.json
+      hash: md5
+      md5: 979a6bd7532451059c904fda59f4293e
+      size: 209
+    - path: data/baselines/validation_report.json
+      hash: md5
+      md5: b428f61218ff3efcc9cc9b351c144446
+      size: 227
+  eda_baselines:
+    cmd: .venv/bin/python3 scripts/eda_baselines.py
+    deps:
+    - path: data/baselines/validation_report.json
+      hash: md5
+      md5: b428f61218ff3efcc9cc9b351c144446
+      size: 227
+    - path: data/train
+      hash: md5
+      md5: 11d2518b261811cc9330913e36cd75ab.dir
+      size: 5134387059
+      nfiles: 1958
+    - path: data/train_labels.csv
+      hash: md5
+      md5: 65d4ed3b1e80b4db596acadd29e09f29
+      size: 430314
+    - path: scripts/data.py
+      hash: md5
+      md5: f4f8fc8508df8eaadd835383da5c20dc
+      size: 16992
+    - path: scripts/data_schema.py
+      hash: md5
+      md5: 266cc683be0b08d73a85b842f2376371
+      size: 2515
+    - path: scripts/eda_baselines.py
+      hash: md5
+      md5: 835dc1be4ddbdb34604ba644e22eb0df
+      size: 8887
+    outs:
+    - path: data/baselines/eda_baselines.json
+      hash: md5
+      md5: 46a8db12a01b363a5d282f3aab395a3b
+      size: 936
+    - path: data/baselines/eda_metrics.json
+      hash: md5
+      md5: b15e6b695bebc9f30150b3ee914d524a
+      size: 319
+  image_preprocess:
+    cmd: .venv/bin/python3 scripts/image_processing.py
+    deps:
+    - path: conf/preprocess.yaml
+      hash: md5
+      md5: ce896566cb93dd15b237f0d936e959a4
+      size: 2900
+    - path: data/test
+      hash: md5
+      md5: c7dec6cac387079d41b60421101985ac.dir
+      size: 83626946
+      nfiles: 75
+    - path: data/train
+      hash: md5
+      md5: 11d2518b261811cc9330913e36cd75ab.dir
+      size: 5134387059
+      nfiles: 1958
+    - path: data/train_labels.csv
+      hash: md5
+      md5: 65d4ed3b1e80b4db596acadd29e09f29
+      size: 430314
+    - path: pipelines/scene.py
+      hash: md5
+      md5: 721e69c928ca2e1806e7a83ccc2e337b
+      size: 23531
+    - path: preprocesses/deblur.py
+      hash: md5
+      md5: 66764d11be579caea15dcf53344c1339
+      size: 3392
+    - path: preprocesses/orientation.py
+      hash: md5
+      md5: 1cd0c5d177975d5ffe2744fd731e45f6
+      size: 7257
+    - path: preprocesses/pipeline.py
+      hash: md5
+      md5: 1b8bcc0a72afb1c4706f5c6980b7ee62
+      size: 12886
+    - path: scripts/data.py
+      hash: md5
+      md5: f4f8fc8508df8eaadd835383da5c20dc
+      size: 16992
+    - path: scripts/data_schema.py
+      hash: md5
+      md5: 266cc683be0b08d73a85b842f2376371
+      size: 2515
+    - path: scripts/image_processing.py
+      hash: md5
+      md5: 1774eec6cb3c8a5552ab9df7cc7fd7ee
+      size: 12295
+    params:
+      conf/preprocess.yaml:
+        deblurring.blurry_threshold: 100.0
+    outs:
+    - path: data/processed/images
+      hash: md5
+      md5: c64ccd22c9a81e58e0dbcd7728dc6118.dir
+      size: 6057551158
+      nfiles: 2018
+    - path: data/processed/preprocess_metrics.json
+      hash: md5
+      md5: 832e64acd31e0c32aef56aaf44278cc3
+      size: 310
+    - path: data/processed/preprocess_report.json
+      hash: md5
+      md5: 7e4f6b2886a602ca7417d238c9c466a6
+      size: 13350

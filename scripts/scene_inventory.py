@@ -14,6 +14,7 @@ Outputs:
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -21,6 +22,23 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from data import IMC2025TrainData, DEFAULT_DATASET_DIR
+
+
+def _log_to_mlflow(metrics: dict, inventory_path: Path, metrics_path: Path) -> None:
+    """Best-effort MLflow logging for scene inventory metrics/artifacts."""
+    try:
+        import mlflow
+
+        mlflow_uri = os.environ.get("MLFLOW_TRACKING_URI", "http://localhost:5000")
+        mlflow.set_tracking_uri(mlflow_uri)
+        mlflow.set_experiment("stage1_scene_inventory")
+
+        with mlflow.start_run(run_name="scene_inventory"):
+            mlflow.log_metrics({k: float(v) for k, v in metrics.items()})
+            mlflow.log_artifact(str(inventory_path), artifact_path="inventory")
+            mlflow.log_artifact(str(metrics_path), artifact_path="metrics")
+    except Exception as exc:  # pragma: no cover - environment dependent
+        print(f"[warn] MLflow logging skipped: {exc}")
 
 
 def main() -> None:
@@ -58,6 +76,12 @@ def main() -> None:
 
     with open(output_dir / "inventory_metrics.json", "w") as f:
         json.dump(metrics, f, indent=2)
+
+    _log_to_mlflow(
+        metrics=metrics,
+        inventory_path=output_dir / "scene_inventory.csv",
+        metrics_path=output_dir / "inventory_metrics.json",
+    )
 
     print(json.dumps(metrics, indent=2))
     print(f"[OK] Scene inventory saved — {metrics['total_scenes']} scenes across {metrics['total_datasets']} datasets")

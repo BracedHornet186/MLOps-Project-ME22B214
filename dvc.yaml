@@ -1,22 +1,9 @@
 # dvc.yaml
-# ─────────────────────────────────────────────────────────────────────────────
-# RAW DATA is versioned via `dvc add` (not stages):
-#   data/train_labels.csv.dvc  |  data/train.dvc
-#   data/train_thresholds.csv.dvc  |  data/test.dvc
-#
-# Run full chain:   dvc repro
-# Visualise DAG:    dvc dag
-# Check metrics:    dvc metrics show
-# ─────────────────────────────────────────────────────────────────────────────
+# Inference-only 3D scene reconstruction pipeline
 
 stages:
-
-  # ─────────────────────────────────────────────────────────────────────────
-  # STAGE 1: Data Collection & Validation
-  # ─────────────────────────────────────────────────────────────────────────
-
   validate:
-    cmd: python scripts/validate_data.py
+    cmd: .venv/bin/python3 scripts/validate_data.py
     deps:
       - scripts/validate_data.py
       - scripts/data.py
@@ -26,124 +13,98 @@ stages:
       - data/train
       - data/test
     outs:
-      - data/processed/validation_report.json:
-          cache: false
+      - data/baselines/validation_report.json
+    metrics:
+      - data/baselines/validation_metrics.json
 
   eda_baselines:
-    cmd: python scripts/eda_baselines.py
+    cmd: .venv/bin/python3 scripts/eda_baselines.py
     deps:
       - scripts/eda_baselines.py
       - scripts/data.py
       - scripts/data_schema.py
       - data/train_labels.csv
       - data/train
-      - data/processed/validation_report.json
-    outs:
-      - data/processed/eda_baselines.json:
-          cache: false
-      - data/processed/similarity_matrix.png:
-          cache: true
-      - data/processed/sharpness_hist.png:
-          cache: true
-      - data/processed/resolution_hist.png:
-          cache: true
+      - data/baselines/validation_report.json
     metrics:
-      - data/processed/eda_metrics.json:
-          cache: false
+      - data/baselines/eda_baselines.json
+      - data/baselines/eda_metrics.json
 
-  scene_inventory:
-    cmd: python scripts/scene_inventory.py
+  image_preprocess:
+    cmd: .venv/bin/python3 scripts/image_processing.py
     deps:
-      - scripts/scene_inventory.py
+      - scripts/image_processing.py
       - scripts/data.py
       - scripts/data_schema.py
-      - data/train_labels.csv
-      - data/train
-      - data/processed/validation_report.json
-    outs:
-      - data/processed/scene_inventory.csv:
-          cache: false
-    metrics:
-      - data/processed/inventory_metrics.json:
-          cache: false
-
-  validate_custom:
-    cmd: python scripts/validate_custom_data.py
-    deps:
-      - scripts/validate_custom_data.py
-      - data/test
-    outs:
-      - data/processed/custom_validation_report.json:
-          cache: false
-    metrics:
-      - data/processed/custom_metrics.json:
-          cache: false
-
-  # ─────────────────────────────────────────────────────────────────────────
-  # STAGE 2: Preprocessing & Feature Engineering
-  # ─────────────────────────────────────────────────────────────────────────
-
-  # Stage 2a: Image-level preprocessing stats
-  # Runs orientation + deblur on a sample of scenes to log stats and verify
-  # the config. Full per-image preprocessing runs inside IMC2025Pipeline
-  # at inference time. This stage exists to catch config regressions early.
-  image_preprocess:
-    cmd: python scripts/run_stage2.py --skip-features --max-scenes 20
-    deps:
-      - scripts/run_stage2.py
+      - pipelines/scene.py
       - preprocesses/pipeline.py
       - preprocesses/orientation.py
       - preprocesses/deblur.py
       - conf/preprocess.yaml
       - data/train_labels.csv
       - data/train
-      - data/processed/eda_baselines.json
+      - data/test
     outs:
-      - data/processed/preprocess_report.json:
-          cache: false
+      - data/processed/images
+      - data/processed/preprocess_report.json
+    metrics:
+      - data/processed/preprocess_metrics.json
     params:
       - conf/preprocess.yaml:
           - deblurring.blurry_threshold
-          - orientation.type
+          # - orientation.type
 
-  # Stage 2b: Global descriptor extraction
-  # Extracts DINOv2 + ISC descriptors; saved as .npy per scene.
-  # These are the input to the shortlist generator at inference time.
-  extract_global_descriptors:
-    cmd: python scripts/run_stage2.py --skip-preprocess
+  extract_features:
+    cmd: .venv/bin/python3 scripts/extract_features.py
     deps:
-      - scripts/run_stage2.py
-      - features/engineer.py
-      - global_descriptors/dinov2.py
-      - global_descriptors/isc.py
-      - conf/features.yaml
-      - data/train_labels.csv
+      - scripts/extract_features.py
+      - data/baselines/validation_report.json
+      - data/processed/images
+      - data/processed/preprocess_report.json
       - data/train
-      - data/processed/eda_baselines.json
+      - data/test
     outs:
-      - data/processed/features:
-          cache: true
-    params:
-      - conf/features.yaml:
-          - global_descriptors.dinov2
-          - global_descriptors.isc
-          - global_descriptors.batch_size
-          - local_features.aliked_max_keypoints
-          - local_features.superpoint_max_keypoints
-    metrics:
-      - data/processed/feature_metrics.json:
-          cache: false
+      - data/features
+      - data/extracted
 
-  # Stage 2c: Drift detection
-  # KS-test of live descriptor norms vs EDA baselines.
-  # Writes drift_report.json consumed by the Prometheus exporter.
-  check_drift:
-    cmd: python -m scripts.drift_monitor
+  retrieval:
+    cmd: .venv/bin/python3 scripts/retrieval.py
     deps:
-      - scripts/drift_monitor.py
-      - data/processed/eda_baselines.json
-      - data/processed/features
-      - data/processed/feature_metrics.json
+      - scripts/retrieval.py
+      - data/features
     outs:
-      - data/processed/drift_report.json:
-          cache: false
+      - data/retrieval
+
+  generate_pairs:
+    cmd: .venv/bin/python3 scripts/generate_pairs.py
+    deps:
+      - scripts/generate_pairs.py
+      - data/retrieval
+    outs:
+      - data/pairs
+
+  detect_keypoints:
+    cmd: .venv/bin/python3 scripts/detect_keypoints.py
+    deps:
+      - scripts/detect_keypoints.py
+      - data/extracted
+      - data/pairs
+    outs:
+      - data/keypoints
+
+  match:
+    cmd: .venv/bin/python3 scripts/match.py
+    deps:
+      - scripts/match.py
+      - data/pairs
+      - data/keypoints
+    outs:
+      - data/matches
+
+  reconstruct:
+    cmd: .venv/bin/python3 scripts/reconstruct.py
+    deps:
+      - scripts/reconstruct.py
+      - data/matches
+    outs:
+      - data/reconstruction

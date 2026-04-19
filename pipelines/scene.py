@@ -3,6 +3,7 @@ from __future__ import annotations
 import concurrent.futures
 import contextlib
 import gc
+from importlib.resources import path
 import tempfile
 from collections import defaultdict
 from collections.abc import Generator
@@ -224,7 +225,7 @@ class Scene:
                 else:
                     self.images[path] = img.copy()
                     self.image_shapes[path] = tuple(img.shape[:2])
-                    print(f"Cached: {path}")
+                    # print(f"Cached: {path}")
 
     def release_cached_images(self) -> None:
         if self.images is None:
@@ -232,7 +233,7 @@ class Scene:
 
         keys = list(self.images.keys())
         for k in keys:
-            print(f"Release from cache: {k}")
+            # print(f"Release from cache: {k}")
             del self.images[k]
         self.images = {}
         gc.collect()

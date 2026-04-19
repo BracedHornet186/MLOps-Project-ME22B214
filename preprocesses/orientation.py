@@ -72,7 +72,8 @@ def create_check_orientation_model(
     weight_path: str, activation: Optional[str] = "softmax"
 ) -> nn.Module:
     model = timm_create_model("swsl_resnext50_32x4d", pretrained=False, num_classes=4)
-    state_dict = torch.load(weight_path, map_location="cpu")["state_dict"]
+    checkpoint = torch.load(weight_path, map_location="cpu")
+    state_dict = checkpoint.get("state_dict", checkpoint)
     state_dict = rename_layers(state_dict, {"model.": ""})
     model.load_state_dict(state_dict)
 

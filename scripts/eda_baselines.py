@@ -10,16 +10,17 @@ Computes statistical baselines from the training dataset for drift detection:
   - Scene/dataset inventory
 
 Outputs:
-  - data/processed/eda_baselines.json
-  - data/processed/eda_metrics.json
-  - data/processed/similarity_matrix.png
-  - data/processed/sharpness_hist.png
-  - data/processed/resolution_hist.png
+  - data/baselines/eda_baselines.json
+  - data/baselines/eda_metrics.json
+  - data/baselines/similarity_matrix.png
+  - data/baselines/sharpness_hist.png
+  - data/baselines/resolution_hist.png
 """
 
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -39,8 +40,34 @@ def compute_sharpness(image_path: str) -> float:
     return float(cv2.Laplacian(img, cv2.CV_64F).var())
 
 
+def _log_to_mlflow(eda_metrics: dict, baselines_path: Path, output_dir: Path) -> None:
+    """Best-effort MLflow logging for Stage-1 EDA outputs."""
+    try:
+        import mlflow
+
+        mlflow_uri = os.environ.get("MLFLOW_TRACKING_URI", "http://localhost:5000")
+        mlflow.set_tracking_uri(mlflow_uri)
+        mlflow.set_experiment("scene_reconstruction_dvc")
+
+        with mlflow.start_run(run_name="eda_baselines"):
+            mlflow.log_metrics({k: float(v) for k, v in eda_metrics.items()})
+            mlflow.log_artifact(str(baselines_path), artifact_path="baselines")
+            mlflow.log_artifact(str(output_dir / "eda_metrics.json"), artifact_path="metrics")
+
+            for plot_name in (
+                "sharpness_hist.png",
+                "resolution_hist.png",
+                "similarity_matrix.png",
+            ):
+                plot_path = output_dir / plot_name
+                if plot_path.exists():
+                    mlflow.log_artifact(str(plot_path), artifact_path="plots")
+    except Exception as exc:  # pragma: no cover - environment dependent
+        print(f"[warn] MLflow logging skipped: {exc}")
+
+
 def main() -> None:
-    output_dir = Path(DEFAULT_DATASET_DIR) / "processed"
+    output_dir = Path(DEFAULT_DATASET_DIR) / "baselines"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     schema = IMC2025TrainData.create(DEFAULT_DATASET_DIR)
@@ -186,6 +213,12 @@ def main() -> None:
 
     except ImportError:
         print("[warn] matplotlib not available — skipping plot generation")
+
+    _log_to_mlflow(
+        eda_metrics=eda_metrics,
+        baselines_path=output_dir / "eda_baselines.json",
+        output_dir=output_dir,
+    )
 
     print(json.dumps(baselines, indent=2))
     print(f"[OK] EDA baselines written to {output_dir / 'eda_baselines.json'}")

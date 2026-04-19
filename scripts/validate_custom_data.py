@@ -1,17 +1,5 @@
 """
 scripts/validate_custom_data.py
-────────────────────────────────
-Stage 1 — Custom Data Validation.
-
-Validates any custom/user-uploaded test data under data/test/.
-Checks:
-  - Image files exist and are readable
-  - At least 3 images per scene (minimum for SfM)
-  - Image file formats supported
-
-Outputs:
-  - data/processed/custom_validation_report.json
-  - data/processed/custom_metrics.json
 """
 
 from __future__ import annotations

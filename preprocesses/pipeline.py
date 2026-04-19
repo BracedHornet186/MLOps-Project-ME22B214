@@ -21,6 +21,10 @@ Usage from Airflow DAG or pipeline entrypoint:
 
 from __future__ import annotations
 
+import os
+# Configure PyTorch to use expandable segments for improved high-res image memory fragmentation handling
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = os.environ.get("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
+
 import logging
 import time
 from dataclasses import dataclass, field
@@ -167,21 +171,29 @@ class PreprocessingPipeline:
             if self.conf.orientation:
                 stats = self._run_orientation(scene, progress_bar)
                 all_stats.append(stats)
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
 
             # ── Step 2: Deblurring ─────────────────────────────────────────
             if self.conf.deblurring:
                 stats = self._run_deblurring(scene, progress_bar)
                 all_stats.append(stats)
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
 
             # ── Step 3: Segmentation ───────────────────────────────────────
             if self.conf.segmentation:
                 stats = self._run_segmentation(scene, progress_bar)
                 all_stats.append(stats)
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
 
             # ── Step 4: Depth estimation ───────────────────────────────────
             if self.conf.depth_estimation:
                 stats = self._run_depth_estimation(scene, progress_bar)
                 all_stats.append(stats)
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
 
             # ── Log aggregated metrics ─────────────────────────────────────
             if self.conf.log_to_mlflow:

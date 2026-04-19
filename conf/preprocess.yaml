@@ -17,10 +17,12 @@
 # Detects rotated images using a ResNeXt-50 classifier and registers the
 # correction angle in Scene.orientations so all downstream matchers see
 # upright images without modifying files on disk.
-orientation:
-  type: check_orientation
-  check_orientation:
-    weight_path: CHECK_ORIENTATION     # key in conf/models.yaml
+orientation: null
+# orientation:
+#   type: check_orientation
+#   check_orientation:
+#     weight_path: CHECK_ORIENTATION_MODEL   # key in conf/models.yaml
+#     config_path: CHECK_ORIENTATION_CONFIG  # key in conf/models.yaml
 
 # Step 2: Deblurring
 # Applies FFTformer to images whose Laplacian variance < blurry_threshold.
@@ -31,7 +33,7 @@ deblurring:
   type: fftformer
   blurry_threshold: 100.0             # override with p10 from eda_baselines.json
   fftformer:
-    weight_path: FFTFORMER            # key in conf/models.yaml
+    weight_path: FFTFORMER_GOPRO      # key in conf/models.yaml
 
 # Step 3: Segmentation (optional — enable for transparent/reflective objects)
 # Grounded-SAM produces per-image masks stored in Scene.segmentation_mask_images.

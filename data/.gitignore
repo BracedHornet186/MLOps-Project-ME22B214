@@ -2,3 +2,11 @@
 /train
 /train_labels.csv
 /train_thresholds.csv
+/preprocessed
+/features
+/retrieval
+/pairs
+/keypoints
+/matches
+/reconstruction
+/extracted

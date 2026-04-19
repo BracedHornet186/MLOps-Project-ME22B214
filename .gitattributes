@@ -3,3 +3,4 @@ extra/pretrained_models filter=lfs diff=lfs merge=lfs -text
 *.tar filter=lfs diff=lfs merge=lfs -text
 *.pth.tar filter=lfs diff=lfs merge=lfs -text
 *.pkl filter=lfs diff=lfs merge=lfs -text
+extra/pretrained_models/fftformer/fftformer_GoPro.pth filter=lfs diff=lfs merge=lfs -text
