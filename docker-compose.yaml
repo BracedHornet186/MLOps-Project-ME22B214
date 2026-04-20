@@ -37,13 +37,14 @@ x-airflow-common:
     - ${AIRFLOW_PROJ_DIR:-./airflow}/dags:/opt/airflow/dags
     - ${AIRFLOW_PROJ_DIR:-./airflow}/logs:/opt/airflow/logs
     - ${AIRFLOW_PROJ_DIR:-./airflow}/plugins:/opt/airflow/plugins
-    - ${AIRFLOW_PROJ_DIR:-./airflow}/conf:/opt/airflow/project/conf
-    - ${AIRFLOW_PROJ_DIR:-./airflow}/scripts:/opt/airflow/project/scripts
-    - ${AIRFLOW_PROJ_DIR:-./airflow}/pipelines:/opt/airflow/project/pipelines
-    - ${AIRFLOW_PROJ_DIR:-./airflow}/global_descriptors:/opt/airflow/project/global_descriptors
-    - ${AIRFLOW_PROJ_DIR:-./airflow}/preprocesses:/opt/airflow/project/preprocesses
-    - ${AIRFLOW_PROJ_DIR:-./airflow}/postprocesses:/opt/airflow/project/postprocesses
-    - ${AIRFLOW_PROJ_DIR:-./airflow}/data:/opt/airflow/project/data
+    - ${AIRFLOW_PROJ_DIR:-./airflow}/config:/opt/airflow/config
+    - ./conf:/opt/airflow/project/conf
+    - ./scripts:/opt/airflow/project/scripts
+    - ./pipelines:/opt/airflow/project/pipelines
+    - ./global_descriptors:/opt/airflow/project/global_descriptors
+    - ./preprocesses:/opt/airflow/project/preprocesses
+    - ./postprocesses:/opt/airflow/project/postprocesses
+    - ./data:/opt/airflow/project/data
     - mlflow-artifacts:/opt/mlflow/artifacts
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
@@ -132,8 +133,8 @@ services:
       PRODUCTION_CONFIG_PATH: "/app/conf/best_config.yaml"
       RESULTS_DIR: "/app/results"
     volumes:
-      - ${AIRFLOW_PROJ_DIR:-./airflow}/data:/app/data:ro
-      - ${AIRFLOW_PROJ_DIR:-./airflow}/conf:/app/conf:ro
+      - ./data:/app/data:ro
+      - ./conf:/app/conf:ro
       - reconstruction-results:/app/results
     depends_on:
       mlflow:
@@ -185,8 +186,8 @@ services:
       CUDA_VISIBLE_DEVICES: "0"
     volumes:
       - ${MODEL_WEIGHTS_DIR:-./weights}:/app/weights:ro
-      - ${AIRFLOW_PROJ_DIR:-./airflow}/data:/app/data:ro
-      - ${AIRFLOW_PROJ_DIR:-./airflow}/conf:/app/conf:ro
+      - ./data:/app/data:ro
+      - ./conf:/app/conf:ro
       - reconstruction-results:/app/results
       - mlflow-artifacts:/opt/mlflow/artifacts
     deploy:
@@ -364,8 +365,8 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ${AIRFLOW_PROJ_DIR:-./airflow}/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - ${AIRFLOW_PROJ_DIR:-./airflow}/monitoring/alert_rules.yml:/etc/prometheus/alert_rules.yml:ro
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/alert_rules.yml:/etc/prometheus/alert_rules.yml:ro
       - prometheus-data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
@@ -383,7 +384,7 @@ services:
     ports:
       - "9093:9093"
     volumes:
-      - ${AIRFLOW_PROJ_DIR:-./airflow}/monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
     command:
       - '--config.file=/etc/alertmanager/alertmanager.yml'
     depends_on:
@@ -406,8 +407,8 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: admin
       GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/scene_reconstruction.json
     volumes:
-      - ${AIRFLOW_PROJ_DIR:-./airflow}/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
-      - ${AIRFLOW_PROJ_DIR:-./airflow}/monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
       - grafana-data:/var/lib/grafana
     depends_on:
       prometheus:
