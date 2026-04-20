@@ -1,26 +1,25 @@
 schema: '2.0'
 stages:
   extract_features:
-    cmd: .venv/bin/python3 scripts/extract_features.py
+    cmd: .venv/bin/python3 scripts/extract_features.py --config conf/mast3r.yaml
     deps:
+    - path: conf/mast3r.yaml
+      hash: md5
+      md5: 8d6c3d9b7e811ade1cee465872168d69
+      size: 4043
     - path: data/baselines/validation_report.json
       hash: md5
       md5: b428f61218ff3efcc9cc9b351c144446
       size: 227
     - path: data/processed/images
       hash: md5
-      md5: c64ccd22c9a81e58e0dbcd7728dc6118.dir
-      size: 6057551158
-      nfiles: 2018
+      md5: 7048e5d3d945215f74101f88f845889a.dir
+      size: 5812517309
+      nfiles: 1945
     - path: data/processed/preprocess_report.json
       hash: md5
-      md5: 7e4f6b2886a602ca7417d238c9c466a6
-      size: 13350
-    - path: data/test
-      hash: md5
-      md5: c7dec6cac387079d41b60421101985ac.dir
-      size: 83626946
-      nfiles: 75
+      md5: f2359413d39d353b00c675cd2081a092
+      size: 12674
     - path: data/train
       hash: md5
       md5: 11d2518b261811cc9330913e36cd75ab.dir
@@ -28,127 +27,142 @@ stages:
       nfiles: 1958
     - path: scripts/extract_features.py
       hash: md5
-      md5: 9bbd8258be8f058c046a4e99a3d4d004
-      size: 6145
+      md5: f3190bd4fcb6e247d11bac94993cca21
+      size: 7170
     outs:
     - path: data/extracted
       hash: md5
-      md5: d932c0a7847ea237bc8362d5dade685c.dir
-      size: 835869
+      md5: 171e5f16088d18d7d564c2911474ad6b.dir
+      size: 809326
       nfiles: 1
     - path: data/features
       hash: md5
-      md5: 3c5a191172679df14cc4aa4dc5d66758.dir
-      size: 770940
-      nfiles: 2019
+      md5: 287b79ea764cc50ed1cca9dc06f88322.dir
+      size: 1616360
+      nfiles: 1946
   retrieval:
-    cmd: .venv/bin/python3 scripts/retrieval.py
+    cmd: .venv/bin/python3 scripts/retrieval.py --config conf/mast3r.yaml
     deps:
+    - path: conf/mast3r.yaml
+      hash: md5
+      md5: 8d6c3d9b7e811ade1cee465872168d69
+      size: 4043
     - path: data/features
       hash: md5
-      md5: 3c5a191172679df14cc4aa4dc5d66758.dir
-      size: 770940
-      nfiles: 2019
+      md5: 287b79ea764cc50ed1cca9dc06f88322.dir
+      size: 1616360
+      nfiles: 1946
     - path: scripts/retrieval.py
       hash: md5
-      md5: b65751b049ba41833fa3c513ccec0018
-      size: 3749
+      md5: c8efc52c7e35b0fdb944d4478a7449bb
+      size: 5427
     outs:
     - path: data/retrieval
       hash: md5
-      md5: 3794fb4eb4ad675ac69f231eeaa7a1aa.dir
-      size: 2740005
+      md5: 1a3fe080fad1135bf0db3a034e3f875b.dir
+      size: 2640891
       nfiles: 1
   generate_pairs:
-    cmd: .venv/bin/python3 scripts/generate_pairs.py
+    cmd: .venv/bin/python3 scripts/generate_pairs.py --config conf/mast3r.yaml
     deps:
+    - path: conf/mast3r.yaml
+      hash: md5
+      md5: 8d6c3d9b7e811ade1cee465872168d69
+      size: 4043
     - path: data/retrieval
       hash: md5
-      md5: 3794fb4eb4ad675ac69f231eeaa7a1aa.dir
-      size: 2740005
+      md5: 1a3fe080fad1135bf0db3a034e3f875b.dir
+      size: 2640891
       nfiles: 1
     - path: scripts/generate_pairs.py
       hash: md5
-      md5: 4d8a64b58de9ae69bc5accb4d2afd463
-      size: 2816
+      md5: c6ac3d4a81989db49081db4aa335df56
+      size: 4552
     outs:
     - path: data/pairs
       hash: md5
-      md5: 2cbc781698ae71ce4787ef050a8e49cc.dir
-      size: 961860
+      md5: 4bc3395c1895befd05dc4ab20834555e.dir
+      size: 1917894
       nfiles: 1
   detect_keypoints:
-    cmd: .venv/bin/python3 scripts/detect_keypoints.py
+    cmd: .venv/bin/python3 scripts/detect_keypoints.py --config conf/mast3r.yaml
     deps:
+    - path: conf/mast3r.yaml
+      hash: md5
+      md5: 8d6c3d9b7e811ade1cee465872168d69
+      size: 4043
     - path: data/extracted
       hash: md5
-      md5: d932c0a7847ea237bc8362d5dade685c.dir
-      size: 835869
+      md5: 171e5f16088d18d7d564c2911474ad6b.dir
+      size: 809326
       nfiles: 1
     - path: data/pairs
       hash: md5
-      md5: 2cbc781698ae71ce4787ef050a8e49cc.dir
-      size: 961860
+      md5: 4bc3395c1895befd05dc4ab20834555e.dir
+      size: 1917894
       nfiles: 1
     - path: scripts/detect_keypoints.py
       hash: md5
-      md5: 1c0f90a21916416b8158b3a91d8c6619
-      size: 4578
+      md5: e16422c63f13c100cd3edccde547898c
+      size: 6150
     outs:
     - path: data/keypoints
       hash: md5
-      md5: 7daae71d20731616b66d8156fae87452.dir
-      size: 2235307
-      nfiles: 2019
+      md5: 8dddaf2aab1b593fae32a120a416e322.dir
+      size: 2014377
+      nfiles: 1946
   match:
-    cmd: .venv/bin/python3 scripts/match.py
+    cmd: .venv/bin/python3 scripts/match.py --config conf/mast3r.yaml
     deps:
+    - path: conf/mast3r.yaml
+      hash: md5
+      md5: 8d6c3d9b7e811ade1cee465872168d69
+      size: 4043
     - path: data/keypoints
       hash: md5
-      md5: 7daae71d20731616b66d8156fae87452.dir
-      size: 2235307
-      nfiles: 2019
+      md5: 8dddaf2aab1b593fae32a120a416e322.dir
+      size: 2014377
+      nfiles: 1946
     - path: data/pairs
       hash: md5
-      md5: 2cbc781698ae71ce4787ef050a8e49cc.dir
-      size: 961860
+      md5: 4bc3395c1895befd05dc4ab20834555e.dir
+      size: 1917894
       nfiles: 1
     - path: scripts/match.py
       hash: md5
-      md5: 6d326b5296d7313a4e7f7b1a049a07c5
-      size: 4064
+      md5: d13f90242b05b8847153681639c2a3a9
+      size: 5919
     outs:
     - path: data/matches
       hash: md5
-      md5: d5293c826506ec5a0fb2a7b3caef7ee4.dir
-      size: 4648722
+      md5: ccad3bdd5fecdf6b6655928fab8c7abf.dir
+      size: 7522937
       nfiles: 1
   reconstruct:
-    cmd: .venv/bin/python3 scripts/reconstruct.py
+    cmd: .venv/bin/python3 scripts/reconstruct.py --config conf/mast3r.yaml
     deps:
+    - path: conf/mast3r.yaml
+      hash: md5
+      md5: 8d6c3d9b7e811ade1cee465872168d69
+      size: 4043
     - path: data/matches
       hash: md5
-      md5: d5293c826506ec5a0fb2a7b3caef7ee4.dir
-      size: 4648722
+      md5: ccad3bdd5fecdf6b6655928fab8c7abf.dir
+      size: 7522937
       nfiles: 1
     - path: scripts/reconstruct.py
       hash: md5
-      md5: 15e6c07353dfb01be1465c9d77e01353
-      size: 4363
+      md5: 0573e9606a08dce103925627894ae0cd
+      size: 8789
     outs:
     - path: data/reconstruction
       hash: md5
-      md5: 6555d093d3c9cdd6f65598eef0fe53cb.dir
-      size: 206134
+      md5: f13097ed0a5a29eb45ceb2c86b8b56b4.dir
+      size: 726689
       nfiles: 2
   validate:
     cmd: .venv/bin/python3 scripts/validate_data.py
     deps:
-    - path: data/test
-      hash: md5
-      md5: c7dec6cac387079d41b60421101985ac.dir
-      size: 83626946
-      nfiles: 75
     - path: data/train
       hash: md5
       md5: 11d2518b261811cc9330913e36cd75ab.dir
@@ -172,8 +186,8 @@ stages:
       size: 2515
     - path: scripts/validate_data.py
       hash: md5
-      md5: fee282b6d0535a68e37de0c5f254b67a
-      size: 3899
+      md5: 6db726f61a62a39e7f52debeb79d7582
+      size: 4652
     outs:
     - path: data/baselines/validation_metrics.json
       hash: md5
@@ -209,8 +223,8 @@ stages:
       size: 2515
     - path: scripts/eda_baselines.py
       hash: md5
-      md5: 835dc1be4ddbdb34604ba644e22eb0df
-      size: 8887
+      md5: 291dd014ff3d311edbfeb1ff7771c8ae
+      size: 9629
     outs:
     - path: data/baselines/eda_baselines.json
       hash: md5
@@ -225,13 +239,8 @@ stages:
     deps:
     - path: conf/preprocess.yaml
       hash: md5
-      md5: ce896566cb93dd15b237f0d936e959a4
-      size: 2900
-    - path: data/test
-      hash: md5
-      md5: c7dec6cac387079d41b60421101985ac.dir
-      size: 83626946
-      nfiles: 75
+      md5: 2d2e2aef0f4bfb9ededf3202111c7284
+      size: 2864
     - path: data/train
       hash: md5
       md5: 11d2518b261811cc9330913e36cd75ab.dir
@@ -247,8 +256,8 @@ stages:
       size: 23531
     - path: preprocesses/deblur.py
       hash: md5
-      md5: 66764d11be579caea15dcf53344c1339
-      size: 3392
+      md5: 2ccd59ad0f711a7b92db7f8bd860fe29
+      size: 4898
     - path: preprocesses/orientation.py
       hash: md5
       md5: 1cd0c5d177975d5ffe2744fd731e45f6
@@ -267,22 +276,62 @@ stages:
       size: 2515
     - path: scripts/image_processing.py
       hash: md5
-      md5: 1774eec6cb3c8a5552ab9df7cc7fd7ee
-      size: 12295
+      md5: c80c04d20eadddf7655af131ff08ffe6
+      size: 12079
     params:
       conf/preprocess.yaml:
         deblurring.blurry_threshold: 100.0
     outs:
     - path: data/processed/images
       hash: md5
-      md5: c64ccd22c9a81e58e0dbcd7728dc6118.dir
-      size: 6057551158
-      nfiles: 2018
+      md5: 7048e5d3d945215f74101f88f845889a.dir
+      size: 5812517309
+      nfiles: 1945
     - path: data/processed/preprocess_metrics.json
       hash: md5
-      md5: 832e64acd31e0c32aef56aaf44278cc3
-      size: 310
+      md5: 858bc109d84fd14d545e9b94b64d310f
+      size: 312
     - path: data/processed/preprocess_report.json
       hash: md5
-      md5: 7e4f6b2886a602ca7417d238c9c466a6
-      size: 13350
+      md5: f2359413d39d353b00c675cd2081a092
+      size: 12674
+  evaluate:
+    cmd: .venv/bin/python3 scripts/evaluate.py --config conf/mast3r.yaml
+    deps:
+    - path: conf/mast3r.yaml
+      hash: md5
+      md5: 8d6c3d9b7e811ade1cee465872168d69
+      size: 4043
+    - path: data/extracted
+      hash: md5
+      md5: 171e5f16088d18d7d564c2911474ad6b.dir
+      size: 809326
+      nfiles: 1
+    - path: data/reconstruction
+      hash: md5
+      md5: f13097ed0a5a29eb45ceb2c86b8b56b4.dir
+      size: 726689
+      nfiles: 2
+    - path: data/train_labels.csv
+      hash: md5
+      md5: 65d4ed3b1e80b4db596acadd29e09f29
+      size: 430314
+    - path: data/train_thresholds.csv
+      hash: md5
+      md5: 543f9a7c118d51027be86602f0ac1c49
+      size: 1806
+    - path: scripts/evaluate.py
+      hash: md5
+      md5: 6e9ce89c99f9ad97b2328f09511e9208
+      size: 11361
+    params:
+      conf/mast3r.yaml:
+        imc2025_pipeline.reconstruction.mapper_max_num_models: 25
+        imc2025_pipeline.reconstruction.mapper_min_model_size: 3
+        type: imc2025
+    outs:
+    - path: data/metrics
+      hash: md5
+      md5: a8876c7564cacc86ad52a3504af50627.dir
+      size: 431634
+      nfiles: 4

@@ -2,18 +2,47 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import time
 from pathlib import Path
 
 import mlflow
 
+from config import load_pipeline_config
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Stage 3: generate shortlist pairs from retrieval results")
+    parser.add_argument("--config", default="conf/mast3r.yaml", help="Path to unified pipeline config")
     parser.add_argument("--retrieval-dir", default="data/retrieval", help="Input retrieval directory")
     parser.add_argument("--pairs-dir", default="data/pairs", help="Output pairs directory")
-    parser.add_argument("--max-pairs-per-query", type=int, default=5, help="Maximum pairs emitted per query")
+    parser.add_argument("--max-pairs-per-query", type=int, default=None, help="Maximum pairs emitted per query")
     return parser.parse_args()
+
+
+def resolve_max_pairs_per_query(imc2025_conf) -> int:
+    asmk_pair_limits: list[int] = []
+    global_desc_topks: list[int] = []
+
+    def _visit(shortlist_conf) -> None:
+        if (
+            shortlist_conf.type == "mast3r_retrieval_asmk"
+            and shortlist_conf.mast3r_retrieval_asmk_make_pairs_fps_k
+        ):
+            asmk_pair_limits.append(int(shortlist_conf.mast3r_retrieval_asmk_make_pairs_fps_k))
+        if shortlist_conf.type == "global_desc" and shortlist_conf.global_desc_topk:
+            global_desc_topks.append(int(shortlist_conf.global_desc_topk))
+        if shortlist_conf.type == "ensemble" and shortlist_conf.ensemble:
+            for child in shortlist_conf.ensemble.shortlist_generators:
+                _visit(child)
+
+    _visit(imc2025_conf.shortlist_generator)
+
+    if asmk_pair_limits:
+        return max(1, max(asmk_pair_limits))
+    if global_desc_topks:
+        return max(1, max(global_desc_topks))
+    return 5
 
 
 def canonical_pair(a: str, b: str) -> tuple[str, str]:
@@ -23,6 +52,11 @@ def canonical_pair(a: str, b: str) -> tuple[str, str]:
 def main() -> None:
     args = parse_args()
     t0 = time.perf_counter()
+
+    conf = load_pipeline_config(args.config)
+    if conf.pipeline.type != "imc2025" or conf.pipeline.imc2025_pipeline is None:
+        raise ValueError(f"Expected an imc2025 pipeline config, got type={conf.pipeline.type}")
+    imc2025_conf = conf.pipeline.imc2025_pipeline
 
     retrieval_dir = Path(args.retrieval_dir)
     pairs_dir = Path(args.pairs_dir)
@@ -36,7 +70,8 @@ def main() -> None:
         retrieval_index = json.load(f)
 
     retrieval_rows = retrieval_index.get("retrieval", [])
-    max_pairs = max(int(args.max_pairs_per_query), 1)
+    resolved_max_pairs = resolve_max_pairs_per_query(imc2025_conf)
+    max_pairs = max(int(args.max_pairs_per_query), 1) if args.max_pairs_per_query is not None else resolved_max_pairs
 
     pairs_set: set[tuple[str, str]] = set()
     for row in retrieval_rows:
@@ -63,10 +98,13 @@ def main() -> None:
 
     mlflow.set_tracking_uri("http://localhost:5000")
     mlflow.set_experiment("scene_reconstruction_dvc")
+    parent_run_id = os.getenv("MLFLOW_PARENT_RUN_ID")
+    run_tags = {"mlflow.parentRunId": parent_run_id} if parent_run_id else None
 
-    with mlflow.start_run(run_name="generate_pairs"):
+    with mlflow.start_run(run_name="generate_pairs", nested=True, tags=run_tags):
         mlflow.log_param("max_pairs_per_query", max_pairs)
         mlflow.log_param("retrieval_dir", str(retrieval_dir))
+        mlflow.log_param("config_path", args.config)
 
         mlflow.log_metric("num_queries", len(retrieval_rows))
         mlflow.log_metric("num_pairs", len(pairs))

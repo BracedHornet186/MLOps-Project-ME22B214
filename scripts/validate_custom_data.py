@@ -21,12 +21,12 @@ def main() -> None:
     output_dir = Path(DEFAULT_DATASET_DIR) / "processed"
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    test_dir = Path(DEFAULT_DATASET_DIR) / "test"
+    train_dir = Path(DEFAULT_DATASET_DIR) / "train"
 
-    if not test_dir.exists():
+    if not train_dir.exists():
         report = {
             "status": "warn",
-            "message": "No test directory found",
+            "message": "No train directory found",
             "total_images": 0,
             "total_scenes": 0,
             "unreadable_images": 0,
@@ -36,7 +36,7 @@ def main() -> None:
 
     # Find all image files
     all_images = [
-        p for p in test_dir.rglob("*")
+        p for p in train_dir.rglob("*")
         if p.is_file() and p.suffix.lower() in SUPPORTED_EXTENSIONS
     ]
 

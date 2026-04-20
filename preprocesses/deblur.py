@@ -40,19 +40,48 @@ class FFTformerDeblurHandler(DeblurHandler):
 
     @torch.inference_mode()
     def __call__(self, img: Image.Image) -> Image.Image:
-        x = F.to_tensor(img)
-        x = x.unsqueeze(0)
-        x = x.to(self.device, non_blocking=True)
-        b, c, h, w = x.shape
-        h_n = (32 - h % 32) % 32
-        w_n = (32 - w % 32) % 32
-        x = torch.nn.functional.pad(x, (0, w_n, 0, h_n), mode="reflect")
-        pred = self.model(x)
-        pred = pred[:, :, :h, :w]
-        pred_clip = torch.clamp(pred, 0, 1)
-        pred_clip += 0.5 / 255
-        result_img = F.to_pil_image(pred_clip.squeeze(0).cpu(), "RGB")
-        return result_img
+        x_orig = F.to_tensor(img).unsqueeze(0).to(self.device, non_blocking=True)
+        scale = 1.0
+        
+        while scale >= 0.25:
+            if scale < 1.0:
+                h, w = x_orig.shape[2:]
+                new_h, new_w = int(h * scale), int(w * scale)
+                x = torch.nn.functional.interpolate(x_orig, size=(new_h, new_w), mode='bilinear', align_corners=False)
+            else:
+                x = x_orig
+                
+            try:
+                # Use mixed precision for a massive VRAM reduction!
+                with torch.autocast(device_type="cuda", dtype=torch.float16):
+                    b, c, h, w = x.shape
+                    h_n = (32 - h % 32) % 32
+                    w_n = (32 - w % 32) % 32
+                    x_pad = torch.nn.functional.pad(x, (0, w_n, 0, h_n), mode="reflect")
+                    
+                    pred = self.model(x_pad)
+                    pred = pred[:, :, :h, :w]
+                    
+                # Inference succeeded
+                pred_clip = torch.clamp(pred, 0, 1) + (0.5 / 255.0)
+                
+                # Restore original resolution output if downscaling was triggered
+                if scale < 1.0:
+                    orig_h, orig_w = x_orig.shape[2:]
+                    pred_clip = torch.nn.functional.interpolate(pred_clip.to(torch.float32), size=(orig_h, orig_w), mode='bilinear', align_corners=False)
+                    
+                return F.to_pil_image(pred_clip.squeeze(0).cpu(), mode="RGB")
+
+            except RuntimeError as e:
+                if "out of memory" in str(e).lower():
+                    print(f"CUDA OOM caught at scale factor {scale}. Halving resolution and retrying.")
+                    if torch.cuda.is_available():
+                        torch.cuda.empty_cache()
+                    scale *= 0.5
+                else:
+                    raise e
+                    
+        raise RuntimeError("Deblurring failed due to persistent PyTorch CUDA OOM even at scale 0.25.")
 
 
 def create_deblur_handler(

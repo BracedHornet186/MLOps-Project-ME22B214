@@ -1,6 +1,5 @@
 from typing import List, Literal, Optional
 
-import cv2
 from pydantic import BaseModel
 
 from models.config import (
@@ -37,6 +36,8 @@ class ResizeConfig(BaseModel):
     gim_resize: Optional[int] = None
 
     def get_cv2_interp(self):
+        import cv2
+
         if self.cv2_interpolation is None:
             return cv2.INTER_LINEAR
         elif self.cv2_interpolation == "LANCZOS4":
@@ -73,6 +74,8 @@ class PairedPreResizeConfig(BaseModel):
     cv2_interpolation: Optional[str] = None
 
     def get_cv2_interp(self):
+        import cv2
+
         if self.cv2_interpolation is None:
             return cv2.INTER_LINEAR
         elif self.cv2_interpolation == "LANCZOS4":

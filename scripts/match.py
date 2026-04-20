@@ -3,20 +3,43 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import time
 from pathlib import Path
 
 import mlflow
 import numpy as np
 
+from config import load_pipeline_config
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Stage 5: deterministic placeholder matching for image pairs")
+    parser.add_argument("--config", default="conf/mast3r.yaml", help="Path to unified pipeline config")
     parser.add_argument("--pairs-dir", default="data/pairs", help="Input pairs directory")
     parser.add_argument("--keypoints-dir", default="data/keypoints", help="Input keypoints directory")
     parser.add_argument("--matches-dir", default="data/matches", help="Output matches directory")
-    parser.add_argument("--min-match-threshold", type=int, default=8, help="Minimum matches for reconstruction eligibility")
+    parser.add_argument("--min-match-threshold", type=int, default=None, help="Minimum matches for reconstruction eligibility")
     return parser.parse_args()
+
+
+def resolve_min_match_threshold(imc2025_conf) -> int:
+    candidates: list[int] = []
+    for matcher in imc2025_conf.point_tracking_matchers:
+        if matcher.type == "mast3r_hybrid" and matcher.mast3r_hybrid:
+            if matcher.mast3r_hybrid.dense_min_matches is not None:
+                candidates.append(int(matcher.mast3r_hybrid.dense_min_matches))
+            if matcher.mast3r_hybrid.sparse_min_matches is not None:
+                candidates.append(int(matcher.mast3r_hybrid.sparse_min_matches))
+        if matcher.type == "mast3r_sparse" and matcher.mast3r_sparse:
+            if matcher.mast3r_sparse.min_matches is not None:
+                candidates.append(int(matcher.mast3r_sparse.min_matches))
+        if matcher.type == "vggt" and matcher.vggt:
+            if matcher.vggt.min_matches is not None:
+                candidates.append(int(matcher.vggt.min_matches))
+    if candidates:
+        return max(1, min(candidates))
+    return 8
 
 
 def pair_hash(a: str, b: str) -> int:
@@ -27,6 +50,17 @@ def pair_hash(a: str, b: str) -> int:
 def main() -> None:
     args = parse_args()
     t0 = time.perf_counter()
+
+    conf = load_pipeline_config(args.config)
+    if conf.pipeline.type != "imc2025" or conf.pipeline.imc2025_pipeline is None:
+        raise ValueError(f"Expected an imc2025 pipeline config, got type={conf.pipeline.type}")
+    imc2025_conf = conf.pipeline.imc2025_pipeline
+
+    min_match_threshold = (
+        max(int(args.min_match_threshold), 1)
+        if args.min_match_threshold is not None
+        else resolve_min_match_threshold(imc2025_conf)
+    )
 
     pairs_dir = Path(args.pairs_dir)
     keypoints_dir = Path(args.keypoints_dir)
@@ -66,6 +100,9 @@ def main() -> None:
         else:
             num_matches = min(cap, 8 + (pair_hash(img1, img2) % max(cap, 1)))
 
+        if num_matches < min_match_threshold:
+            num_matches = 0
+
         if num_matches > 0:
             pairs_with_matches += 1
         total_matches += num_matches
@@ -83,7 +120,7 @@ def main() -> None:
         "num_pairs": len(matches),
         "pairs_with_matches": pairs_with_matches,
         "total_matches": total_matches,
-        "min_match_threshold": args.min_match_threshold,
+        "min_match_threshold": min_match_threshold,
         "matches": matches,
     }
 
@@ -99,9 +136,12 @@ def main() -> None:
 
     mlflow.set_tracking_uri("http://localhost:5000")
     mlflow.set_experiment("scene_reconstruction_dvc")
+    parent_run_id = os.getenv("MLFLOW_PARENT_RUN_ID")
+    run_tags = {"mlflow.parentRunId": parent_run_id} if parent_run_id else None
 
-    with mlflow.start_run(run_name="match"):
-        mlflow.log_param("min_match_threshold", args.min_match_threshold)
+    with mlflow.start_run(run_name="match", nested=True, tags=run_tags):
+        mlflow.log_param("min_match_threshold", min_match_threshold)
+        mlflow.log_param("config_path", args.config)
 
         mlflow.log_metric("num_pairs", len(matches))
         mlflow.log_metric("pairs_with_matches", pairs_with_matches)

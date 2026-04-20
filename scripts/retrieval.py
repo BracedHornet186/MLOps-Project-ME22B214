@@ -2,19 +2,48 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import time
 from pathlib import Path
 
 import mlflow
 import numpy as np
 
+from config import load_pipeline_config
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Stage 2: image retrieval from extracted features")
+    parser.add_argument("--config", default="conf/mast3r.yaml", help="Path to unified pipeline config")
     parser.add_argument("--features-dir", default="data/features", help="Input features directory")
     parser.add_argument("--retrieval-dir", default="data/retrieval", help="Output retrieval directory")
-    parser.add_argument("--top-k", type=int, default=10, help="Top-k neighbors per image")
+    parser.add_argument("--top-k", type=int, default=None, help="Top-k neighbors per image")
     return parser.parse_args()
+
+
+def resolve_top_k(imc2025_conf) -> int:
+    global_desc_topks: list[int] = []
+    fallback_topks: list[int] = []
+
+    def _visit(shortlist_conf) -> None:
+        if shortlist_conf.type == "global_desc" and shortlist_conf.global_desc_topk:
+            global_desc_topks.append(int(shortlist_conf.global_desc_topk))
+        if (
+            shortlist_conf.type == "mast3r_retrieval_asmk"
+            and shortlist_conf.mast3r_retrieval_asmk_make_pairs_fps_k
+        ):
+            fallback_topks.append(int(shortlist_conf.mast3r_retrieval_asmk_make_pairs_fps_k))
+        if shortlist_conf.type == "ensemble" and shortlist_conf.ensemble:
+            for child in shortlist_conf.ensemble.shortlist_generators:
+                _visit(child)
+
+    _visit(imc2025_conf.shortlist_generator)
+
+    if global_desc_topks:
+        return max(1, max(global_desc_topks))
+    if fallback_topks:
+        return max(1, max(fallback_topks))
+    return 10
 
 
 def cosine_similarity_matrix(vectors: np.ndarray) -> np.ndarray:
@@ -27,6 +56,11 @@ def cosine_similarity_matrix(vectors: np.ndarray) -> np.ndarray:
 def main() -> None:
     args = parse_args()
     t0 = time.perf_counter()
+
+    conf = load_pipeline_config(args.config)
+    if conf.pipeline.type != "imc2025" or conf.pipeline.imc2025_pipeline is None:
+        raise ValueError(f"Expected an imc2025 pipeline config, got type={conf.pipeline.type}")
+    imc2025_conf = conf.pipeline.imc2025_pipeline
 
     features_dir = Path(args.features_dir)
     retrieval_dir = Path(args.retrieval_dir)
@@ -57,7 +91,8 @@ def main() -> None:
     else:
         sim = np.zeros((0, 0), dtype=np.float32)
 
-    top_k = max(int(args.top_k), 1)
+    resolved_top_k = resolve_top_k(imc2025_conf)
+    top_k = max(int(args.top_k), 1) if args.top_k is not None else resolved_top_k
     retrieval_rows: list[dict] = []
     for i, image_id in enumerate(image_ids):
         row_sim = sim[i].copy()
@@ -88,10 +123,13 @@ def main() -> None:
 
     mlflow.set_tracking_uri("http://localhost:5000")
     mlflow.set_experiment("scene_reconstruction_dvc")
+    parent_run_id = os.getenv("MLFLOW_PARENT_RUN_ID")
+    run_tags = {"mlflow.parentRunId": parent_run_id} if parent_run_id else None
 
-    with mlflow.start_run(run_name="retrieval"):
+    with mlflow.start_run(run_name="retrieval", nested=True, tags=run_tags):
         mlflow.log_param("top_k", top_k)
         mlflow.log_param("features_dir", str(features_dir))
+        mlflow.log_param("config_path", args.config)
 
         mlflow.log_metric("num_images", len(image_ids))
         mlflow.log_metric("num_queries", len(retrieval_rows))

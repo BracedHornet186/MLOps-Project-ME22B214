@@ -20,8 +20,24 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 # Copy utils for decimation handling
 COPY utils/ /app/utils/
 
-# Copy only API source
+# Copy API source
 COPY api/main.py /app/api/main.py
+
+# Copy pipeline modules needed by scripts/run_pipeline.py
+COPY core/ /app/core/
+COPY clusterings/ /app/clusterings/
+COPY features/ /app/features/
+COPY global_descriptors/ /app/global_descriptors/
+COPY localizers/ /app/localizers/
+COPY matchers/ /app/matchers/
+COPY models/ /app/models/
+COPY pipelines/ /app/pipelines/
+COPY postprocesses/ /app/postprocesses/
+COPY preprocesses/ /app/preprocesses/
+COPY retrievers/ /app/retrievers/
+COPY shortlists/ /app/shortlists/
+COPY scripts/ /app/scripts/
+COPY conf/ /app/conf/
 
 EXPOSE 8000
 

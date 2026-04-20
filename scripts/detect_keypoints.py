@@ -3,21 +3,44 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import time
 from pathlib import Path
 
 import mlflow
 import numpy as np
 
+from config import load_pipeline_config
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Stage 4: deterministic keypoint detection for shortlisted images")
+    parser.add_argument("--config", default="conf/mast3r.yaml", help="Path to unified pipeline config")
     parser.add_argument("--extracted-dir", default="data/extracted", help="Input extracted directory")
     parser.add_argument("--pairs-dir", default="data/pairs", help="Input pairs directory")
     parser.add_argument("--keypoints-dir", default="data/keypoints", help="Output keypoints directory")
-    parser.add_argument("--min-keypoints", type=int, default=32, help="Minimum keypoints per image")
-    parser.add_argument("--max-keypoints", type=int, default=128, help="Maximum keypoints per image")
+    parser.add_argument("--min-keypoints", type=int, default=None, help="Minimum keypoints per image")
+    parser.add_argument("--max-keypoints", type=int, default=None, help="Maximum keypoints per image")
     return parser.parse_args()
+
+
+def resolve_min_keypoints(imc2025_conf) -> int:
+    candidates: list[int] = []
+    for matcher in imc2025_conf.point_tracking_matchers:
+        hybrid = matcher.mast3r_hybrid
+        if not hybrid:
+            continue
+        if hybrid.sparse_min_matches is not None:
+            candidates.append(int(hybrid.sparse_min_matches))
+        if hybrid.dense_min_matches is not None:
+            candidates.append(int(hybrid.dense_min_matches))
+    if candidates:
+        return max(8, min(candidates))
+    return 32
+
+
+def resolve_max_keypoints(min_keypoints: int) -> int:
+    return max(min_keypoints + 1, min_keypoints * 8)
 
 
 def deterministic_keypoints(image_id: str, min_kpts: int, max_kpts: int) -> tuple[np.ndarray, np.ndarray]:
@@ -41,6 +64,16 @@ def deterministic_keypoints(image_id: str, min_kpts: int, max_kpts: int) -> tupl
 def main() -> None:
     args = parse_args()
     t0 = time.perf_counter()
+
+    conf = load_pipeline_config(args.config)
+    if conf.pipeline.type != "imc2025" or conf.pipeline.imc2025_pipeline is None:
+        raise ValueError(f"Expected an imc2025 pipeline config, got type={conf.pipeline.type}")
+    imc2025_conf = conf.pipeline.imc2025_pipeline
+
+    min_keypoints = int(args.min_keypoints) if args.min_keypoints is not None else resolve_min_keypoints(imc2025_conf)
+    max_keypoints = int(args.max_keypoints) if args.max_keypoints is not None else resolve_max_keypoints(min_keypoints)
+    if max_keypoints <= min_keypoints:
+        max_keypoints = min_keypoints + 1
 
     extracted_dir = Path(args.extracted_dir)
     pairs_dir = Path(args.pairs_dir)
@@ -72,7 +105,7 @@ def main() -> None:
     total_keypoints = 0
 
     for image_id in sorted(needed_ids):
-        points, scores = deterministic_keypoints(image_id, args.min_keypoints, args.max_keypoints)
+        points, scores = deterministic_keypoints(image_id, min_keypoints, max_keypoints)
         total_keypoints += int(points.shape[0])
 
         out_path = keypoints_dir / f"{image_id}.npz"
@@ -103,10 +136,13 @@ def main() -> None:
 
     mlflow.set_tracking_uri("http://localhost:5000")
     mlflow.set_experiment("scene_reconstruction_dvc")
+    parent_run_id = os.getenv("MLFLOW_PARENT_RUN_ID")
+    run_tags = {"mlflow.parentRunId": parent_run_id} if parent_run_id else None
 
-    with mlflow.start_run(run_name="detect_keypoints"):
-        mlflow.log_param("min_keypoints", args.min_keypoints)
-        mlflow.log_param("max_keypoints", args.max_keypoints)
+    with mlflow.start_run(run_name="detect_keypoints", nested=True, tags=run_tags):
+        mlflow.log_param("min_keypoints", min_keypoints)
+        mlflow.log_param("max_keypoints", max_keypoints)
+        mlflow.log_param("config_path", args.config)
 
         mlflow.log_metric("num_images", len(keypoint_records))
         mlflow.log_metric("total_keypoints", total_keypoints)

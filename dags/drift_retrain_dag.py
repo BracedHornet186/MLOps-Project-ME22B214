@@ -119,7 +119,7 @@ def task_run_retrain(**context) -> None:
     """
     from scripts.train_experiment import run_experiment
 
-    config_path = CONF_DIR / "pipeline/imc2025/mast3r_rtx3060.yaml"
+    config_path = CONF_DIR / "mast3r.yaml"
     if not config_path.exists():
         # Fallback to the standard mast3r.yaml
         config_path = CONF_DIR / "mast3r.yaml"

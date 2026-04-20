@@ -10,11 +10,13 @@ Reads DVC-tracked CSVs, runs schema checks, writes:
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import sys
 from pathlib import Path
 
+from config import load_pipeline_config
 from data import IMC2025TrainData, DEFAULT_DATASET_DIR
 
 
@@ -36,8 +38,10 @@ def _log_to_mlflow(metrics: dict, report_path: Path, metrics_path: Path, status:
         mlflow_uri = os.environ.get("MLFLOW_TRACKING_URI", "http://localhost:5000")
         mlflow.set_tracking_uri(mlflow_uri)
         mlflow.set_experiment("scene_reconstruction_dvc")
+        parent_run_id = os.getenv("MLFLOW_PARENT_RUN_ID")
+        run_tags = {"mlflow.parentRunId": parent_run_id} if parent_run_id else None
 
-        with mlflow.start_run(run_name="validate_data"):
+        with mlflow.start_run(run_name="validate", nested=True, tags=run_tags):
             mlflow.log_metrics(metrics)
             mlflow.log_artifact(str(report_path), artifact_path="reports")
             mlflow.log_artifact(str(metrics_path), artifact_path="metrics")
@@ -46,7 +50,18 @@ def _log_to_mlflow(metrics: dict, report_path: Path, metrics_path: Path, status:
         print(f"[warn] MLflow logging skipped: {exc}")
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Validate IMC training data and produce Stage-1 metrics")
+    parser.add_argument("--config", default="conf/mast3r.yaml", help="Path to unified pipeline config")
+    return parser.parse_args()
+
+
 def main() -> None:
+    args = parse_args()
+    conf = load_pipeline_config(args.config)
+    if conf.pipeline.type != "imc2025" or conf.pipeline.imc2025_pipeline is None:
+        raise ValueError(f"Expected an imc2025 pipeline config, got type={conf.pipeline.type}")
+
     output_dir = Path(DEFAULT_DATASET_DIR) / "baselines"
     output_dir.mkdir(parents=True, exist_ok=True)
 

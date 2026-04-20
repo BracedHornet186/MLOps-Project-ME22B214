@@ -6,7 +6,9 @@ import json
 import logging
 import os
 import shutil
+import sys
 import tempfile
+import threading
 import time
 import uuid
 import zipfile
@@ -27,6 +29,7 @@ from prometheus_client import (
     generate_latest,
 )
 from pydantic import BaseModel
+import yaml
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Configuration
@@ -37,11 +40,20 @@ MLFLOW_TRACKING_URI = os.environ.get("MLFLOW_TRACKING_URI", "http://mlflow:5000"
 API_VERSION = "1.0.0"
 MAX_CONCURRENT_JOBS = 1
 MAX_UPLOAD_SIZE_MB = int(os.environ.get("SCENE3D_MAX_UPLOAD_MB", "500"))
+PRODUCTION_CONFIG_PATH = Path(
+    os.environ.get(
+        "PRODUCTION_CONFIG_PATH",
+        str(Path(__file__).resolve().parent.parent / "conf" / "best_config.yaml"),
+    )
+)
 
 # Scene3D decimation config
 VOXEL_SIZE = float(os.environ.get("SCENE3D_VOXEL_SIZE", "0.02"))
 MAX_POINT_COUNT = int(os.environ.get("SCENE3D_MAX_POINTS", "500000"))
 ALLOWED_IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".tif", ".tiff", ".bmp", ".webp"}
+
+_best_config_cache: dict[str, Any] = {"mtime_ns": -1, "config": None}
+_best_config_lock = threading.Lock()
 
 logging.basicConfig(
     level=logging.INFO,
@@ -163,6 +175,82 @@ async def _poll_model_server_ready():
             pass
         await asyncio.sleep(10)
     model_ready_gauge.set(0)
+
+
+def _load_best_config() -> dict[str, Any]:
+    if not PRODUCTION_CONFIG_PATH.exists():
+        raise FileNotFoundError(
+            f"Production config not found: {PRODUCTION_CONFIG_PATH}. "
+            "Run scripts/select_best_run.py to generate conf/best_config.yaml."
+        )
+
+    mtime_ns = PRODUCTION_CONFIG_PATH.stat().st_mtime_ns
+    with _best_config_lock:
+        cached = _best_config_cache.get("config")
+        if cached is not None and _best_config_cache.get("mtime_ns") == mtime_ns:
+            return cached
+
+        with open(PRODUCTION_CONFIG_PATH) as f:
+            conf = yaml.safe_load(f)
+
+        if not isinstance(conf, dict):
+            raise ValueError(
+                f"Invalid config format at {PRODUCTION_CONFIG_PATH}: expected a YAML mapping"
+            )
+
+        _best_config_cache["mtime_ns"] = mtime_ns
+        _best_config_cache["config"] = conf
+        return conf
+
+
+def _extract_zip_images(content: bytes, destination_dir: Path) -> int:
+    destination_dir.mkdir(parents=True, exist_ok=True)
+    extracted = 0
+
+    with zipfile.ZipFile(io.BytesIO(content)) as zf:
+        for info in zf.infolist():
+            if info.is_dir():
+                continue
+
+            ext = Path(info.filename).suffix.lower()
+            if ext not in ALLOWED_IMAGE_EXTS:
+                continue
+
+            file_name = Path(info.filename).name
+            if not file_name:
+                continue
+
+            target = destination_dir / file_name
+            base = target.stem
+            suffix = target.suffix
+            idx = 1
+            while target.exists():
+                target = destination_dir / f"{base}_{idx}{suffix}"
+                idx += 1
+
+            with zf.open(info) as src, open(target, "wb") as dst:
+                shutil.copyfileobj(src, dst)
+
+            extracted += 1
+
+    if extracted == 0:
+        raise ValueError("ZIP contains no supported image files")
+
+    return extracted
+
+
+def _run_function_pipeline(input_dir: str, config: dict[str, Any]) -> str:
+    project_root = Path(__file__).resolve().parent.parent
+    scripts_dir = project_root / "scripts"
+
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+    if str(scripts_dir) not in sys.path:
+        sys.path.insert(0, str(scripts_dir))
+
+    from scripts.run_pipeline import run_pipeline
+
+    return run_pipeline(input_dir=input_dir, config=config)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # App & Schemas
@@ -290,6 +378,63 @@ async def trigger_retrain():
 # ─────────────────────────────────────────────────────────────────────────────
 # Endpoints - Inference (UI and Legacy)
 # ─────────────────────────────────────────────────────────────────────────────
+
+@app.post("/reconstruct", tags=["inference"])
+async def reconstruct(file: UploadFile = File(..., description="ZIP archive of images")):
+    started_at = time.time()
+
+    try:
+        content = await file.read()
+        if len(content) > MAX_UPLOAD_SIZE_MB * 1024 * 1024:
+            raise HTTPException(
+                status_code=413,
+                detail=f"Upload exceeds {MAX_UPLOAD_SIZE_MB} MB",
+            )
+        if not zipfile.is_zipfile(io.BytesIO(content)):
+            raise HTTPException(status_code=400, detail="Invalid ZIP")
+
+        try:
+            config = _load_best_config()
+        except FileNotFoundError as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+        with tempfile.TemporaryDirectory(prefix="reconstruct_input_") as tmpdir:
+            input_dir = Path(tmpdir) / "images"
+            _extract_zip_images(content, input_dir)
+
+            ply_path_str = await asyncio.to_thread(
+                _run_function_pipeline,
+                str(input_dir),
+                config,
+            )
+
+        ply_path = Path(ply_path_str)
+        if not ply_path.exists():
+            raise RuntimeError(f"Pipeline did not produce a PLY file: {ply_path}")
+
+        elapsed = time.time() - started_at
+        inference_latency_seconds.observe(elapsed)
+        api_requests_total.labels("POST", "/reconstruct", "200").inc()
+
+        return FileResponse(
+            str(ply_path),
+            media_type="application/octet-stream",
+            filename=ply_path.name,
+        )
+
+    except HTTPException as exc:
+        status_code = str(exc.status_code)
+        api_requests_total.labels("POST", "/reconstruct", status_code).inc()
+        if exc.status_code >= 400:
+            api_errors_total.labels("/reconstruct").inc()
+        raise
+    except Exception as exc:
+        api_requests_total.labels("POST", "/reconstruct", "500").inc()
+        api_errors_total.labels("/reconstruct").inc()
+        log.exception("/reconstruct failed: %s", exc)
+        raise HTTPException(status_code=500, detail=f"Reconstruction failed: {exc}") from exc
 
 @app.post("/upload", tags=["inference"])
 @app.post("/reconstruct/async", tags=["inference"])

@@ -65,4 +65,3 @@ depth_estimation: null
 
 # MLflow logging
 log_to_mlflow: true
-mlflow_run_name: preprocess_stage2

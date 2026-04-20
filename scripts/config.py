@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Literal, Optional, Union
+from typing import TYPE_CHECKING, Literal, Optional, Union
 
-import torch
 import yaml
 from pydantic import BaseModel
 
@@ -21,6 +20,9 @@ from pipelines.config import (
 
 FilePath = Union[str, Path]
 
+if TYPE_CHECKING:
+    import torch
+
 
 class DistConfig(BaseModel):
     gpu: int
@@ -32,7 +34,9 @@ class DistConfig(BaseModel):
         return DistConfig(gpu=0, rank=0, world_size=1)
 
     @property
-    def device(self) -> torch.device:
+    def device(self) -> "torch.device":
+        import torch
+
         return torch.device(f"cuda:{self.gpu}")
 
     def ddp(self) -> bool:
@@ -171,3 +175,25 @@ class SubmissionConfig(BaseModel):
     @property
     def dist_output_dir_path(self) -> Path:
         return Path(self.dist_output_dir)
+
+
+def load_pipeline_config(
+    path: FilePath,
+    *,
+    target_data_type: Literal[
+        "submission",
+        "submission-fast-commit",
+        "debug",
+        "imc2025test",
+        "imc2025train",
+        "imc2024test",
+        "imc2024train",
+        "imc2023test",
+        "imc2023train",
+    ] = "imc2025train",
+) -> SubmissionConfig:
+    """Load a pipeline YAML into the same SubmissionConfig flow used by kernel scripts."""
+    return SubmissionConfig(
+        pipeline=PipelineConfig.load_config(path),
+        target_data_type=target_data_type,
+    )

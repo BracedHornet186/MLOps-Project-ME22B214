@@ -113,3 +113,7 @@ The best-performing configuration is selected based on evaluation metrics and is
 In the production layer, FastAPI serves the application. When a user uploads a zip file of images, the same pipeline logic is executed directly (without DVC), using the selected configuration. The pipeline performs preprocessing, feature extraction, matching, and 3D reconstruction using COLMAP, producing a .ply file which is then visualized in the UI.
 
 This separation ensures reproducibility during development and efficiency during inference.
+
+PARENT_ID=$(.venv/bin/python3 scripts/start_parent_dvc_run.py | head -n 1)
+MLFLOW_PARENT_RUN_ID="$PARENT_ID" dvc repro
+.venv/bin/python3 select_best_run.py

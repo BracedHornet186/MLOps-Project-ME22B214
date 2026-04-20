@@ -11,7 +11,6 @@ stages:
       - data/train_labels.csv
       - data/train_thresholds.csv
       - data/train
-      - data/test
     outs:
       - data/baselines/validation_report.json
     metrics:
@@ -31,7 +30,7 @@ stages:
       - data/baselines/eda_metrics.json
 
   image_preprocess:
-    cmd: .venv/bin/python3 scripts/image_processing.py
+    cmd: .venv/bin/python3 scripts/image_processing.py --preprocess-conf conf/preprocess.yaml
     deps:
       - scripts/image_processing.py
       - scripts/data.py
@@ -43,7 +42,6 @@ stages:
       - conf/preprocess.yaml
       - data/train_labels.csv
       - data/train
-      - data/test
     outs:
       - data/processed/images
       - data/processed/preprocess_report.json
@@ -55,37 +53,40 @@ stages:
           # - orientation.type
 
   extract_features:
-    cmd: .venv/bin/python3 scripts/extract_features.py
+    cmd: .venv/bin/python3 scripts/extract_features.py --config conf/mast3r.yaml
     deps:
+      - conf/mast3r.yaml
       - scripts/extract_features.py
       - data/baselines/validation_report.json
       - data/processed/images
       - data/processed/preprocess_report.json
       - data/train
-      - data/test
     outs:
       - data/features
       - data/extracted
 
   retrieval:
-    cmd: .venv/bin/python3 scripts/retrieval.py
+    cmd: .venv/bin/python3 scripts/retrieval.py --config conf/mast3r.yaml
     deps:
+      - conf/mast3r.yaml
       - scripts/retrieval.py
       - data/features
     outs:
       - data/retrieval
 
   generate_pairs:
-    cmd: .venv/bin/python3 scripts/generate_pairs.py
+    cmd: .venv/bin/python3 scripts/generate_pairs.py --config conf/mast3r.yaml
     deps:
+      - conf/mast3r.yaml
       - scripts/generate_pairs.py
       - data/retrieval
     outs:
       - data/pairs
 
   detect_keypoints:
-    cmd: .venv/bin/python3 scripts/detect_keypoints.py
+    cmd: .venv/bin/python3 scripts/detect_keypoints.py --config conf/mast3r.yaml
     deps:
+      - conf/mast3r.yaml
       - scripts/detect_keypoints.py
       - data/extracted
       - data/pairs
@@ -93,8 +94,9 @@ stages:
       - data/keypoints
 
   match:
-    cmd: .venv/bin/python3 scripts/match.py
+    cmd: .venv/bin/python3 scripts/match.py --config conf/mast3r.yaml
     deps:
+      - conf/mast3r.yaml
       - scripts/match.py
       - data/pairs
       - data/keypoints
@@ -102,9 +104,27 @@ stages:
       - data/matches
 
   reconstruct:
-    cmd: .venv/bin/python3 scripts/reconstruct.py
+    cmd: .venv/bin/python3 scripts/reconstruct.py --config conf/mast3r.yaml
     deps:
+      - conf/mast3r.yaml
       - scripts/reconstruct.py
       - data/matches
     outs:
       - data/reconstruction
+
+  evaluate:
+    cmd: .venv/bin/python3 scripts/evaluate.py --config conf/mast3r.yaml
+    deps:
+      - conf/mast3r.yaml
+      - scripts/evaluate.py
+      - data/reconstruction
+      - data/extracted
+      - data/train_labels.csv
+      - data/train_thresholds.csv
+    outs:
+      - data/metrics
+    params:
+      - conf/mast3r.yaml:
+          - type
+          - imc2025_pipeline.reconstruction.mapper_min_model_size
+          - imc2025_pipeline.reconstruction.mapper_max_num_models

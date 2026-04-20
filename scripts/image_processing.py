@@ -127,14 +127,6 @@ def _build_scene_groups(
         if image_paths:
             groups.append((str(dataset), str(scene_name), image_paths, "train"))
 
-    # Test scenes grouped by dataset directory
-    test_dir = data_dir / "test"
-    if test_dir.exists():
-        for dataset_dir in sorted([p for p in test_dir.iterdir() if p.is_dir()]):
-            image_paths = [str(p) for p in _list_images(dataset_dir)]
-            if image_paths:
-                groups.append((dataset_dir.name, f"test_{dataset_dir.name}", image_paths, "test"))
-
     return groups
 
 
@@ -201,6 +193,7 @@ def main() -> None:
     preprocess_metrics_path = Path(
         args.preprocess_metrics_path or (processed_dir / "preprocess_metrics.json")
     )
+    preprocess_conf_path = Path(args.preprocess_conf)
 
     data_schema = IMC2025TrainData.create(
         data_root_dir=data_dir,
@@ -315,8 +308,10 @@ def main() -> None:
             mlflow_uri = f"http://{mlflow_uri}"
         mlflow.set_tracking_uri(mlflow_uri)
         mlflow.set_experiment("scene_reconstruction_dvc")
+        parent_run_id = os.getenv("MLFLOW_PARENT_RUN_ID")
+        run_tags = {"mlflow.parentRunId": parent_run_id} if parent_run_id else None
 
-        with mlflow.start_run(run_name="image_preprocess"):
+        with mlflow.start_run(run_name="image_preprocess", nested=True, tags=run_tags):
             mlflow.log_params(
                 {
                     "n_scenes": len(scene_groups),
@@ -332,6 +327,7 @@ def main() -> None:
                     if _is_number(v)
                 }
             )
+            mlflow.log_artifact(str(preprocess_conf_path), artifact_path="preprocess_conf")
             mlflow.log_artifact(str(preprocess_report_path), artifact_path="reports")
             mlflow.log_artifact(str(preprocess_metrics_path), artifact_path="metrics")
     except Exception as exc:  # pragma: no cover - environment dependent
