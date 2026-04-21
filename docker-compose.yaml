@@ -44,9 +44,17 @@ x-airflow-common:
     - ./global_descriptors:/opt/airflow/project/global_descriptors
     - ./preprocesses:/opt/airflow/project/preprocesses
     - ./postprocesses:/opt/airflow/project/postprocesses
+    - ./features:/opt/airflow/project/features
+    - ./models:/opt/airflow/project/models
+    - ./matchers:/opt/airflow/project/matchers
+    - ./clusterings:/opt/airflow/project/clusterings
+    - ./retrievers:/opt/airflow/project/retrievers
+    - ./shortlists:/opt/airflow/project/shortlists
+    - ./localizers:/opt/airflow/project/localizers
+    - ./utils:/opt/airflow/project/utils
     - ./data:/opt/airflow/project/data
     - mlflow-artifacts:/opt/mlflow/artifacts
-  user: "${AIRFLOW_UID:-50000}:0"
+  user: "${AIRFLOW_UID:-1000}:0"
   depends_on:
     &airflow-common-depends-on
     redis:
@@ -181,7 +189,8 @@ services:
     environment:
       MLFLOW_TRACKING_URI: "http://mlflow:5000"
       DEFAULT_DATASET_DIR: "/app/data"
-      PIPELINE_CONFIG: "/app/conf/mast3r.yaml"
+      PIPELINE_CONFIG: "/app/conf/best_config.yaml"
+      PIPELINE_CONFIG_FALLBACK: "/app/conf/mast3r.yaml"
       RESULTS_DIR: "/app/results"
       CUDA_VISIBLE_DEVICES: "0"
     volumes:

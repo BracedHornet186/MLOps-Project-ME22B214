@@ -164,17 +164,21 @@ def _refresh_data_metrics():
             log.warning("Could not read validation_report.json: %s", e)
 
 async def _poll_model_server_ready():
-    for attempt in range(30):
+    # Poll indefinitely — model-server weight loading can take > 5 min on cold start.
+    attempt = 0
+    while True:
         try:
             async with httpx.AsyncClient(timeout=5) as client:
                 r = await client.get(f"{MODEL_SERVER_URL}/ready")
                 if r.status_code == 200:
                     model_ready_gauge.set(1)
+                    log.info("Model server ready after %d attempts", attempt + 1)
                     return
         except Exception:
             pass
-        await asyncio.sleep(10)
-    model_ready_gauge.set(0)
+        attempt += 1
+        # Back off slowly: cap at 30s so readiness is noticed promptly once up
+        await asyncio.sleep(min(10 + attempt * 2, 30))
 
 
 def _load_best_config() -> dict[str, Any]:
@@ -338,7 +342,7 @@ async def list_experiments(top_n: int = 10):
                 json={
                     "experiment_ids": [],
                     "filter": "attributes.status = 'FINISHED'",
-                    "order_by": ["metrics.mAA_overall DESC"],
+                    "order_by": ["metrics.maa DESC"],
                     "max_results": top_n,
                 },
             )
@@ -367,7 +371,7 @@ async def trigger_retrain():
     try:
         async with httpx.AsyncClient(timeout=10) as client:
             r = await client.post(
-                f"{airflow_url}/api/v2/dags/drift_retrain_pipeline/dagRuns",
+                f"{airflow_url}/api/v2/dags/experiment_pipeline_dag/dagRuns",
                 json={"logical_date": datetime.datetime.utcnow().isoformat() + "Z", "conf": {"triggered_by": "api"}},
                 headers={"Content-Type": "application/json"},
             )

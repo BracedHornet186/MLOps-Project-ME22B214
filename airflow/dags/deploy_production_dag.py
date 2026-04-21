@@ -1,14 +1,23 @@
+"""
+deploy_production_dag.py
+──────────────────────
+Periodic model selection: pick the best run by mAA and promote it.
+
+Tasks:
+  1. select_best_run – run scripts/select_best_run.py
+  2. notify_user     – email notification with best mAA and run_id
+"""
 from __future__ import annotations
 
 from datetime import datetime, timedelta
 from pathlib import Path
-
+import os
 from airflow import DAG
-from airflow.operators.bash import BashOperator
-from airflow.operators.email import EmailOperator
+from airflow.providers.standard.operators.bash import BashOperator
+from airflow.providers.smtp.operators.smtp import EmailOperator
 
-PROJECT_ROOT = Path("/opt/airflow/project")
-
+PROJECT_ROOT = os.environ.get("PROJECT_ROOT", "/opt/airflow/project")
+ALERT_EMAIL = os.environ.get("ALERT_EMAIL", "mlops-team@example.com")
 
 default_args = {
     "owner": "mlops",
@@ -24,7 +33,7 @@ with DAG(
     description="Deploy latest best production config for FastAPI serving",
     default_args=default_args,
     start_date=datetime(2025, 1, 1),
-    schedule_interval=None,
+    schedule="@hourly",
     catchup=False,
     tags=["deployment", "production", "mlflow"],
 ) as dag:
@@ -42,9 +51,14 @@ with DAG(
 
     notify_user = EmailOperator(
         task_id="notify_user",
-        to="mlops-team@example.com",
+        to=ALERT_EMAIL,
         subject="Production Config Updated",
-        html_content="New production config deployed",
+        html_content=(
+            "<h3>Production Config Updated</h3>"
+            "<p>A new best run has been promoted to production.</p>"
+            "<pre>{{ ti.xcom_pull(task_ids='select_best_run') }}</pre>"
+            f"<p>Config written to: <code>{PROJECT_ROOT}/conf/best_config.yaml</code></p>"
+        ),
     )
 
     select_best_run >> notify_user

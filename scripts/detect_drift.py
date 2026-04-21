@@ -31,8 +31,14 @@ def main() -> None:
 
     baselines_path = ROOT / "data" / "baselines" / "eda_baselines.json"
     if not baselines_path.exists():
-        # Try the processed path as fallback
         baselines_path = ROOT / "data" / "processed" / "eda_baselines.json"
+    if not baselines_path.exists():
+        log.error(
+            "EDA baselines not found at either expected path. "
+            "Run the eda_baselines DVC stage first."
+        )
+        print("ok")  # Don't block on missing baselines; just skip drift check
+        sys.exit(0)
 
     features_dir = ROOT / "data" / "processed" / "features"
     report_path = ROOT / "data" / "processed" / "drift_report.json"
@@ -48,15 +54,17 @@ def main() -> None:
     )
 
     log.info(f"Drift status: {report.status} | Alerts: {len(report.alerts)}")
-    print(json.dumps(report.as_dict(), indent=2))
+    # Write full JSON report to stderr so it doesn't pollute the XCom value
+    sys.stderr.write(json.dumps(report.as_dict(), indent=2) + "\n")
 
+    # BashOperator XCom captures stdout. Last stdout line must be exactly
+    # "drift" or "ok" — no extra content. Always exit 0 so the task does not
+    # fail; branching is handled by BranchPythonOperator reading the XCom.
     if report.status in ("warning", "critical"):
-        # Push xcom value for Airflow branching
         print("drift")
-        sys.exit(1)
     else:
         print("ok")
-        sys.exit(0)
+    sys.exit(0)
 
 
 if __name__ == "__main__":

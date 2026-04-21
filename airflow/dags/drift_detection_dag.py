@@ -17,12 +17,12 @@ import os
 from datetime import datetime, timedelta
 
 from airflow import DAG
-from airflow.operators.bash import BashOperator
-from airflow.operators.email import EmailOperator
+from airflow.providers.standard.operators.bash import BashOperator
+from airflow.providers.smtp.operators.smtp import EmailOperator
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import BranchPythonOperator
 
-PROJECT_ROOT = os.environ.get("PROJECT_ROOT", "/home/abhiyaan-cu/Yash/MLOps-Project-ME22B214")
+PROJECT_ROOT = os.environ.get("PROJECT_ROOT", "/opt/airflow/project")
 ALERT_EMAIL = os.environ.get("ALERT_EMAIL", "mlops-team@example.com")
 
 default_args = {
@@ -48,7 +48,7 @@ with DAG(
     description="Monitor production data drift and notify on detection",
     default_args=default_args,
     start_date=datetime(2025, 1, 1),
-    schedule_interval="*/30 * * * *",  # every 30 minutes
+    schedule="*/30 * * * *",  # every 30 minutes
     catchup=False,
     tags=["drift", "monitoring"],
 ) as dag:
@@ -65,7 +65,6 @@ with DAG(
     branch_drift = BranchPythonOperator(
         task_id="branch_drift",
         python_callable=_decide_branch,
-        provide_context=True,
     )
 
     notify_drift = EmailOperator(

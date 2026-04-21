@@ -26,7 +26,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir \
         fastapi==0.115.0 \
         uvicorn[standard]==0.30.0 \
-        mlflow==2.13.0 \
+        mlflow==3.10.1 \
         httpx==0.27.0 \
         pydantic>=2.0 \
         pyyaml>=6.0 \

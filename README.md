@@ -117,3 +117,5 @@ This separation ensures reproducibility during development and efficiency during
 PARENT_ID=$(.venv/bin/python3 scripts/start_parent_dvc_run.py | head -n 1)
 MLFLOW_PARENT_RUN_ID="$PARENT_ID" dvc repro
 .venv/bin/python3 select_best_run.py
+
+claude --resume f97bd90b-98a9-4532-910a-4b6419aa3772

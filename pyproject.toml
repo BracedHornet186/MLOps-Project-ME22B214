@@ -38,6 +38,7 @@ dependencies = [
     "loguru>=0.7.3",
     "mast3r",
     "matplotlib>=3.10.1",
+    "mlflow==3.10.1"
     "mmcv-lite",
     "moge",
     "mono",

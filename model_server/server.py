@@ -53,10 +53,11 @@ log = logging.getLogger("model_server")
 
 MLFLOW_TRACKING_URI  = os.environ.get("MLFLOW_TRACKING_URI", "http://mlflow:5000")
 DEFAULT_DATASET_DIR  = Path(os.environ.get("DEFAULT_DATASET_DIR", str(ROOT / "data")))
-DEFAULT_CONFIG_PATH  = os.environ.get(
-    "PIPELINE_CONFIG",
-    str(ROOT / "conf/mast3r.yaml"),
-)
+_cfg_primary  = os.environ.get("PIPELINE_CONFIG",          str(ROOT / "conf/best_config.yaml"))
+_cfg_fallback = os.environ.get("PIPELINE_CONFIG_FALLBACK", str(ROOT / "conf/mast3r.yaml"))
+# Use best_config.yaml when available; fall back to base mast3r config on first boot
+# (before any experiment has been run and promoted).
+DEFAULT_CONFIG_PATH = _cfg_primary if Path(_cfg_primary).exists() else _cfg_fallback
 SERVER_PORT = int(os.environ.get("MODEL_SERVER_PORT", "8001"))
 
 # ─────────────────────────────────────────────────────────────────────────────
