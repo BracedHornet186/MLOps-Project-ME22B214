@@ -1,5 +1,5 @@
 """
-deploy_production_dag.py
+model_selection_dag.py
 ──────────────────────
 Periodic model selection: pick the best run by mAA and promote it.
 
@@ -29,7 +29,7 @@ default_args = {
 
 
 with DAG(
-    dag_id="deploy_production_dag",
+    dag_id="model_selection_dag",
     description="Deploy latest best production config for FastAPI serving",
     default_args=default_args,
     start_date=datetime(2025, 1, 1),
@@ -39,14 +39,7 @@ with DAG(
 ) as dag:
     select_best_run = BashOperator(
         task_id="select_best_run",
-        bash_command=(
-            f"cd {PROJECT_ROOT} && "
-            "if [ -x .venv/bin/python3 ]; then "
-            ".venv/bin/python3 scripts/select_best_run.py; "
-            "else "
-            "python3 scripts/select_best_run.py; "
-            "fi"
-        ),
+        bash_command=f"cd {PROJECT_ROOT} && python scripts/select_best_run.py",
     )
 
     notify_user = EmailOperator(

@@ -1,7 +1,7 @@
 schema: '2.0'
 stages:
   extract_features:
-    cmd: .venv/bin/python3 scripts/extract_features.py --config conf/mast3r.yaml
+    cmd: python scripts/extract_features.py --config conf/mast3r.yaml
     deps:
     - path: conf/mast3r.yaml
       hash: md5
@@ -18,8 +18,8 @@ stages:
       nfiles: 1945
     - path: data/processed/preprocess_report.json
       hash: md5
-      md5: f2359413d39d353b00c675cd2081a092
-      size: 12674
+      md5: 6855121071c4a895f977ef7da432548e
+      size: 12673
     - path: data/train
       hash: md5
       md5: 11d2518b261811cc9330913e36cd75ab.dir
@@ -27,8 +27,8 @@ stages:
       nfiles: 1958
     - path: scripts/extract_features.py
       hash: md5
-      md5: f3190bd4fcb6e247d11bac94993cca21
-      size: 7170
+      md5: f9fc746f3a4c395fd48eb4ecd74076e8
+      size: 7237
     outs:
     - path: data/extracted
       hash: md5
@@ -41,7 +41,7 @@ stages:
       size: 1616360
       nfiles: 1946
   retrieval:
-    cmd: .venv/bin/python3 scripts/retrieval.py --config conf/mast3r.yaml
+    cmd: python scripts/retrieval.py --config conf/mast3r.yaml
     deps:
     - path: conf/mast3r.yaml
       hash: md5
@@ -54,8 +54,8 @@ stages:
       nfiles: 1946
     - path: scripts/retrieval.py
       hash: md5
-      md5: c8efc52c7e35b0fdb944d4478a7449bb
-      size: 5427
+      md5: cf3807a5b636a4900fa4f9f3f8ae7e65
+      size: 5494
     outs:
     - path: data/retrieval
       hash: md5
@@ -63,7 +63,7 @@ stages:
       size: 2640891
       nfiles: 1
   generate_pairs:
-    cmd: .venv/bin/python3 scripts/generate_pairs.py --config conf/mast3r.yaml
+    cmd: python scripts/generate_pairs.py --config conf/mast3r.yaml
     deps:
     - path: conf/mast3r.yaml
       hash: md5
@@ -76,8 +76,8 @@ stages:
       nfiles: 1
     - path: scripts/generate_pairs.py
       hash: md5
-      md5: c6ac3d4a81989db49081db4aa335df56
-      size: 4552
+      md5: 5367300ed055d14422cc112ec6bdbfd4
+      size: 4619
     outs:
     - path: data/pairs
       hash: md5
@@ -85,7 +85,7 @@ stages:
       size: 1917894
       nfiles: 1
   detect_keypoints:
-    cmd: .venv/bin/python3 scripts/detect_keypoints.py --config conf/mast3r.yaml
+    cmd: python scripts/detect_keypoints.py --config conf/mast3r.yaml
     deps:
     - path: conf/mast3r.yaml
       hash: md5
@@ -103,8 +103,8 @@ stages:
       nfiles: 1
     - path: scripts/detect_keypoints.py
       hash: md5
-      md5: e16422c63f13c100cd3edccde547898c
-      size: 6150
+      md5: 7b9c4ae1126f1ab2088eded449a75efd
+      size: 6217
     outs:
     - path: data/keypoints
       hash: md5
@@ -112,7 +112,7 @@ stages:
       size: 2014377
       nfiles: 1946
   match:
-    cmd: .venv/bin/python3 scripts/match.py --config conf/mast3r.yaml
+    cmd: python scripts/match.py --config conf/mast3r.yaml
     deps:
     - path: conf/mast3r.yaml
       hash: md5
@@ -130,8 +130,8 @@ stages:
       nfiles: 1
     - path: scripts/match.py
       hash: md5
-      md5: d13f90242b05b8847153681639c2a3a9
-      size: 5919
+      md5: 670fda89ed5b1482814cc91fd2321a3a
+      size: 5986
     outs:
     - path: data/matches
       hash: md5
@@ -139,7 +139,7 @@ stages:
       size: 7522937
       nfiles: 1
   reconstruct:
-    cmd: .venv/bin/python3 scripts/reconstruct.py --config conf/mast3r.yaml
+    cmd: python scripts/reconstruct.py --config conf/mast3r.yaml
     deps:
     - path: conf/mast3r.yaml
       hash: md5
@@ -152,16 +152,16 @@ stages:
       nfiles: 1
     - path: scripts/reconstruct.py
       hash: md5
-      md5: 0573e9606a08dce103925627894ae0cd
-      size: 8789
+      md5: df9d8dd510695a560faf8a085b333201
+      size: 8856
     outs:
     - path: data/reconstruction
       hash: md5
-      md5: f13097ed0a5a29eb45ceb2c86b8b56b4.dir
+      md5: 622000381f5311470aadeac316a28ed5.dir
       size: 726689
       nfiles: 2
   validate:
-    cmd: .venv/bin/python3 scripts/validate_data.py
+    cmd: python scripts/validate_data.py
     deps:
     - path: data/train
       hash: md5
@@ -198,7 +198,7 @@ stages:
       md5: b428f61218ff3efcc9cc9b351c144446
       size: 227
   eda_baselines:
-    cmd: .venv/bin/python3 scripts/eda_baselines.py
+    cmd: python scripts/eda_baselines.py
     deps:
     - path: data/baselines/validation_report.json
       hash: md5
@@ -235,7 +235,8 @@ stages:
       md5: b15e6b695bebc9f30150b3ee914d524a
       size: 319
   image_preprocess:
-    cmd: .venv/bin/python3 scripts/image_processing.py
+    cmd: python scripts/image_processing.py --preprocess-conf 
+      conf/preprocess.yaml
     deps:
     - path: conf/preprocess.yaml
       hash: md5
@@ -276,8 +277,8 @@ stages:
       size: 2515
     - path: scripts/image_processing.py
       hash: md5
-      md5: c80c04d20eadddf7655af131ff08ffe6
-      size: 12079
+      md5: ba4158562703fcf86871be0ff94d5570
+      size: 12225
     params:
       conf/preprocess.yaml:
         deblurring.blurry_threshold: 100.0
@@ -289,14 +290,14 @@ stages:
       nfiles: 1945
     - path: data/processed/preprocess_metrics.json
       hash: md5
-      md5: 858bc109d84fd14d545e9b94b64d310f
-      size: 312
+      md5: 1065f46b2f559107df6ad482b7e64201
+      size: 311
     - path: data/processed/preprocess_report.json
       hash: md5
-      md5: f2359413d39d353b00c675cd2081a092
-      size: 12674
+      md5: 6855121071c4a895f977ef7da432548e
+      size: 12673
   evaluate:
-    cmd: .venv/bin/python3 scripts/evaluate.py --config conf/mast3r.yaml
+    cmd: python scripts/evaluate.py --config conf/mast3r.yaml
     deps:
     - path: conf/mast3r.yaml
       hash: md5
@@ -309,7 +310,7 @@ stages:
       nfiles: 1
     - path: data/reconstruction
       hash: md5
-      md5: f13097ed0a5a29eb45ceb2c86b8b56b4.dir
+      md5: 622000381f5311470aadeac316a28ed5.dir
       size: 726689
       nfiles: 2
     - path: data/train_labels.csv
@@ -332,6 +333,6 @@ stages:
     outs:
     - path: data/metrics
       hash: md5
-      md5: a8876c7564cacc86ad52a3504af50627.dir
-      size: 431634
+      md5: 1ef572a348c2de517e3e5e834ee941ff.dir
+      size: 430570
       nfiles: 4

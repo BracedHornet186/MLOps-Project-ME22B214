@@ -1,0 +1,74 @@
+# Dockerfile.pipeline
+# ─────────────────────────────────────────────────────────────────────────────
+# Ephemeral DVC/MLflow pipeline image.
+# Built once; Airflow DockerOperator launches short-lived containers from it.
+#
+# Python 3.11 (matches pyproject.toml: requires-python = "==3.11.*")
+# ─────────────────────────────────────────────────────────────────────────────
+FROM python:3.11-slim
+
+# ── System dependencies ───────────────────────────────────────────────────────
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        git \
+        curl \
+        build-essential \
+        libgl1 \
+        libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+
+# ── Install uv ────────────────────────────────────────────────────────────────
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
+    ln -s /root/.local/bin/uv /usr/local/bin/uv
+
+# ── Workdir ───────────────────────────────────────────────────────────────────
+WORKDIR /project
+
+# ── Copy dependency manifests first (layer-cache friendly) ───────────────────
+COPY pyproject.toml ./
+
+# ── Copy local .whl bundle (required by [tool.uv.sources]) ───────────────────
+COPY bundle/ ./bundle/
+
+# ── Install all Python dependencies system-wide via uv ───────────────────────
+# --system: install into the system Python (no venv needed inside container)
+# --no-build-isolation: avoids issues with custom build backends in CI
+RUN uv pip install --system \
+        dvc \
+        "mlflow==3.10.1" \
+        pandas \
+        pyyaml \
+        scipy \
+        scikit-learn \
+        omegaconf \
+        hydra-core \
+        tqdm \
+        opencv-python-headless \
+        pillow \
+        "numpy<2" \
+        dacite \
+        dotmap \
+        packaging
+
+# Install local-path packages from the bundle (referenced in pyproject.toml)
+RUN uv pip install --system \
+        bundle/oss/lightglue-0.0-py3-none-any.whl \
+        bundle/oss/dedode-0.0.1-py3-none-any.whl \
+        bundle/oss/hloc-1.5-py3-none-any.whl \
+        bundle/oss/asmk-0.1-cp311-cp311-linux_x86_64.whl \
+        bundle/oss/vggt-0.0.1-py3-none-any.whl \
+        bundle/oss/dad-0.2.0-py3-none-any.whl \
+        bundle/oss/croco-0.1.2-py3-none-any.whl \
+        bundle/oss/depth_anything_v2-0.0.1-py3-none-any.whl \
+        bundle/oss/dust3r-0.1.0-py3-none-any.whl \
+        bundle/oss/mast3r-0.1.0-py3-none-any.whl \
+        bundle/oss/pyrender-0.1.45-py3-none-any.whl \
+        bundle/oss/curope-0.0.0-cp311-cp311-linux_x86_64.whl \
+    || echo "Some optional bundles skipped"
+
+# ── Verify key CLIs are in PATH ───────────────────────────────────────────────
+RUN dvc --version && mlflow --version && python --version
+
+# ── Default workdir for DAG tasks (bind-mounted at runtime) ──────────────────
+WORKDIR /project
+
+CMD ["bash"]

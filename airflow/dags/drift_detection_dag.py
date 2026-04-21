@@ -57,7 +57,7 @@ with DAG(
         task_id="check_drift",
         bash_command=(
             f"cd {PROJECT_ROOT} && "
-            ".venv/bin/python3 scripts/detect_drift.py"
+            "python scripts/detect_drift.py"
         ),
         do_xcom_push=True,
     )

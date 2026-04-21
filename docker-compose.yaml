@@ -2,12 +2,13 @@
 ---
 x-airflow-common:
   &airflow-common
-  image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:3.2.0}
+  image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:3.2.0-python3.11}
   env_file:
     - ${ENV_FILE_PATH:-.env}
   environment:
     &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW_CONN_FS_DEFAULT: 'fs://'
     AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
     AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql+psycopg2://airflow:airflow@postgres/airflow
@@ -32,7 +33,8 @@ x-airflow-common:
     PYTHONPATH: '/opt/airflow/project'
     DEFAULT_DATASET_DIR: '/opt/airflow/project/data'
     MLFLOW_TRACKING_URI: 'http://mlflow:5000'
-    _PIP_ADDITIONAL_REQUIREMENTS: 'dvc mlflow==3.10.1 apache-airflow-providers-fab'
+    HOST_PROJECT_ROOT: ${HOST_PROJECT_ROOT:-/home/abhiyaan-cu/Yash/MLOps-Project-ME22B214}
+    _PIP_ADDITIONAL_REQUIREMENTS: 'dvc mlflow==3.10.1 apache-airflow-providers-fab apache-airflow-providers-docker'
   volumes:
     - ${AIRFLOW_PROJ_DIR:-./airflow}/dags:/opt/airflow/dags
     - ${AIRFLOW_PROJ_DIR:-./airflow}/logs:/opt/airflow/logs
@@ -53,15 +55,17 @@ x-airflow-common:
     - ./localizers:/opt/airflow/project/localizers
     - ./utils:/opt/airflow/project/utils
     - ./data:/opt/airflow/project/data
-    - ./.dvc:/opt/airflow/project/.dvc:ro
-    - ./dvc.yaml:/opt/airflow/project/dvc.yaml:ro
-    - ./dvc.lock:/opt/airflow/project/dvc.lock
     - mlflow-artifacts:/opt/mlflow/artifacts
+    # Docker-out-of-Docker: lets DockerOperator spawn sibling containers
+    - /var/run/docker.sock:/var/run/docker.sock
   user: "${AIRFLOW_UID:-1000}:0"
+  # Allow the Airflow process to write to the Docker socket (gid must match host docker group)
+  group_add:
+    - "${DOCKER_GID:-984}"
   depends_on:
     &airflow-common-depends-on
-    redis:
-      condition: service_healthy
+    # redis:
+    #   condition: service_healthy
     postgres:
       condition: service_healthy
 
@@ -84,17 +88,17 @@ services:
       start_period: 5s
     restart: always
 
-  redis:
-    image: redis:7.2-bookworm
-    expose:
-      - 6379
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 30s
-      retries: 50
-      start_period: 30s
-    restart: always
+  # redis:
+  #   image: redis:7.2-bookworm
+  #   expose:
+  #     - 6379
+  #   healthcheck:
+  #     test: ["CMD", "redis-cli", "ping"]
+  #     interval: 10s
+  #     timeout: 30s
+  #     retries: 50
+  #     start_period: 30s
+  #   restart: always
 
   node-exporter:
     image: prom/node-exporter:v1.8.1
@@ -335,7 +339,7 @@ services:
       _AIRFLOW_WWW_USER_CREATE: 'true'
       _AIRFLOW_WWW_USER_USERNAME: ${_AIRFLOW_WWW_USER_USERNAME:-airflow}
       _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD:-airflow}
-      _PIP_ADDITIONAL_REQUIREMENTS: 'dvc mlflow==3.10.1 apache-airflow-providers-fab'
+      _PIP_ADDITIONAL_REQUIREMENTS: 'dvc mlflow==3.10.1 apache-airflow-providers-fab apache-airflow-providers-docker'
     user: "0:0"
 
   airflow-cli:
@@ -352,29 +356,29 @@ services:
     depends_on:
       <<: *airflow-common-depends-on
 
-  flower:
-    <<: *airflow-common
-    command: celery flower
-    profiles:
-      - flower
-    ports:
-      - "5555:5555"
-    healthcheck:
-      test: ["CMD", "curl", "--fail", "http://localhost:5555/"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 30s
-    restart: always
-    depends_on:
-      <<: *airflow-common-depends-on
-      airflow-init:
-        condition: service_completed_successfully
+  # flower:
+  #   <<: *airflow-common
+  #   command: celery flower
+  #   profiles:
+  #     - flower
+  #   ports:
+  #     - "5555:5555"
+  #   healthcheck:
+  #     test: ["CMD", "curl", "--fail", "http://localhost:5555/"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 5
+  #     start_period: 30s
+  #   restart: always
+  #   depends_on:
+  #     <<: *airflow-common-depends-on
+  #     airflow-init:
+  #       condition: service_completed_successfully
 
   # ── Monitoring ──────────────────────────────────────────────────────────────
 
   prometheus:
-    image: prom/prometheus:v2.53.0
+    image: prom/prometheus:latest
     ports:
       - "9090:9090"
     volumes:
@@ -434,6 +438,24 @@ services:
       start_period: 15s
     restart: always
 
+  # ── ML pipeline image builder ────────────────────────────────────────────────
+  # Builds Dockerfile.pipeline and tags it as my-dvc-pipeline:latest.
+  # Run once before starting the stack:
+  #   docker compose build ml-pipeline-builder
+  # or bring it up under the build profile:
+  #   docker compose --profile build up ml-pipeline-builder
+
+  ml-pipeline-builder:
+    build:
+      context: .
+      dockerfile: Dockerfile.pipeline
+    image: my-dvc-pipeline:latest
+    entrypoint: ["echo", "my-dvc-pipeline:latest built successfully"]
+    profiles:
+      - build
+    networks:
+      - default
+
 volumes:
   postgres-db-volume:
   mlflow-artifacts:
@@ -441,3 +463,9 @@ volumes:
   reconstruction-results:
   prometheus-data:
   grafana-data:
+
+# Pin the default Compose network to a known name so DockerOperator
+# containers can resolve service hostnames (e.g. mlflow:5000).
+networks:
+  default:
+    name: mlops_net

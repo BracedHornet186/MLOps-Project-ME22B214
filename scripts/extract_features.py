@@ -164,7 +164,8 @@ def main() -> None:
 
     duration = time.perf_counter() - t0
 
-    mlflow.set_tracking_uri("http://localhost:5000")        
+    mlflow_uri = os.environ.get("MLFLOW_TRACKING_URI", "http://localhost:5000")
+    mlflow.set_tracking_uri(mlflow_uri)        
     mlflow.set_experiment("scene_reconstruction_dvc")
     parent_run_id = os.getenv("MLFLOW_PARENT_RUN_ID")
     run_tags = {"mlflow.parentRunId": parent_run_id} if parent_run_id else None

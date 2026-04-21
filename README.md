@@ -14,7 +14,8 @@ $ . .venv/bin/activate
 
 Or use docker-compose.yaml to run the project.
 Configure .env
-AIRFLOW_UID=1000
+export HOST_PROJECT_ROOT=$(pwd)
+export AIRFLOW_UID=$(id -u)
 FERNET_KEY=LS47uw30w1OWKkHCGlSjEKkE3FQ2_ynycWQJ-Sd-y30=
 _AIRFLOW_WWW_USER_USERNAME=airflow
 _AIRFLOW_WWW_USER_PASSWORD=airflow
@@ -113,9 +114,9 @@ The best-performing configuration is selected based on evaluation metrics and is
 In the production layer, FastAPI serves the application. When a user uploads a zip file of images, the same pipeline logic is executed directly (without DVC), using the selected configuration. The pipeline performs preprocessing, feature extraction, matching, and 3D reconstruction using COLMAP, producing a .ply file which is then visualized in the UI.
 
 This separation ensures reproducibility during development and efficiency during inference.
-
-PARENT_ID=$(.venv/bin/python3 scripts/start_parent_dvc_run.py | head -n 1)
+source .venv/bin/activate
+PARENT_ID=$(python scripts/start_parent_dvc_run.py | head -n 1)
 MLFLOW_PARENT_RUN_ID="$PARENT_ID" dvc repro
-.venv/bin/python3 select_best_run.py
+python select_best_run.py
 
 claude --resume f97bd90b-98a9-4532-910a-4b6419aa3772

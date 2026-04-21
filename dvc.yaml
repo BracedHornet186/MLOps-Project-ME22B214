@@ -3,7 +3,7 @@
 
 stages:
   validate:
-    cmd: .venv/bin/python3 scripts/validate_data.py
+    cmd: python scripts/validate_data.py
     deps:
       - scripts/validate_data.py
       - scripts/data.py
@@ -17,7 +17,7 @@ stages:
       - data/baselines/validation_metrics.json
 
   eda_baselines:
-    cmd: .venv/bin/python3 scripts/eda_baselines.py
+    cmd: python scripts/eda_baselines.py
     deps:
       - scripts/eda_baselines.py
       - scripts/data.py
@@ -30,7 +30,7 @@ stages:
       - data/baselines/eda_metrics.json
 
   image_preprocess:
-    cmd: .venv/bin/python3 scripts/image_processing.py --preprocess-conf conf/preprocess.yaml
+    cmd: python scripts/image_processing.py --preprocess-conf conf/preprocess.yaml
     deps:
       - scripts/image_processing.py
       - scripts/data.py
@@ -53,7 +53,7 @@ stages:
           # - orientation.type
 
   extract_features:
-    cmd: .venv/bin/python3 scripts/extract_features.py --config conf/mast3r.yaml
+    cmd: python scripts/extract_features.py --config conf/mast3r.yaml
     deps:
       - conf/mast3r.yaml
       - scripts/extract_features.py
@@ -66,7 +66,7 @@ stages:
       - data/extracted
 
   retrieval:
-    cmd: .venv/bin/python3 scripts/retrieval.py --config conf/mast3r.yaml
+    cmd: python scripts/retrieval.py --config conf/mast3r.yaml
     deps:
       - conf/mast3r.yaml
       - scripts/retrieval.py
@@ -75,7 +75,7 @@ stages:
       - data/retrieval
 
   generate_pairs:
-    cmd: .venv/bin/python3 scripts/generate_pairs.py --config conf/mast3r.yaml
+    cmd: python scripts/generate_pairs.py --config conf/mast3r.yaml
     deps:
       - conf/mast3r.yaml
       - scripts/generate_pairs.py
@@ -84,7 +84,7 @@ stages:
       - data/pairs
 
   detect_keypoints:
-    cmd: .venv/bin/python3 scripts/detect_keypoints.py --config conf/mast3r.yaml
+    cmd: python scripts/detect_keypoints.py --config conf/mast3r.yaml
     deps:
       - conf/mast3r.yaml
       - scripts/detect_keypoints.py
@@ -94,7 +94,7 @@ stages:
       - data/keypoints
 
   match:
-    cmd: .venv/bin/python3 scripts/match.py --config conf/mast3r.yaml
+    cmd: python scripts/match.py --config conf/mast3r.yaml
     deps:
       - conf/mast3r.yaml
       - scripts/match.py
@@ -104,7 +104,7 @@ stages:
       - data/matches
 
   reconstruct:
-    cmd: .venv/bin/python3 scripts/reconstruct.py --config conf/mast3r.yaml
+    cmd: python scripts/reconstruct.py --config conf/mast3r.yaml
     deps:
       - conf/mast3r.yaml
       - scripts/reconstruct.py
@@ -113,7 +113,7 @@ stages:
       - data/reconstruction
 
   evaluate:
-    cmd: .venv/bin/python3 scripts/evaluate.py --config conf/mast3r.yaml
+    cmd: python scripts/evaluate.py --config conf/mast3r.yaml
     deps:
       - conf/mast3r.yaml
       - scripts/evaluate.py
