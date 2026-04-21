@@ -19,7 +19,7 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.providers.standard.operators.bash import BashOperator
 from airflow.providers.smtp.operators.smtp import EmailOperator
-from airflow.operators.empty import EmptyOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
 from airflow.operators.python import BranchPythonOperator
 
 PROJECT_ROOT = os.environ.get("PROJECT_ROOT", "/opt/airflow/project")

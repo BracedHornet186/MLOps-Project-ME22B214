@@ -7,7 +7,7 @@ x-airflow-common:
     - ${ENV_FILE_PATH:-.env}
   environment:
     &airflow-common-env
-    AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
     AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
     AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql+psycopg2://airflow:airflow@postgres/airflow
@@ -24,7 +24,7 @@ x-airflow-common:
     AIRFLOW__SMTP__SMTP_STARTTLS: 'True'
     AIRFLOW__SMTP__SMTP_SSL: 'False'
     AIRFLOW__SMTP__SMTP_PORT: '587'
-    AIRFLOW__SMTP__SMTP_MAIL_FROM: ${SMTP_MAIL_FROM:-airflow@example.com}
+    AIRFLOW__SMTP__SMTP_MAIL_FROM: ${SMTP_MAIL_FROM:-mlops-team@example.com}
     AIRFLOW__SMTP__SMTP_USER: ${SMTP_USER:-}
     AIRFLOW__SMTP__SMTP_PASSWORD: ${SMTP_PASSWORD:-}
     AIRFLOW__SMTP__SMTP_TIMEOUT: '30'
@@ -32,7 +32,7 @@ x-airflow-common:
     PYTHONPATH: '/opt/airflow/project'
     DEFAULT_DATASET_DIR: '/opt/airflow/project/data'
     MLFLOW_TRACKING_URI: 'http://mlflow:5000'
-    _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
+    _PIP_ADDITIONAL_REQUIREMENTS: 'dvc mlflow==3.10.1 apache-airflow-providers-fab'
   volumes:
     - ${AIRFLOW_PROJ_DIR:-./airflow}/dags:/opt/airflow/dags
     - ${AIRFLOW_PROJ_DIR:-./airflow}/logs:/opt/airflow/logs
@@ -53,6 +53,9 @@ x-airflow-common:
     - ./localizers:/opt/airflow/project/localizers
     - ./utils:/opt/airflow/project/utils
     - ./data:/opt/airflow/project/data
+    - ./.dvc:/opt/airflow/project/.dvc:ro
+    - ./dvc.yaml:/opt/airflow/project/dvc.yaml:ro
+    - ./dvc.lock:/opt/airflow/project/dvc.lock
     - mlflow-artifacts:/opt/mlflow/artifacts
   user: "${AIRFLOW_UID:-1000}:0"
   depends_on:
@@ -111,6 +114,7 @@ services:
       --default-artifact-root mlflow-artifacts:/
       --artifacts-destination /opt/mlflow/artifacts
       --serve-artifacts
+      --allowed-hosts "mlflow,mlflow:5000,localhost,localhost:5000,airflow,airflow:8080"
     ports:
       - "5000:5000"
     volumes:
@@ -268,25 +272,25 @@ services:
       airflow-init:
         condition: service_completed_successfully
 
-  airflow-worker:
-    <<: *airflow-common
-    command: celery worker
-    healthcheck:
-      test: ["CMD-SHELL", 'celery --app airflow.providers.celery.executors.celery_executor.app inspect ping -d "celery@$${HOSTNAME}" || celery --app airflow.executors.celery_executor.app inspect ping -d "celery@$${HOSTNAME}"']
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 30s
-    environment:
-      <<: *airflow-common-env
-      DUMB_INIT_SETSID: "0"
-    restart: always
-    depends_on:
-      <<: *airflow-common-depends-on
-      airflow-apiserver:
-        condition: service_healthy
-      airflow-init:
-        condition: service_completed_successfully
+  # airflow-worker:
+  #   <<: *airflow-common
+  #   command: celery worker
+  #   healthcheck:
+  #     test: ["CMD-SHELL", 'celery --app airflow.providers.celery.executors.celery_executor.app inspect ping -d "celery@$${HOSTNAME}" || celery --app airflow.executors.celery_executor.app inspect ping -d "celery@$${HOSTNAME}"']
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 5
+  #     start_period: 30s
+  #   environment:
+  #     <<: *airflow-common-env
+  #     DUMB_INIT_SETSID: "0"
+  #   restart: always
+  #   depends_on:
+  #     <<: *airflow-common-depends-on
+  #     airflow-apiserver:
+  #       condition: service_healthy
+  #     airflow-init:
+  #       condition: service_completed_successfully
 
   airflow-triggerer:
     <<: *airflow-common
@@ -331,7 +335,7 @@ services:
       _AIRFLOW_WWW_USER_CREATE: 'true'
       _AIRFLOW_WWW_USER_USERNAME: ${_AIRFLOW_WWW_USER_USERNAME:-airflow}
       _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD:-airflow}
-      _PIP_ADDITIONAL_REQUIREMENTS: ''
+      _PIP_ADDITIONAL_REQUIREMENTS: 'dvc mlflow==3.10.1 apache-airflow-providers-fab'
     user: "0:0"
 
   airflow-cli:

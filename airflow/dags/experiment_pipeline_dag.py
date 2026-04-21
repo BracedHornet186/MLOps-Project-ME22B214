@@ -20,7 +20,7 @@ from airflow import DAG
 from airflow.providers.standard.operators.bash import BashOperator
 from airflow.providers.standard.sensors.filesystem import FileSensor
 from airflow.providers.smtp.operators.smtp import EmailOperator
-from airflow.operators.empty import EmptyOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
 
 PROJECT_ROOT = os.environ.get("PROJECT_ROOT", "/opt/airflow/project")
 ALERT_EMAIL = os.environ.get("ALERT_EMAIL", "mlops-team@example.com")
