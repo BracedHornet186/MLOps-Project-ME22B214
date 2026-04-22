@@ -17,7 +17,8 @@ from airflow.providers.standard.operators.bash import BashOperator
 from airflow.providers.smtp.operators.smtp import EmailOperator
 
 PROJECT_ROOT = os.environ.get("PROJECT_ROOT", "/opt/airflow/project")
-ALERT_EMAIL = os.environ.get("ALERT_EMAIL", "mlops-team@example.com")
+ALERT_EMAIL = os.environ.get("SMTP_MAIL_FROM", "mlops-team@example.com")
+SMTP_USER = os.environ.get("SMTP_USER", "yashpurswani4@gmail.com")
 
 default_args = {
     "owner": "mlops",
@@ -44,7 +45,8 @@ with DAG(
 
     notify_user = EmailOperator(
         task_id="notify_user",
-        to=ALERT_EMAIL,
+        to=SMTP_USER,
+        from_email=ALERT_EMAIL,
         subject="Production Config Updated",
         html_content=(
             "<h3>Production Config Updated</h3>"

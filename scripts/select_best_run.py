@@ -58,14 +58,14 @@ def _select_config_artifact_path(
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Select best evaluate run by highest maa")
-    parser.add_argument("--experiment-name", default="scene_reconstruction_dvc", help="MLflow experiment name")
+    parser = argparse.ArgumentParser(description="Select best evaluate run by highest mAA_overall")
+    parser.add_argument("--experiment-name", default="scene_reconstruction_dvc", help="MLflow experiment name (parent runs are searched)")
     parser.add_argument(
         "--mlflow-uri",
         default=os.environ.get("MLFLOW_TRACKING_URI", "http://localhost:5000"),
         help="MLflow tracking server URI",
     )
-    parser.add_argument("--run-name", default="evaluate", help="Run name to consider for best-run selection")
+    parser.add_argument("--run-name", default="full_dvc_pipeline", help="Run name to consider for best-run selection")
     parser.add_argument(
         "--best-config-path",
         default=str(ROOT / "conf" / "best_config.yaml"),
@@ -96,17 +96,17 @@ def main() -> None:
         run_name = run.data.tags.get("mlflow.runName", "")
         if run_name != args.run_name:
             continue
-        maa = run.data.metrics.get("maa")
-        if maa is None:
+        mAA_overall = run.data.metrics.get("mAA_overall")
+        if mAA_overall is None:
             continue
         start_time = int(run.info.start_time or 0)
-        candidates.append((float(maa), start_time, run))
+        candidates.append((float(mAA_overall), start_time, run))
 
     if not candidates:
-        raise RuntimeError(f"No finished '{args.run_name}' runs with metric 'maa' found")
+        raise RuntimeError(f"No finished '{args.run_name}' runs with metric 'mAA_overall' found")
 
     candidates.sort(key=lambda x: (x[0], x[1]), reverse=True)
-    best_maa, _best_start_time, best_run = candidates[0]
+    best_mAA_overall, _best_start_time, best_run = candidates[0]
 
     best_run_id = best_run.info.run_id
     parent_run_id = best_run.data.tags.get("mlflow.parentRunId", "")
@@ -127,7 +127,7 @@ def main() -> None:
         json.dumps(
             {
                 "best_run_id": best_run_id,
-                "best_maa": best_maa,
+                "best_mAA_overall": best_mAA_overall,
                 "parent_run_id": parent_run_id,
                 "config_artifact": artifact_path,
                 "best_config_path": str(best_config_path),

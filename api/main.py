@@ -260,7 +260,7 @@ def _run_function_pipeline(input_dir: str, config: dict[str, Any]) -> str:
 # App & Schemas
 # ─────────────────────────────────────────────────────────────────────────────
 
-app = FastAPI(title="Scene Reconstruction API (Unified)", version=API_VERSION, lifespan=lifespan)
+app = FastAPI(title="Scene Reconstruction API", version=API_VERSION, lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

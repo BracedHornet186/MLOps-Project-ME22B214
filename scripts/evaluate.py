@@ -6,7 +6,6 @@ import logging
 import os
 import subprocess
 import sys
-import hashlib
 from pathlib import Path
 
 import mlflow
@@ -30,15 +29,14 @@ log = logging.getLogger(__name__)
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Evaluate reconstruction outputs and log DVC metrics")
-    parser.add_argument("--reconstruction-dir", default="data/reconstruction", help="Input reconstruction directory")
-    parser.add_argument("--config", default="conf/mast3r.yaml", help="Pipeline config YAML used for the run")
-    parser.add_argument("--metrics-dir", default="data/metrics", help="Output directory for evaluation metrics")
-    parser.add_argument("--experiment-name", default="scene_reconstruction_dvc", help="MLflow experiment name")
-    parser.add_argument("--run-name", default="evaluate", help="MLflow run name")
+    parser.add_argument("--reconstruction-dir", default="data/reconstruction")
+    parser.add_argument("--config", default="conf/mast3r.yaml")
+    parser.add_argument("--metrics-dir", default="data/metrics")
+    parser.add_argument("--experiment-name", default="scene_reconstruction_dvc")
+    parser.add_argument("--run-name", default="evaluate")
     parser.add_argument(
         "--mlflow-uri",
         default=os.environ.get("MLFLOW_TRACKING_URI", "http://localhost:5000"),
-        help="MLflow tracking server URI",
     )
     return parser.parse_args()
 
@@ -64,83 +62,112 @@ def _safe_read_json(path: Path) -> dict:
         return {}
 
 
-def _extract_reconstruction_stats(reconstruction_dir: Path) -> tuple[int, int]:
-    summary = _safe_read_json(reconstruction_dir / "reconstruction_summary.json")
-
-    num_points = int(summary.get("reconstruction_points", 0))
-
-    clusters = summary.get("clusters", [])
-    registered_images = len(
-        {
-            img
-            for cluster in clusters
-            if isinstance(cluster, list)
-            for img in cluster
-        }
-    )
-
-    if registered_images == 0:
-        cluster_labels = summary.get("cluster_labels", [])
-        registered_images = len(
-            {
-                img
-                for row in cluster_labels
-                for img in row.get("images", [])
-            }
-        )
-
-    if num_points == 0:
-        points_path = reconstruction_dir / "points3d.txt"
-        if points_path.exists():
-            for line in points_path.read_text().splitlines():
-                parts = line.strip().split()
-                if len(parts) == 2 and parts[0] == "reconstruction_points":
-                    try:
-                        num_points = int(parts[1])
-                    except ValueError:
-                        pass
-
-    return num_points, registered_images
+def _discover_scene_summaries(reconstruction_dir: Path) -> list[tuple[str, str]]:
+    """Find all (dataset, scene) pairs that have a reconstruction_summary.json."""
+    scenes: list[tuple[str, str]] = []
+    if not reconstruction_dir.exists():
+        return scenes
+    for ds_dir in sorted(reconstruction_dir.iterdir()):
+        if not ds_dir.is_dir():
+            continue
+        for scene_dir in sorted(ds_dir.iterdir()):
+            if not scene_dir.is_dir():
+                continue
+            if (scene_dir / "reconstruction_summary.json").exists():
+                scenes.append((ds_dir.name, scene_dir.name))
+    return scenes
 
 
-def _read_reconstructed_ids(reconstruction_dir: Path) -> set[str]:
-    summary = _safe_read_json(reconstruction_dir / "reconstruction_summary.json")
+def _collect_reconstruction_stats(reconstruction_dir: Path) -> tuple[int, int]:
+    """Sum reconstruction_points and registered_images across all scenes."""
+    total_points = 0
+    total_registered = 0
+
+    for ds_dir in sorted(reconstruction_dir.iterdir()):
+        if not ds_dir.is_dir():
+            continue
+        for scene_dir in sorted(ds_dir.iterdir()):
+            if not scene_dir.is_dir():
+                continue
+            summary = _safe_read_json(scene_dir / "reconstruction_summary.json")
+            total_points += int(summary.get("reconstruction_points", 0))
+
+            registered = set()
+            for cluster in summary.get("clusters", []):
+                if isinstance(cluster, list):
+                    registered.update(cluster)
+            for row in summary.get("cluster_labels", []):
+                registered.update(str(x) for x in row.get("images", []))
+            total_registered += len(registered)
+
+    return total_points, total_registered
+
+
+def _collect_all_poses(reconstruction_dir: Path) -> dict[str, dict[str, str]]:
+    """Collect image_id -> pose from all per-scene reconstruction summaries."""
+    all_poses: dict[str, dict[str, str]] = {}
+    for ds_dir in sorted(reconstruction_dir.iterdir()):
+        if not ds_dir.is_dir():
+            continue
+        for scene_dir in sorted(ds_dir.iterdir()):
+            if not scene_dir.is_dir():
+                continue
+            summary = _safe_read_json(scene_dir / "reconstruction_summary.json")
+            all_poses.update(summary.get("poses", {}))
+    return all_poses
+
+
+def _collect_reconstructed_ids(reconstruction_dir: Path) -> set[str]:
+    """Collect all image_ids that appear in any cluster across scenes."""
     ids: set[str] = set()
-
-    for cluster in summary.get("clusters", []):
-        if isinstance(cluster, list):
-            ids.update(str(x) for x in cluster)
-
-    for row in summary.get("cluster_labels", []):
-        ids.update(str(x) for x in row.get("images", []))
-
+    for ds_dir in sorted(reconstruction_dir.iterdir()):
+        if not ds_dir.is_dir():
+            continue
+        for scene_dir in sorted(ds_dir.iterdir()):
+            if not scene_dir.is_dir():
+                continue
+            summary = _safe_read_json(scene_dir / "reconstruction_summary.json")
+            for cluster in summary.get("clusters", []):
+                if isinstance(cluster, list):
+                    ids.update(str(x) for x in cluster)
+            for row in summary.get("cluster_labels", []):
+                ids.update(str(x) for x in row.get("images", []))
     return ids
 
 
-def _read_id_to_raw_path() -> dict[str, Path]:
-    extracted_index_path = ROOT / "data" / "extracted" / "extracted_index.json"
-    payload = _safe_read_json(extracted_index_path)
+def _read_id_to_raw_path(extracted_dir: Path) -> dict[str, Path]:
+    """Build image_id -> raw_path from per-scene extracted indexes."""
     id_to_path: dict[str, Path] = {}
-
-    for rec in payload.get("records", []):
-        image_id = rec.get("image_id")
-        raw_path = rec.get("raw_path") or rec.get("source_path")
-        if image_id and raw_path:
-            id_to_path[str(image_id)] = Path(str(raw_path))
-
+    if not extracted_dir.exists():
+        return id_to_path
+    for ds_dir in sorted(extracted_dir.iterdir()):
+        if not ds_dir.is_dir():
+            continue
+        for scene_dir in sorted(ds_dir.iterdir()):
+            if not scene_dir.is_dir():
+                continue
+            payload = _safe_read_json(scene_dir / "extracted_index.json")
+            for rec in payload.get("records", []):
+                image_id = rec.get("image_id")
+                raw_path = rec.get("raw_path") or rec.get("source_path")
+                if image_id and raw_path:
+                    id_to_path[str(image_id)] = Path(str(raw_path))
     return id_to_path
 
 
-def _build_eval_prediction_csv(reconstruction_dir: Path, out_csv: Path) -> tuple[Path, float]:
+def _build_eval_prediction_csv(
+    reconstruction_dir: Path,
+    extracted_dir: Path,
+    out_csv: Path,
+) -> tuple[Path, float]:
+    import hashlib
+
     gt_csv = DEFAULT_DATASET_DIR / "train_labels.csv"
     gt_df = pd.read_csv(gt_csv)
 
-    reconstructed_ids = _read_reconstructed_ids(reconstruction_dir)
-    id_to_raw_path = _read_id_to_raw_path()
-
-    # Read stored poses from reconstruction summary
-    summary = _safe_read_json(reconstruction_dir / "reconstruction_summary.json")
-    stored_poses: dict[str, dict[str, str]] = summary.get("poses", {})
+    reconstructed_ids = _collect_reconstructed_ids(reconstruction_dir)
+    id_to_raw_path = _read_id_to_raw_path(extracted_dir)
+    stored_poses = _collect_all_poses(reconstruction_dir)
 
     inv_map: dict[tuple, str] = {}
     for image_id, raw_path in id_to_raw_path.items():
@@ -177,19 +204,16 @@ def _build_eval_prediction_csv(reconstruction_dir: Path, out_csv: Path) -> tuple
             rotation_matrix = nan_r
             translation_vector = nan_t
 
-        preds.append(
-            {
-                "dataset": dataset,
-                "scene": scene,
-                "image": image,
-                "rotation_matrix": rotation_matrix,
-                "translation_vector": translation_vector,
-            }
-        )
+        preds.append({
+            "dataset": dataset,
+            "scene": scene,
+            "image": image,
+            "rotation_matrix": rotation_matrix,
+            "translation_vector": translation_vector,
+        })
 
     out_csv.parent.mkdir(parents=True, exist_ok=True)
     pd.DataFrame(preds).to_csv(out_csv, index=False)
-
     registration_rate = float(registered / max(len(preds), 1))
     return out_csv, registration_rate
 
@@ -210,7 +234,8 @@ def _compute_maa(user_csv: Path) -> tuple[float, dict[str, float]]:
     return final_score, per_dataset
 
 
-def _ensure_final_ply(reconstruction_dir: Path, metrics_dir: Path, num_points: int) -> Path:
+def _find_any_ply(reconstruction_dir: Path, metrics_dir: Path, num_points: int) -> Path:
+    """Find any PLY file across scene dirs, or generate a fallback."""
     ply_candidates = sorted(reconstruction_dir.rglob("*.ply"))
     if ply_candidates:
         return ply_candidates[0]
@@ -218,19 +243,17 @@ def _ensure_final_ply(reconstruction_dir: Path, metrics_dir: Path, num_points: i
     metrics_dir.mkdir(parents=True, exist_ok=True)
     fallback = metrics_dir / "final.ply"
     fallback.write_text(
-        "\n".join(
-            [
-                "ply",
-                "format ascii 1.0",
-                f"comment generated_by=evaluate estimated_points={num_points}",
-                "element vertex 0",
-                "property float x",
-                "property float y",
-                "property float z",
-                "end_header",
-                "",
-            ]
-        )
+        "\n".join([
+            "ply",
+            "format ascii 1.0",
+            f"comment generated_by=evaluate estimated_points={num_points}",
+            "element vertex 0",
+            "property float x",
+            "property float y",
+            "property float z",
+            "end_header",
+            "",
+        ])
     )
     return fallback
 
@@ -265,6 +288,7 @@ def main() -> None:
         raise ValueError(f"Expected an imc2025 pipeline config, got type={conf.pipeline.type}")
 
     reconstruction_dir = Path(args.reconstruction_dir)
+    extracted_dir = ROOT / "data" / "extracted"
     config_path = Path(args.config)
     metrics_dir = Path(args.metrics_dir)
     metrics_dir.mkdir(parents=True, exist_ok=True)
@@ -272,32 +296,39 @@ def main() -> None:
     if not reconstruction_dir.exists():
         raise FileNotFoundError(f"Reconstruction directory not found: {reconstruction_dir}")
 
+    scenes = _discover_scene_summaries(reconstruction_dir)
+    if not scenes:
+        raise FileNotFoundError(f"No per-scene reconstruction summaries found under {reconstruction_dir}")
+    log.info("Found %d scenes for evaluation", len(scenes))
+
     raw_conf = {
         "type": conf.pipeline.type,
         "imc2025_pipeline": conf.pipeline.imc2025_pipeline.model_dump(exclude_none=True),
     }
     flat_params = {k: v[:500] for k, v in _flatten_dict(raw_conf).items()}
 
-    num_points, num_images = _extract_reconstruction_stats(reconstruction_dir)
+    num_points, num_images = _collect_reconstruction_stats(reconstruction_dir)
     eval_prediction_csv = metrics_dir / "eval_predictions.csv"
     eval_prediction_csv, registration_rate = _build_eval_prediction_csv(
         reconstruction_dir=reconstruction_dir,
+        extracted_dir=extracted_dir,
         out_csv=eval_prediction_csv,
     )
     maa, per_dataset = _compute_maa(eval_prediction_csv)
 
     metrics = {
-        "maa": float(maa),
+        "mAA_overall": float(maa),
         "num_points": int(num_points),
         "num_images": int(num_images),
         "registration_rate": float(registration_rate),
+        "num_scenes": len(scenes),
     }
 
     metrics_path = metrics_dir / "metrics.json"
     with open(metrics_path, "w") as f:
         json.dump(metrics, f, indent=2)
 
-    final_ply_path = _ensure_final_ply(reconstruction_dir, metrics_dir, num_points)
+    final_ply_path = _find_any_ply(reconstruction_dir, metrics_dir, num_points)
 
     git_commit = _get_git_commit()
     git_status = _get_git_status()
@@ -314,9 +345,10 @@ def main() -> None:
         if flat_params:
             mlflow.log_params(flat_params)
 
-        mlflow.log_metric("maa", float(maa))
+        mlflow.log_metric("mAA_overall", float(maa))
         mlflow.log_metric("num_points", int(num_points))
         mlflow.log_metric("num_images", int(num_images))
+        mlflow.log_metric("num_scenes", len(scenes))
         mlflow.log_metric("registration_rate", float(registration_rate))
         for ds, score in per_dataset.items():
             mlflow.log_metric(f"mAA_{ds}", score)
@@ -333,6 +365,17 @@ def main() -> None:
 
         if config_path.exists():
             mlflow.log_artifact(str(config_path), artifact_path="config")
+
+    if parent_run_id:
+        client = mlflow.tracking.MlflowClient()
+        client.log_metric(parent_run_id, "mAA_overall", float(maa))
+        client.log_metric(parent_run_id, "num_points", int(num_points))
+        client.log_metric(parent_run_id, "num_images", int(num_images))
+        client.log_metric(parent_run_id, "registration_rate", float(registration_rate))
+        for ds, score in per_dataset.items():
+            client.log_metric(parent_run_id, f"mAA_{ds}", score)
+        if config_path.exists():
+            client.log_artifact(parent_run_id, str(config_path), artifact_path="config")
 
     print(json.dumps(metrics, indent=2))
 

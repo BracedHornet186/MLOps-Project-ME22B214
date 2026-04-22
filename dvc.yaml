@@ -61,6 +61,7 @@ stages:
       - data/processed/images
       - data/processed/preprocess_report.json
       - data/train
+      - data/train_labels.csv
     outs:
       - data/features
       - data/extracted
@@ -109,6 +110,8 @@ stages:
       - conf/mast3r.yaml
       - scripts/reconstruct.py
       - data/matches
+      - data/extracted
+      - data/train_labels.csv
     outs:
       - data/reconstruction
 

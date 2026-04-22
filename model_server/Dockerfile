@@ -25,6 +25,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
         torch==2.6.0 torchvision==0.21.0 --index-url https://download.pytorch.org/whl/cu126 && \
     pip install --no-cache-dir \
         fastapi==0.115.0 \
+        python-multipart \
         uvicorn[standard]==0.30.0 \
         mlflow==3.10.1 \
         httpx==0.27.0 \

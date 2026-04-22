@@ -31,7 +31,8 @@ from docker.types import Mount
 # ── Constants ─────────────────────────────────────────────────────────────────
 
 PROJECT_ROOT = os.environ.get("PROJECT_ROOT", "/opt/airflow/project")
-ALERT_EMAIL  = os.environ.get("ALERT_EMAIL",  "mlops-team@example.com")
+ALERT_EMAIL = os.environ.get("SMTP_MAIL_FROM", "mlops-team@example.com")
+SMTP_USER = os.environ.get("SMTP_USER", "yashpurswani4@gmail.com")
 
 # HOST filesystem path to the project.  Must be the real path on the Docker
 # host so DockerOperator (DooD) can create a valid bind-mount.
@@ -108,7 +109,8 @@ with DAG(
 
     notify_missing_data = EmailOperator(
         task_id="notify_missing_data",
-        to=ALERT_EMAIL,
+        from_email=ALERT_EMAIL,
+        to=SMTP_USER,
         subject="⚠️ Experiment pipeline: required data files missing",
         html_content=(
             "<h3>⚠️ Pipeline cannot start</h3>"

@@ -11,12 +11,6 @@ Preprocessing order (all steps optional, controlled by config):
   2. Deblurring                 (FFTformerDeblurHandler)
   3. Segmentation               (GroundedSAMSegmentator)
   4. Depth estimation           (HFDepthEstimationModel)
-
-Usage from Airflow DAG or pipeline entrypoint:
-  from preprocesses.pipeline import PreprocessingPipeline, PreprocessingConfig
-  cfg = PreprocessingConfig.from_yaml("conf/preprocess.yaml")
-  pipeline = PreprocessingPipeline(cfg, device=torch.device("cuda"))
-  scene = pipeline.run(scene, progress_bar=pbar)
 """
 
 from __future__ import annotations

@@ -8,18 +8,17 @@ import time
 from pathlib import Path
 
 import mlflow
-import numpy as np
 
 from config import load_pipeline_config
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Stage 5: deterministic placeholder matching for image pairs")
-    parser.add_argument("--config", default="conf/mast3r.yaml", help="Path to unified pipeline config")
-    parser.add_argument("--pairs-dir", default="data/pairs", help="Input pairs directory")
-    parser.add_argument("--keypoints-dir", default="data/keypoints", help="Input keypoints directory")
-    parser.add_argument("--matches-dir", default="data/matches", help="Output matches directory")
-    parser.add_argument("--min-match-threshold", type=int, default=None, help="Minimum matches for reconstruction eligibility")
+    parser = argparse.ArgumentParser(description="Stage 5: per-scene deterministic placeholder matching")
+    parser.add_argument("--config", default="conf/mast3r.yaml")
+    parser.add_argument("--pairs-dir", default="data/pairs")
+    parser.add_argument("--keypoints-dir", default="data/keypoints")
+    parser.add_argument("--matches-dir", default="data/matches")
+    parser.add_argument("--min-match-threshold", type=int, default=None)
     return parser.parse_args()
 
 
@@ -47,28 +46,31 @@ def pair_hash(a: str, b: str) -> int:
     return int(h[:8], 16)
 
 
-def main() -> None:
-    args = parse_args()
-    t0 = time.perf_counter()
+def _discover_scenes(pairs_dir: Path) -> list[tuple[str, str]]:
+    scenes: list[tuple[str, str]] = []
+    if not pairs_dir.exists():
+        return scenes
+    for ds_dir in sorted(pairs_dir.iterdir()):
+        if not ds_dir.is_dir():
+            continue
+        for scene_dir in sorted(ds_dir.iterdir()):
+            if not scene_dir.is_dir():
+                continue
+            if (scene_dir / "pairs_index.json").exists():
+                scenes.append((ds_dir.name, scene_dir.name))
+    return scenes
 
-    conf = load_pipeline_config(args.config)
-    if conf.pipeline.type != "imc2025" or conf.pipeline.imc2025_pipeline is None:
-        raise ValueError(f"Expected an imc2025 pipeline config, got type={conf.pipeline.type}")
-    imc2025_conf = conf.pipeline.imc2025_pipeline
 
-    min_match_threshold = (
-        max(int(args.min_match_threshold), 1)
-        if args.min_match_threshold is not None
-        else resolve_min_match_threshold(imc2025_conf)
-    )
-
-    pairs_dir = Path(args.pairs_dir)
-    keypoints_dir = Path(args.keypoints_dir)
-    matches_dir = Path(args.matches_dir)
-    matches_dir.mkdir(parents=True, exist_ok=True)
-
-    pairs_index_path = pairs_dir / "pairs_index.json"
-    keypoints_index_path = keypoints_dir / "keypoints_index.json"
+def _match_scene(
+    pairs_dir: Path,
+    keypoints_dir: Path,
+    matches_dir: Path,
+    dataset: str,
+    scene: str,
+    min_match_threshold: int,
+) -> dict:
+    pairs_index_path = pairs_dir / dataset / scene / "pairs_index.json"
+    keypoints_index_path = keypoints_dir / dataset / scene / "keypoints_index.json"
 
     if not pairs_index_path.exists():
         raise FileNotFoundError(f"Missing pairs index: {pairs_index_path}")
@@ -80,9 +82,10 @@ def main() -> None:
     with open(keypoints_index_path) as f:
         keypoints_index = json.load(f)
 
-    keypoint_counts: dict[str, int] = {}
-    for rec in keypoints_index.get("records", []):
-        keypoint_counts[rec["image_id"]] = int(rec.get("num_keypoints", 0))
+    keypoint_counts: dict[str, int] = {
+        rec["image_id"]: int(rec.get("num_keypoints", 0))
+        for rec in keypoints_index.get("records", [])
+    }
 
     matches: list[dict] = []
     total_matches = 0
@@ -107,16 +110,16 @@ def main() -> None:
             pairs_with_matches += 1
         total_matches += num_matches
 
-        matches.append(
-            {
-                "img1": img1,
-                "img2": img2,
-                "num_matches": int(num_matches),
-                "matched_idx": list(range(int(num_matches))),
-            }
-        )
+        matches.append({
+            "img1": img1,
+            "img2": img2,
+            "num_matches": int(num_matches),
+            "matched_idx": list(range(int(num_matches))),
+        })
 
     matches_index = {
+        "dataset": dataset,
+        "scene": scene,
         "num_pairs": len(matches),
         "pairs_with_matches": pairs_with_matches,
         "total_matches": total_matches,
@@ -124,14 +127,51 @@ def main() -> None:
         "matches": matches,
     }
 
-    matches_index_path = matches_dir / "matches_index.json"
-    with open(matches_index_path, "w") as f:
+    scene_matches_dir = matches_dir / dataset / scene
+    scene_matches_dir.mkdir(parents=True, exist_ok=True)
+    with open(scene_matches_dir / "matches_index.json", "w") as f:
         json.dump(matches_index, f, indent=2)
 
-    avg_matches = 0.0
-    if matches:
-        avg_matches = total_matches / len(matches)
+    return {"num_pairs": len(matches), "pairs_with_matches": pairs_with_matches, "total_matches": total_matches}
 
+
+def main() -> None:
+    args = parse_args()
+    t0 = time.perf_counter()
+
+    conf = load_pipeline_config(args.config)
+    if conf.pipeline.type != "imc2025" or conf.pipeline.imc2025_pipeline is None:
+        raise ValueError(f"Expected an imc2025 pipeline config, got type={conf.pipeline.type}")
+    imc2025_conf = conf.pipeline.imc2025_pipeline
+
+    min_match_threshold = (
+        max(int(args.min_match_threshold), 1)
+        if args.min_match_threshold is not None
+        else resolve_min_match_threshold(imc2025_conf)
+    )
+
+    pairs_dir = Path(args.pairs_dir)
+    keypoints_dir = Path(args.keypoints_dir)
+    matches_dir = Path(args.matches_dir)
+    matches_dir.mkdir(parents=True, exist_ok=True)
+
+    scenes = _discover_scenes(pairs_dir)
+    if not scenes:
+        raise FileNotFoundError(f"No scene pair indexes found under {pairs_dir}")
+
+    total_pairs = 0
+    total_matches_sum = 0
+    total_pairs_with_matches = 0
+    scene_stats: list[dict] = []
+
+    for dataset, scene in scenes:
+        stats = _match_scene(pairs_dir, keypoints_dir, matches_dir, dataset, scene, min_match_threshold)
+        total_pairs += stats["num_pairs"]
+        total_matches_sum += stats["total_matches"]
+        total_pairs_with_matches += stats["pairs_with_matches"]
+        scene_stats.append({"dataset": dataset, "scene": scene, **stats})
+
+    avg_matches = total_matches_sum / total_pairs if total_pairs else 0.0
     duration = time.perf_counter() - t0
 
     mlflow_uri = os.environ.get("MLFLOW_TRACKING_URI", "http://localhost:5000")
@@ -143,26 +183,29 @@ def main() -> None:
     with mlflow.start_run(run_name="match", nested=True, tags=run_tags):
         mlflow.log_param("min_match_threshold", min_match_threshold)
         mlflow.log_param("config_path", args.config)
+        mlflow.log_param("num_scenes", len(scenes))
 
-        mlflow.log_metric("num_pairs", len(matches))
-        mlflow.log_metric("pairs_with_matches", pairs_with_matches)
-        mlflow.log_metric("num_matches", total_matches)
+        mlflow.log_metric("num_scenes", len(scenes))
+        mlflow.log_metric("num_pairs", total_pairs)
+        mlflow.log_metric("pairs_with_matches", total_pairs_with_matches)
+        mlflow.log_metric("num_matches", total_matches_sum)
         mlflow.log_metric("avg_matches", round(avg_matches, 4))
         mlflow.log_metric("execution_time", round(duration, 4))
 
+        for s in scene_stats:
+            key = f"{s['dataset']}_{s['scene']}"
+            mlflow.log_metric(f"num_matches_{key}", s["total_matches"])
+            mlflow.log_metric(f"pairs_with_matches_{key}", s["pairs_with_matches"])
+
         mlflow.log_artifacts(str(matches_dir), artifact_path="matches")
 
-    print(
-        json.dumps(
-            {
-                "num_pairs": len(matches),
-                "num_matches": total_matches,
-                "matches_index": str(matches_index_path),
-                "execution_time": round(duration, 4),
-            },
-            indent=2,
-        )
-    )
+    print(json.dumps({
+        "num_scenes": len(scenes),
+        "num_pairs": total_pairs,
+        "num_matches": total_matches_sum,
+        "matches_dir": str(matches_dir),
+        "execution_time": round(duration, 4),
+    }, indent=2))
 
 
 if __name__ == "__main__":

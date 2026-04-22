@@ -1,7 +1,7 @@
 """
 model_server/server.py
 ────────────────────────────────────────────────────────────────────────────
-Stage 4 — Model Server
+Model Server
 
 Loads all model weights once at startup, then accepts inference requests
 from the API server. This process holds the GPU exclusively.

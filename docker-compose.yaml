@@ -2,7 +2,9 @@
 ---
 x-airflow-common:
   &airflow-common
-  image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:3.2.0-python3.11}
+  build:
+    context: .
+    dockerfile: airflow/Dockerfile
   env_file:
     - ${ENV_FILE_PATH:-.env}
   environment:
@@ -21,6 +23,7 @@ x-airflow-common:
     AIRFLOW__API_AUTH__JWT_ISSUER: ${AIRFLOW__API_AUTH__JWT_ISSUER:-airflow}
     AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: 'true'
     # ── SMTP config for EmailOperator ──
+    AIRFLOW_CONN_SMTP_DEFAULT: 'smtp://${SMTP_USER}:${SMTP_PASSWORD}@smtp.gmail.com:587?disable_ssl=true'
     AIRFLOW__SMTP__SMTP_HOST: 'smtp.gmail.com'
     AIRFLOW__SMTP__SMTP_STARTTLS: 'True'
     AIRFLOW__SMTP__SMTP_SSL: 'False'
@@ -29,12 +32,12 @@ x-airflow-common:
     AIRFLOW__SMTP__SMTP_USER: ${SMTP_USER:-}
     AIRFLOW__SMTP__SMTP_PASSWORD: ${SMTP_PASSWORD:-}
     AIRFLOW__SMTP__SMTP_TIMEOUT: '30'
-    AIRFLOW__SMTP__SMTP_RETRY_LIMIT: '5'
+    AIRFLOW__SMTP__SMTP_RETRY_LIMIT: '2'
     PYTHONPATH: '/opt/airflow/project'
     DEFAULT_DATASET_DIR: '/opt/airflow/project/data'
     MLFLOW_TRACKING_URI: 'http://mlflow:5000'
     HOST_PROJECT_ROOT: ${HOST_PROJECT_ROOT:-/home/abhiyaan-cu/Yash/MLOps-Project-ME22B214}
-    _PIP_ADDITIONAL_REQUIREMENTS: 'dvc mlflow==3.10.1 apache-airflow-providers-fab apache-airflow-providers-docker'
+    _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
   volumes:
     - ${AIRFLOW_PROJ_DIR:-./airflow}/dags:/opt/airflow/dags
     - ${AIRFLOW_PROJ_DIR:-./airflow}/logs:/opt/airflow/logs
@@ -202,7 +205,6 @@ services:
       RESULTS_DIR: "/app/results"
       CUDA_VISIBLE_DEVICES: "0"
     volumes:
-      - ${MODEL_WEIGHTS_DIR:-./weights}:/app/weights:ro
       - ./data:/app/data:ro
       - ./conf:/app/conf:ro
       - reconstruction-results:/app/results
@@ -339,7 +341,7 @@ services:
       _AIRFLOW_WWW_USER_CREATE: 'true'
       _AIRFLOW_WWW_USER_USERNAME: ${_AIRFLOW_WWW_USER_USERNAME:-airflow}
       _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD:-airflow}
-      _PIP_ADDITIONAL_REQUIREMENTS: 'dvc mlflow==3.10.1 apache-airflow-providers-fab apache-airflow-providers-docker'
+      _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
     user: "0:0"
 
   airflow-cli:
@@ -415,27 +417,41 @@ services:
       start_period: 10s
     restart: always
 
+  # grafana:
+  #   image: grafana/grafana:11.1.0
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     GF_SECURITY_ADMIN_USER: admin
+  #     GF_SECURITY_ADMIN_PASSWORD: admin
+  #     GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/scene_reconstruction.json
+  #   volumes:
+  #     - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+  #     - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+  #     - grafana-data:/var/lib/grafana
+  #   depends_on:
+  #     prometheus:
+  #       condition: service_healthy
+  #   healthcheck:
+  #     test: ["CMD", "curl", "--fail", "http://localhost:3000/api/health"]
+  #     interval: 30s
+  #     timeout: 5s
+  #     retries: 5
+  #     start_period: 15s
+  #   restart: always
+
   grafana:
     image: grafana/grafana:11.1.0
-    ports:
+    ports:  
       - "3000:3000"
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin
-      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/scene_reconstruction.json
+      # GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/scene_reconstruction.json
     volumes:
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
       - grafana-data:/var/lib/grafana
-    depends_on:
-      prometheus:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "--fail", "http://localhost:3000/api/health"]
-      interval: 30s
-      timeout: 5s
-      retries: 5
-      start_period: 15s
     restart: always
 
   # ── ML pipeline image builder ────────────────────────────────────────────────

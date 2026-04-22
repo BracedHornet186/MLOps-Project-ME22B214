@@ -23,7 +23,8 @@ from airflow.providers.standard.operators.empty import EmptyOperator
 from airflow.operators.python import BranchPythonOperator
 
 PROJECT_ROOT = os.environ.get("PROJECT_ROOT", "/opt/airflow/project")
-ALERT_EMAIL = os.environ.get("ALERT_EMAIL", "mlops-team@example.com")
+ALERT_EMAIL = os.environ.get("SMTP_MAIL_FROM", "mlops-team@example.com")
+SMTP_USER = os.environ.get("SMTP_USER", "yashpurswani4@gmail.com")
 
 default_args = {
     "owner": "mlops",
@@ -69,7 +70,8 @@ with DAG(
 
     notify_drift = EmailOperator(
         task_id="notify_drift",
-        to=ALERT_EMAIL,
+        from_email=ALERT_EMAIL,
+        to=SMTP_USER,
         subject="⚠️ Data Drift Detected",
         html_content=(
             "<h3>⚠️ Data Drift Detected</h3>"
