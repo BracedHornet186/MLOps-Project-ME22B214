@@ -3,7 +3,7 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 from typing import Optional
-
+import gc
 import pandas as pd
 import pycolmap
 import torch
@@ -205,6 +205,15 @@ class IMC2025Pipeline(Pipeline):
                     scene, progress_bar, save_snapshot=save_snapshot
                 )
                 results[scene.dataset][scene.scene] = outputs
+            
+            del outputs  # Release reference
+            torch.cuda.empty_cache()
+            gc.collect()
+
+            if self.dist_conf.is_master():
+                allocated_gb = torch.cuda.memory_allocated() / 1024**3
+                log.info(f"[GPU Memory] {allocated_gb:.2f} GB after {scene.dataset}")
+
         progress_bar.update(1)
 
         df = results_to_submission_df(results, schema="imc2025")

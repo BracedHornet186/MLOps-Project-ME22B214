@@ -8,3 +8,4 @@ logs/
 .antigravity/
 __pycache__/
 .env
+extra/snapshot/

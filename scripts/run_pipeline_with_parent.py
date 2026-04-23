@@ -18,9 +18,6 @@ def main():
 
         # Run DVC pipeline
         subprocess.run(["dvc", "repro"], check=True)
-
-        # Optional: best run selection
-        subprocess.run(["python3", "scripts/select_best_run.py"], check=True)
-
+        
 if __name__ == "__main__":
     main()

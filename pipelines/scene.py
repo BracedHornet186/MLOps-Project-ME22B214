@@ -28,8 +28,6 @@ from data_schema import DataSchema
 from preprocesses.region import Cropper, OverlapRegionCropper, whole_image_bbox
 
 IMAGE_CACHE_NUM_LIMIT = 1000
-# IMAGE_CACHE_SIZE_LIMIT = 1024   # MB
-# IMAGE_CACHE_SIZE_LIMIT = 1536  # MB
 IMAGE_CACHE_SIZE_LIMIT = 4096  # MB
 
 

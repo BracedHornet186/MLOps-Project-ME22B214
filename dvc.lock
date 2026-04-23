@@ -316,16 +316,10 @@ stages:
       hash: md5
       md5: 8d6c3d9b7e811ade1cee465872168d69
       size: 4043
-    - path: data/extracted
+    - path: data/reconstruction/eval_prediction.csv
       hash: md5
-      md5: 9638befe2f4bdaa5269b471a9bd47609.dir
-      size: 959919
-      nfiles: 35
-    - path: data/reconstruction
-      hash: md5
-      md5: 5104895b372a55906a0ac61d744186c9.dir
-      size: 1483035
-      nfiles: 102
+      md5: f6fc60662403558e4ed3982ce9335043
+      size: 527739
     - path: data/train_labels.csv
       hash: md5
       md5: 65d4ed3b1e80b4db596acadd29e09f29
@@ -336,8 +330,8 @@ stages:
       size: 1806
     - path: scripts/evaluate.py
       hash: md5
-      md5: 290129bc8e236a14ccd1ac6ee9911087
-      size: 13726
+      md5: 308e1234c4aa421a750db1447f7b6665
+      size: 15785
     params:
       conf/mast3r.yaml:
         imc2025_pipeline.reconstruction.mapper_max_num_models: 25
@@ -346,6 +340,53 @@ stages:
     outs:
     - path: data/metrics
       hash: md5
-      md5: 6ebb63ad6a0affab2ceea2806b5e9a5c.dir
-      size: 430952
+      md5: c21b42e88bfc656bcf091863c750e1c2.dir
+      size: 528200
       nfiles: 3
+  prepare:
+    cmd: python scripts/prepare_submission.py
+    deps:
+    - path: data/processed/images
+      hash: md5
+      md5: 49578802f98ce5ff98665ef90ec8ea58.dir
+      size: 5812358294
+      nfiles: 1945
+    - path: data/train_labels.csv
+      hash: md5
+      md5: 65d4ed3b1e80b4db596acadd29e09f29
+      size: 430314
+    - path: scripts/prepare_submission.py
+      hash: md5
+      md5: 5e808c605ad78ff65ded8b08d145345b
+      size: 6297
+    outs:
+    - path: data/prepared/prepared_input.csv
+      hash: md5
+      md5: 9cf2c19135fdfc49b6fd233c7ea3c30b
+      size: 219370
+  run_pipeline:
+    cmd: python scripts/reconstruct_scenes.py --config conf/mast3r.yaml 
+      --prepared-input data/prepared/prepared_input.csv --output-dir 
+      data/reconstruction
+    deps:
+    - path: conf/mast3r.yaml
+      hash: md5
+      md5: 8d6c3d9b7e811ade1cee465872168d69
+      size: 4043
+    - path: data/prepared/prepared_input.csv
+      hash: md5
+      md5: 9cf2c19135fdfc49b6fd233c7ea3c30b
+      size: 219370
+    - path: scripts/reconstruct_scenes.py
+      hash: md5
+      md5: e589250ba260b5e8868541d21a670c09
+      size: 16043
+    outs:
+    - path: data/reconstruction/eval_prediction.csv
+      hash: md5
+      md5: f6fc60662403558e4ed3982ce9335043
+      size: 527739
+    - path: data/reconstruction/reconstruction_metrics.json
+      hash: md5
+      md5: 933d12d708124644baf340120755d32b
+      size: 235

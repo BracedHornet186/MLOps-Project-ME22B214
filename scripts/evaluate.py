@@ -35,6 +35,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--experiment-name", default="scene_reconstruction_dvc")
     parser.add_argument("--run-name", default="evaluate")
     parser.add_argument(
+        "--eval-prediction-csv",
+        default=None,
+        help="Path to eval_prediction.csv from run_pipeline stage (skips legacy build)",
+    )
+    parser.add_argument(
         "--mlflow-uri",
         default=os.environ.get("MLFLOW_TRACKING_URI", "http://localhost:5000"),
     )
@@ -293,27 +298,63 @@ def main() -> None:
     metrics_dir = Path(args.metrics_dir)
     metrics_dir.mkdir(parents=True, exist_ok=True)
 
-    if not reconstruction_dir.exists():
-        raise FileNotFoundError(f"Reconstruction directory not found: {reconstruction_dir}")
-
-    scenes = _discover_scene_summaries(reconstruction_dir)
-    if not scenes:
-        raise FileNotFoundError(f"No per-scene reconstruction summaries found under {reconstruction_dir}")
-    log.info("Found %d scenes for evaluation", len(scenes))
-
     raw_conf = {
         "type": conf.pipeline.type,
         "imc2025_pipeline": conf.pipeline.imc2025_pipeline.model_dump(exclude_none=True),
     }
     flat_params = {k: v[:500] for k, v in _flatten_dict(raw_conf).items()}
 
-    num_points, num_images = _collect_reconstruction_stats(reconstruction_dir)
-    eval_prediction_csv = metrics_dir / "eval_predictions.csv"
-    eval_prediction_csv, registration_rate = _build_eval_prediction_csv(
-        reconstruction_dir=reconstruction_dir,
-        extracted_dir=extracted_dir,
-        out_csv=eval_prediction_csv,
-    )
+    # ── Check for eval_prediction.csv from run_pipeline stage ────────────
+    # The new run_pipeline stage produces eval_prediction.csv directly.
+    # If it exists, use it directly instead of building from legacy
+    # reconstruction_summary.json + extracted_index.json files.
+    pipeline_eval_csv = reconstruction_dir / "eval_prediction.csv"
+    if args.eval_prediction_csv:
+        pipeline_eval_csv = Path(args.eval_prediction_csv)
+
+    if pipeline_eval_csv.exists():
+        log.info("Using eval_prediction.csv from run_pipeline: %s", pipeline_eval_csv)
+        eval_prediction_csv = metrics_dir / "eval_predictions.csv"
+        eval_prediction_csv.parent.mkdir(parents=True, exist_ok=True)
+
+        # Copy to metrics dir for consistency
+        import shutil
+        shutil.copy(pipeline_eval_csv, eval_prediction_csv)
+
+        # Compute registration rate from the CSV
+        pred_df = pd.read_csv(eval_prediction_csv)
+        registered = 0
+        for _, row in pred_df.iterrows():
+            try:
+                vals = [float(x) for x in str(row["rotation_matrix"]).split(";")]
+                if len(vals) == 9 and not any(v != v for v in vals):
+                    registered += 1
+            except Exception:
+                pass
+        registration_rate = float(registered / max(len(pred_df), 1))
+        num_images = registered
+        num_points = 0  # Not available from CSV-only path
+        scenes = list(pred_df.groupby(["dataset", "scene"]).groups.keys()) if "scene" in pred_df.columns else []
+        log.info("Registration rate: %.4f (%d/%d)", registration_rate, registered, len(pred_df))
+    else:
+        # Legacy path: build from reconstruction_summary.json + extracted_index.json
+        log.info("No eval_prediction.csv found, building from reconstruction summaries")
+        if not reconstruction_dir.exists():
+            raise FileNotFoundError(f"Reconstruction directory not found: {reconstruction_dir}")
+
+        scenes = _discover_scene_summaries(reconstruction_dir)
+        if not scenes:
+            raise FileNotFoundError(f"No per-scene reconstruction summaries found under {reconstruction_dir}")
+        log.info("Found %d scenes for evaluation", len(scenes))
+
+        num_points, num_images = _collect_reconstruction_stats(reconstruction_dir)
+        eval_prediction_csv = metrics_dir / "eval_predictions.csv"
+        eval_prediction_csv, registration_rate = _build_eval_prediction_csv(
+            reconstruction_dir=reconstruction_dir,
+            extracted_dir=extracted_dir,
+            out_csv=eval_prediction_csv,
+        )
+
     maa, per_dataset = _compute_maa(eval_prediction_csv)
 
     metrics = {

@@ -52,76 +52,36 @@ stages:
           - deblurring.blurry_threshold
           # - orientation.type
 
-  extract_features:
-    cmd: python scripts/extract_features.py --config conf/mast3r.yaml
+  prepare:
+    cmd: python scripts/prepare_submission.py
     deps:
-      - conf/mast3r.yaml
-      - scripts/extract_features.py
-      - data/baselines/validation_report.json
+      - scripts/prepare_submission.py
       - data/processed/images
-      - data/processed/preprocess_report.json
-      - data/train
       - data/train_labels.csv
     outs:
-      - data/features
-      - data/extracted
+      - data/prepared/prepared_input.csv
 
-  retrieval:
-    cmd: python scripts/retrieval.py --config conf/mast3r.yaml
+  run_pipeline:
+    cmd: >-
+      python scripts/reconstruct_scenes.py
+      --config conf/mast3r.yaml
+      --prepared-input data/prepared/prepared_input.csv
+      --output-dir data/reconstruction
     deps:
       - conf/mast3r.yaml
-      - scripts/retrieval.py
-      - data/features
+      - scripts/reconstruct_scenes.py
+      - data/prepared/prepared_input.csv
     outs:
-      - data/retrieval
-
-  generate_pairs:
-    cmd: python scripts/generate_pairs.py --config conf/mast3r.yaml
-    deps:
-      - conf/mast3r.yaml
-      - scripts/generate_pairs.py
-      - data/retrieval
-    outs:
-      - data/pairs
-
-  detect_keypoints:
-    cmd: python scripts/detect_keypoints.py --config conf/mast3r.yaml
-    deps:
-      - conf/mast3r.yaml
-      - scripts/detect_keypoints.py
-      - data/extracted
-      - data/pairs
-    outs:
-      - data/keypoints
-
-  match:
-    cmd: python scripts/match.py --config conf/mast3r.yaml
-    deps:
-      - conf/mast3r.yaml
-      - scripts/match.py
-      - data/pairs
-      - data/keypoints
-    outs:
-      - data/matches
-
-  reconstruct:
-    cmd: python scripts/reconstruct.py --config conf/mast3r.yaml
-    deps:
-      - conf/mast3r.yaml
-      - scripts/reconstruct.py
-      - data/matches
-      - data/extracted
-      - data/train_labels.csv
-    outs:
-      - data/reconstruction
+      - data/reconstruction/eval_prediction.csv
+    metrics:
+      - data/reconstruction/reconstruction_metrics.json
 
   evaluate:
     cmd: python scripts/evaluate.py --config conf/mast3r.yaml
     deps:
       - conf/mast3r.yaml
       - scripts/evaluate.py
-      - data/reconstruction
-      - data/extracted
+      - data/reconstruction/eval_prediction.csv
       - data/train_labels.csv
       - data/train_thresholds.csv
     outs:
