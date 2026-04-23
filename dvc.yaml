@@ -85,7 +85,7 @@ stages:
       - data/train_labels.csv
       - data/train_thresholds.csv
     outs:
-      - data/metrics
+      - data/evaluation
     params:
       - conf/mast3r.yaml:
           - type

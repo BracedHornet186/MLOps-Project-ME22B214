@@ -31,13 +31,13 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Evaluate reconstruction outputs and log DVC metrics")
     parser.add_argument("--reconstruction-dir", default="data/reconstruction")
     parser.add_argument("--config", default="conf/mast3r.yaml")
-    parser.add_argument("--metrics-dir", default="data/metrics")
+    parser.add_argument("--evaluation-dir", default="data/evaluation")
     parser.add_argument("--experiment-name", default="scene_reconstruction_dvc")
     parser.add_argument("--run-name", default="evaluate")
     parser.add_argument(
         "--eval-prediction-csv",
-        default=None,
-        help="Path to eval_prediction.csv from run_pipeline stage (skips legacy build)",
+        default="data/reconstruction/eval_prediction.csv",
+        help="Path to eval_prediction.csv from run_pipeline stage",
     )
     parser.add_argument(
         "--mlflow-uri",
@@ -234,34 +234,22 @@ def _compute_maa(user_csv: Path) -> tuple[float, dict[str, float]]:
         verbose=True,
     )
     final_score = float(final_scores_tuple[0])
+    final_mAA = float(final_scores_tuple[1])
+    final_clusterness = float(final_scores_tuple[2])
     dataset_scores = dataset_scores_tuple[0]
-    per_dataset = {str(ds): float(sc) for ds, sc in dataset_scores.items()}
-    return final_score, per_dataset
+    dataset_mAA = dataset_scores_tuple[1]
+    dataset_clusterness = dataset_scores_tuple[2]
+    per_dataset_score = {str(ds): float(sc) for ds, sc in dataset_scores.items()}
+    per_dataset_mAA = {str(ds): float(sc) for ds, sc in dataset_mAA.items()}
+    per_dataset_clusterness = {str(ds): float(sc) for ds, sc in dataset_clusterness.items()}
+    return final_score, final_mAA, final_clusterness, per_dataset_score, per_dataset_mAA, per_dataset_clusterness
 
 
-def _find_any_ply(reconstruction_dir: Path, metrics_dir: Path, num_points: int) -> Path:
+def _find_any_ply(reconstruction_dir: Path) -> Path:
     """Find any PLY file across scene dirs, or generate a fallback."""
     ply_candidates = sorted(reconstruction_dir.rglob("*.ply"))
     if ply_candidates:
         return ply_candidates[0]
-
-    metrics_dir.mkdir(parents=True, exist_ok=True)
-    fallback = metrics_dir / "final.ply"
-    fallback.write_text(
-        "\n".join([
-            "ply",
-            "format ascii 1.0",
-            f"comment generated_by=evaluate estimated_points={num_points}",
-            "element vertex 0",
-            "property float x",
-            "property float y",
-            "property float z",
-            "end_header",
-            "",
-        ])
-    )
-    return fallback
-
 
 def _get_git_commit() -> str:
     try:
@@ -293,10 +281,9 @@ def main() -> None:
         raise ValueError(f"Expected an imc2025 pipeline config, got type={conf.pipeline.type}")
 
     reconstruction_dir = Path(args.reconstruction_dir)
-    extracted_dir = ROOT / "data" / "extracted"
+    evaluation_dir = Path(args.evaluation_dir)
+    evaluation_dir.mkdir(parents=True, exist_ok=True)
     config_path = Path(args.config)
-    metrics_dir = Path(args.metrics_dir)
-    metrics_dir.mkdir(parents=True, exist_ok=True)
 
     raw_conf = {
         "type": conf.pipeline.type,
@@ -304,76 +291,54 @@ def main() -> None:
     }
     flat_params = {k: v[:500] for k, v in _flatten_dict(raw_conf).items()}
 
-    # ── Check for eval_prediction.csv from run_pipeline stage ────────────
-    # The new run_pipeline stage produces eval_prediction.csv directly.
-    # If it exists, use it directly instead of building from legacy
-    # reconstruction_summary.json + extracted_index.json files.
+    # ── Check for eval_prediction.csv from run_pipeline stage ────────────   
     pipeline_eval_csv = reconstruction_dir / "eval_prediction.csv"
     if args.eval_prediction_csv:
         pipeline_eval_csv = Path(args.eval_prediction_csv)
 
-    if pipeline_eval_csv.exists():
-        log.info("Using eval_prediction.csv from run_pipeline: %s", pipeline_eval_csv)
-        eval_prediction_csv = metrics_dir / "eval_predictions.csv"
-        eval_prediction_csv.parent.mkdir(parents=True, exist_ok=True)
+    log.info("Using eval_prediction.csv from run_pipeline: %s", pipeline_eval_csv)
+    pred_df = pd.read_csv(pipeline_eval_csv)
+    registered = 0
+    for _, row in pred_df.iterrows():
+        try:
+            vals = [float(x) for x in str(row["rotation_matrix"]).split(";")]
+            if len(vals) == 9 and not any(v != v for v in vals):
+                registered += 1
+        except Exception:
+            pass
+    registration_rate = float(registered / max(len(pred_df), 1))
+    num_images = registered
+    scenes = list(pred_df.groupby(["dataset", "scene"]).groups.keys()) if "scene" in pred_df.columns else []
+    log.info("Registration rate: %.4f (%d/%d)", registration_rate, registered, len(pred_df))
 
-        # Copy to metrics dir for consistency
-        import shutil
-        shutil.copy(pipeline_eval_csv, eval_prediction_csv)
+    final_score, final_mAA, final_clusterness, per_dataset_score, per_dataset_mAA, per_dataset_clusterness = _compute_maa(pipeline_eval_csv)
 
-        # Compute registration rate from the CSV
-        pred_df = pd.read_csv(eval_prediction_csv)
-        registered = 0
-        for _, row in pred_df.iterrows():
-            try:
-                vals = [float(x) for x in str(row["rotation_matrix"]).split(";")]
-                if len(vals) == 9 and not any(v != v for v in vals):
-                    registered += 1
-            except Exception:
-                pass
-        registration_rate = float(registered / max(len(pred_df), 1))
-        num_images = registered
-        num_points = 0  # Not available from CSV-only path
-        scenes = list(pred_df.groupby(["dataset", "scene"]).groups.keys()) if "scene" in pred_df.columns else []
-        log.info("Registration rate: %.4f (%d/%d)", registration_rate, registered, len(pred_df))
-    else:
-        # Legacy path: build from reconstruction_summary.json + extracted_index.json
-        log.info("No eval_prediction.csv found, building from reconstruction summaries")
-        if not reconstruction_dir.exists():
-            raise FileNotFoundError(f"Reconstruction directory not found: {reconstruction_dir}")
+    per_dataset_metrics = {}
 
-        scenes = _discover_scene_summaries(reconstruction_dir)
-        if not scenes:
-            raise FileNotFoundError(f"No per-scene reconstruction summaries found under {reconstruction_dir}")
-        log.info("Found %d scenes for evaluation", len(scenes))
-
-        num_points, num_images = _collect_reconstruction_stats(reconstruction_dir)
-        eval_prediction_csv = metrics_dir / "eval_predictions.csv"
-        eval_prediction_csv, registration_rate = _build_eval_prediction_csv(
-            reconstruction_dir=reconstruction_dir,
-            extracted_dir=extracted_dir,
-            out_csv=eval_prediction_csv,
-        )
-
-    maa, per_dataset = _compute_maa(eval_prediction_csv)
+    for ds in per_dataset_score.keys():
+        per_dataset_metrics[ds] = {
+            "score": float(per_dataset_score.get(ds, 0.0)),
+            "mAA": float(per_dataset_mAA.get(ds, 0.0)),
+            "clusterness": float(per_dataset_clusterness.get(ds, 0.0)),
+        }
 
     metrics = {
-        "mAA_overall": float(maa),
-        "num_points": int(num_points),
+        "final_score": float(final_score),
+        "mAA_overall": float(final_mAA),
+        "clusterness_overall": float(final_clusterness),
         "num_images": int(num_images),
         "registration_rate": float(registration_rate),
         "num_scenes": len(scenes),
+        "per_dataset": per_dataset_metrics,
     }
 
-    metrics_path = metrics_dir / "metrics.json"
+    metrics_path = evaluation_dir / "metrics.json"
     with open(metrics_path, "w") as f:
         json.dump(metrics, f, indent=2)
 
-    final_ply_path = _find_any_ply(reconstruction_dir, metrics_dir, num_points)
-
     git_commit = _get_git_commit()
     git_status = _get_git_status()
-    git_status_path = metrics_dir / "git_status.txt"
+    git_status_path = evaluation_dir / "git_status.txt"
     git_status_path.write_text(git_status + "\n")
 
     mlflow.set_tracking_uri(args.mlflow_uri)
@@ -386,35 +351,43 @@ def main() -> None:
         if flat_params:
             mlflow.log_params(flat_params)
 
-        mlflow.log_metric("mAA_overall", float(maa))
-        mlflow.log_metric("num_points", int(num_points))
+        mlflow.log_metric("final_score", float(final_score))
+        mlflow.log_metric("mAA_overall", float(final_mAA))
+        mlflow.log_metric("clusterness_overall", float(final_clusterness))
         mlflow.log_metric("num_images", int(num_images))
         mlflow.log_metric("num_scenes", len(scenes))
         mlflow.log_metric("registration_rate", float(registration_rate))
-        for ds, score in per_dataset.items():
-            mlflow.log_metric(f"mAA_{ds}", score)
+        for ds, score in per_dataset_score.items():
+            mlflow.log_metric(f"score_{ds}", score)
+        for ds, mAA in per_dataset_mAA.items():
+            mlflow.log_metric(f"mAA_{ds}", mAA)
+        for ds, clusterness in per_dataset_clusterness.items():
+            mlflow.log_metric(f"clusterness_{ds}", clusterness)
 
         mlflow.set_tag("git_commit", git_commit)
         mlflow.log_artifact(str(git_status_path), artifact_path="git")
 
         mlflow.log_artifact(str(metrics_path), artifact_path="metrics")
-        mlflow.log_artifact(str(eval_prediction_csv), artifact_path="metrics")
+        mlflow.log_artifact(str(pipeline_eval_csv), artifact_path="metrics")
         mlflow.log_artifacts(str(reconstruction_dir), artifact_path="reconstruction")
-
-        if final_ply_path.exists():
-            mlflow.log_artifact(str(final_ply_path), artifact_path="reconstruction")
 
         if config_path.exists():
             mlflow.log_artifact(str(config_path), artifact_path="config")
 
     if parent_run_id:
         client = mlflow.tracking.MlflowClient()
-        client.log_metric(parent_run_id, "mAA_overall", float(maa))
-        client.log_metric(parent_run_id, "num_points", int(num_points))
+        client.log_metric(parent_run_id, "final_score", float(final_score))
+        client.log_metric(parent_run_id, "mAA_overall", float(final_mAA))
+        client.log_metric(parent_run_id, "clusterness_overall", float(final_clusterness))
         client.log_metric(parent_run_id, "num_images", int(num_images))
+        client.log_metric(parent_run_id, "num_scenes", len(scenes))
         client.log_metric(parent_run_id, "registration_rate", float(registration_rate))
-        for ds, score in per_dataset.items():
-            client.log_metric(parent_run_id, f"mAA_{ds}", score)
+        for ds, score in per_dataset_score.items():
+            client.log_metric(parent_run_id, f"score_{ds}", score)
+        for ds, mAA in per_dataset_mAA.items():
+            client.log_metric(parent_run_id, f"mAA_{ds}", mAA)
+        for ds, clusterness in per_dataset_clusterness.items():
+            client.log_metric(parent_run_id, f"clusterness_{ds}", clusterness)
         if config_path.exists():
             client.log_artifact(parent_run_id, str(config_path), artifact_path="config")
 

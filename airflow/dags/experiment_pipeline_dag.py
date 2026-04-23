@@ -22,6 +22,7 @@ import os
 from datetime import datetime, timedelta
 
 from airflow import DAG
+from airflow.providers.standard.operators.bash import BashOperator
 from airflow.providers.docker.operators.docker import DockerOperator
 from airflow.providers.smtp.operators.smtp import EmailOperator
 from airflow.providers.standard.operators.empty import EmptyOperator
@@ -40,6 +41,9 @@ HOST_PROJECT_ROOT = os.environ.get(
     "HOST_PROJECT_ROOT",
     "/home/abhiyaan-cu/Yash/MLOps-Project-ME22B214",
 )
+
+HOST_UID = os.environ.get('AIRFLOW_UID', '1000')
+HOST_GID = os.environ.get('DOCKER_GID', '984')
 
 MLFLOW_TRACKING_URI = os.environ.get("MLFLOW_TRACKING_URI", "http://mlflow:5000")
 
@@ -140,6 +144,7 @@ with DAG(
         command=[
             "bash", "-c",
             (
+                f"trap 'chown -R {HOST_UID}:{HOST_GID} /project' EXIT; "
                 "set -e && cd /project && "
                 "export PYTHONPATH=/project && "
                 "python3 scripts/run_pipeline_with_parent.py"   
@@ -158,21 +163,23 @@ with DAG(
         trigger_rule="all_success",
     )
 
-    # ── Best-run promotion (Docker) ───────────────────────────────────────────
+    # ── Best-run promotion ─────────────────────────────────────────────────────
 
-    select_best_run = DockerOperator(
+    select_best_run = BashOperator(
         task_id="select_best_run",
-        image=PIPELINE_IMAGE,
-        command=[
-            "bash", "-c",
-            "set -e && cd /project && python3 scripts/select_best_run.py",
-        ],
-        environment={"MLFLOW_TRACKING_URI": MLFLOW_TRACKING_URI},
-        mounts=[_PROJECT_MOUNT],
-        network_mode=COMPOSE_NETWORK,
-        auto_remove="force",
-        mount_tmp_dir=False,
-        docker_url="unix:///var/run/docker.sock",
+        bash_command=f"cd {PROJECT_ROOT} && python scripts/select_best_run.py",
+    )
+
+    notify_user = EmailOperator(
+        task_id="notify_user",
+        to=SMTP_USER,
+        from_email=ALERT_EMAIL,
+        subject="Production Config Updated",
+        html_content=(
+            "<h3>Production Config Updated</h3>"
+            "<p>A new best run has been promoted to production.</p>"
+            f"<p>Config written to: <code>{PROJECT_ROOT}/conf/best_config.yaml</code></p>"
+        ),
     )
 
     # ── Dependencies ──────────────────────────────────────────────────────────
@@ -180,4 +187,4 @@ with DAG(
     sensors = [wait_for_train_dir, wait_for_train_labels, wait_for_train_thresholds]
 
     sensors >> notify_missing_data >> end_no_data
-    sensors >> run_dvc_pipeline >> select_best_run
+    sensors >> run_dvc_pipeline >> select_best_run >> notify_user

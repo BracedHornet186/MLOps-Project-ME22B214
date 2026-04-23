@@ -118,5 +118,3 @@ source .venv/bin/activate
 PARENT_ID=$(python scripts/start_parent_dvc_run.py | head -n 1)
 MLFLOW_PARENT_RUN_ID="$PARENT_ID" dvc repro
 python select_best_run.py
-
-claude --resume f97bd90b-98a9-4532-910a-4b6419aa3772

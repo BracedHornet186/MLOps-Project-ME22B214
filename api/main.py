@@ -441,7 +441,6 @@ async def reconstruct(file: UploadFile = File(..., description="ZIP archive of i
         raise HTTPException(status_code=500, detail=f"Reconstruction failed: {exc}") from exc
 
 @app.post("/upload", tags=["inference"])
-@app.post("/reconstruct/async", tags=["inference"])
 async def upload_zip(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(..., description="ZIP archive of images"),

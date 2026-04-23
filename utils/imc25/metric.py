@@ -925,6 +925,12 @@ def score(
                 f"\tPrivate split: score={final_score_mask_b:.2f}% (mAA={final_mAA_mask_b:.2f}%, clusterness={final_clusterness_mask_b:.2f}%)"
             )
 
+    scene_mAA_dict = {
+        dataset: score * 100 for dataset, score in zip(gt_data, stat_mAA)
+    }
+    scene_clusterness_dict = {
+        dataset: score * 100 for dataset, score in zip(gt_data, stat_clusterness)
+    }
     scene_score_dict = {
         dataset: score * 100 for dataset, score in zip(gt_data, stat_score)
     }
@@ -944,6 +950,6 @@ def score(
     )
 
     return (
-        (final_score, final_score_mask_a, final_score_mask_b),
-        (scene_score_dict, scene_score_dict_mask_a, scene_score_dict_mask_b),
+        (final_score, final_mAA, final_clusterness),
+        (scene_score_dict, scene_mAA_dict, scene_clusterness_dict),
     )

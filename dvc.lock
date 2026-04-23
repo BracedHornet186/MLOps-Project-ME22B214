@@ -266,8 +266,8 @@ stages:
       size: 430314
     - path: pipelines/scene.py
       hash: md5
-      md5: 721e69c928ca2e1806e7a83ccc2e337b
-      size: 23531
+      md5: 339efa58ff26ab4b3d2e457fa53619f0
+      size: 23454
     - path: preprocesses/deblur.py
       hash: md5
       md5: 2ccd59ad0f711a7b92db7f8bd860fe29
@@ -330,19 +330,19 @@ stages:
       size: 1806
     - path: scripts/evaluate.py
       hash: md5
-      md5: 308e1234c4aa421a750db1447f7b6665
-      size: 15785
+      md5: 9e1543c1450f556de6a697f84bf9ef26
+      size: 15123
     params:
       conf/mast3r.yaml:
         imc2025_pipeline.reconstruction.mapper_max_num_models: 25
         imc2025_pipeline.reconstruction.mapper_min_model_size: 3
         type: imc2025
     outs:
-    - path: data/metrics
+    - path: data/evaluation
       hash: md5
-      md5: c21b42e88bfc656bcf091863c750e1c2.dir
-      size: 528200
-      nfiles: 3
+      md5: c22b4b62a893dc6244c1762981b5f2ef.dir
+      size: 1928
+      nfiles: 2
   prepare:
     cmd: python scripts/prepare_submission.py
     deps:
@@ -379,8 +379,8 @@ stages:
       size: 219370
     - path: scripts/reconstruct_scenes.py
       hash: md5
-      md5: e589250ba260b5e8868541d21a670c09
-      size: 16043
+      md5: 9c8072d5e4deedbfa1de607d71e47676
+      size: 16014
     outs:
     - path: data/reconstruction/eval_prediction.csv
       hash: md5
