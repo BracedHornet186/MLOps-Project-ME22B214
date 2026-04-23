@@ -3,7 +3,7 @@ from typing import Optional
 import torch
 import torchvision.transforms as T
 
-from data import resolve_model_path
+from scripts.data import resolve_model_path
 from models.config import PatchNetVLADModelConfig
 from models.patchnetvlad.models.models_generic import get_backend, get_model
 

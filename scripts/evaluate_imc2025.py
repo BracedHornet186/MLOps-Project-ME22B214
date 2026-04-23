@@ -5,9 +5,9 @@ from argparse import ArgumentParser, Namespace
 from pathlib import Path
 
 import utils.imc25.metric
-from config import PipelineConfig, SubmissionConfig
-from data import DEFAULT_DATASET_DIR
-from kernel import run_and_save_submission
+from scripts.config import PipelineConfig, SubmissionConfig
+from scripts.data import DEFAULT_DATASET_DIR
+from scripts.kernel import run_and_save_submission
 
 
 def parse_args() -> Namespace:

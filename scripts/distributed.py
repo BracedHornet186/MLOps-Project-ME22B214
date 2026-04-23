@@ -9,7 +9,7 @@ import torch.distributed as dist
 from torch.utils.data.dataset import Dataset
 from torch.utils.data.sampler import Sampler
 
-from config import DistConfig
+from scripts.config import DistConfig
 
 
 def init_dist(ddp: bool = False, torch_dist_backend: str = "nccl") -> DistConfig:

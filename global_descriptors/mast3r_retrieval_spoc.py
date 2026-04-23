@@ -14,7 +14,7 @@ from mast3r.model import AsymmetricMASt3R
 from mast3r.retrieval.processor import Retriever
 from torch.utils.data.dataset import Dataset
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from global_descriptors.base import CustomDescriptorExtractor
 from models.config import MASt3RRetrievalModelConfig
 from models.mast3r.model import get_mast3r_model

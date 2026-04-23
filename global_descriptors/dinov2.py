@@ -11,7 +11,7 @@ import torch.nn.functional as F
 from torch.utils.data.dataset import Dataset
 from transformers import AutoImageProcessor, AutoModel
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from global_descriptors.base import DescriptorExtractor
 from models.config import HuggingFaceModelConfig
 from pipelines.scene import Scene

@@ -10,7 +10,7 @@ import torch
 from mast3r.model import AsymmetricMASt3R
 from mpsfm.extraction.pairwise.models.utils.featuremap import NNs_sparse
 
-from data import resolve_model_path
+from scripts.data import resolve_model_path
 from extractor import LocalFeatureExtractor, extract_all
 from matchers.base import PointTrackingMatcher
 from matchers.config import MASt3RMPSFMSparseMatcherConfig

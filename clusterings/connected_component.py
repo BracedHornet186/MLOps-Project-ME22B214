@@ -15,7 +15,7 @@ from shortlists.global_descriptor import (
     DescriptorExtractor,
     extract_global_features,
 )
-from workspace import log
+from scripts.workspace import log
 
 
 class ConnectedComponentClustering(Clustering):

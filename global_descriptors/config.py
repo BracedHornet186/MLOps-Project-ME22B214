@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Optional, Protocol
 
-from core import ConfigBlock
+from scripts.core import ConfigBlock
 from models.config import (
     APGeMConfig,
     CVNetConfig,

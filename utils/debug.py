@@ -6,12 +6,12 @@ from typing import Literal, Optional
 import pandas as pd
 import torch
 
-from config import PipelineConfig, SubmissionConfig
-from data import DEFAULT_SEED_VALUE, DataSchema, setup_data_schema
-from extractor import LocalFeatureExtractor, extract_all
+from scripts.config import PipelineConfig, SubmissionConfig
+from scripts.data import DEFAULT_SEED_VALUE, DataSchema, setup_data_schema
+from scripts.extractor import LocalFeatureExtractor, extract_all
 from features.config import LightGlueALIKEDConfig, LocalFeatureConfig
 from features.factory import create_local_feature_handler
-from pipeline import Pipeline, create_pipeline
+from scripts.pipeline import Pipeline, create_pipeline
 from pipelines.common import create_data_dict, iterate_scenes
 from pipelines.scene import Scene
 from preprocesses.config import ResizeConfig

@@ -13,14 +13,14 @@ from vggt.models.vggt import VGGT
 
 from clusterings.base import Clustering, ClusteringResult
 from clusterings.config import VGGTFPSClusteringConfig
-from data import resolve_model_path
+from scripts.data import resolve_model_path
 from matchers.mast3r import MASt3RMatcher
 from matchers.vggt import load_and_preprocess_images_imc25
 from shortlists.global_descriptor import (
     create_global_descriptor_extractor,
     extract_global_features,
 )
-from storage import InMemoryMatchedKeypointStorage
+from scripts.storage import InMemoryMatchedKeypointStorage
 
 
 class VGGTFPSClustering(Clustering):

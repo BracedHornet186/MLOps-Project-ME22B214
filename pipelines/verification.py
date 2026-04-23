@@ -15,17 +15,17 @@ try:
 except Exception:
     poselib = None
 
-from colmap import (
+from scripts.colmap import (
     export_two_view_geometries_from_colmap,
     import_two_view_geometories_into_colmap,
 )
-from data import SHOW_MATCHED_KEYPOINT_COUNT, SHOW_STATS, FilePath
+from scripts.data import SHOW_MATCHED_KEYPOINT_COUNT, SHOW_STATS, FilePath
 from pipelines.config import GeometricVerificationConfig
 from pipelines.scene import Scene
 from pipelines.visualizer import StorageVisualizer
 from postprocesses.config import FSNetConfig, PoseLibRANSACConfig, RANSACConfig
 from postprocesses.fsnet import FSNet
-from storage import (
+from scripts.storage import (
     InMemoryKeypointStorage,
     InMemoryMatchingStorage,
     InMemoryTwoViewGeometryStorage,

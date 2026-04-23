@@ -13,7 +13,7 @@ from tqdm import tqdm
 from PIL import Image, ExifTags
 import models.pixloc.utils.colmap
 
-from data import resolve_model_path
+from scripts.data import resolve_model_path
 from models.pixloc.localization.feature_extractor import FeatureExtractor
 from models.pixloc.localization.model3d import Model3D
 from models.pixloc.localization.refiners import RetrievalRefiner, BaseRefiner

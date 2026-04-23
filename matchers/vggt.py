@@ -15,7 +15,7 @@ from PIL import Image
 from vggt.models.vggt import VGGT
 from vggt.utils.visual_track import visualize_tracks_on_images
 
-from data import resolve_model_path
+from scripts.data import resolve_model_path
 from extractor import LocalFeatureExtractor, extract_all
 from features.factory import create_local_feature_handler
 from matchers.base import PointTrackingMatcher

@@ -8,7 +8,7 @@ import torchvision.transforms.functional as F
 import tqdm
 from PIL import Image
 
-from data import resolve_model_path
+from scripts.data import resolve_model_path
 from models.config import FFTformerModelConfig
 from models.fftformer.fftformer_arch import fftformer
 from pipelines.scene import Scene

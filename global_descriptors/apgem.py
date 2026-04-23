@@ -12,7 +12,7 @@ from torch.utils.data.dataset import Dataset
 
 import models.dirtorch.model
 import models.dirtorch.utils.common
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from global_descriptors.base import DescriptorExtractor
 from models.config import APGeMConfig
 from pipelines.scene import Scene

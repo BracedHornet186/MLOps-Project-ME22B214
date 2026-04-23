@@ -10,8 +10,8 @@ import numpy as np
 import pandas as pd
 import torch
 
-from config import PipelineConfig, SubmissionConfig
-from data import (
+from scripts.config import PipelineConfig, SubmissionConfig
+from scripts.data import (
     DEFAULT_DATASET_DIR,
     DISTRIBUTED_SPLIT_OFFSET,
     IMC2023TestData,
@@ -24,9 +24,9 @@ from data import (
     on_kaggle_kernel_rerun,
     setup_data_schema,
 )
-from distributed import DistConfig, init_dist
-from pipeline import create_pipeline
-from workspace import log
+from scripts.distributed import DistConfig, init_dist
+from scripts.pipeline import create_pipeline
+from scripts.workspace import log
 
 
 def run(

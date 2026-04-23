@@ -10,17 +10,17 @@ import torch
 import tqdm
 
 from clusterings.factory import create_clustering
-from colmap import (
+from scripts.colmap import (
     get_best_reconstruction,
     get_image_id_of_scene_graph_center,
     get_outlier_reconstructions,
     get_reconstructions,
     import_into_colmap,
 )
-from data import SAVE_CAMERA_DEBUG_INFO, set_random_seed
-from data_schema import DataSchema
-from distributed import DistConfig
-from extractor import Line2DFeatureExtractor, LocalFeatureExtractor
+from scripts.data import SAVE_CAMERA_DEBUG_INFO, set_random_seed
+from scripts.data_schema import DataSchema
+from scripts.distributed import DistConfig
+from scripts.extractor import Line2DFeatureExtractor, LocalFeatureExtractor
 from features.factory import create_line2d_feature_handler, create_local_feature_handler
 from localizers.factory import create_post_localizer
 from matchers.base import run_overlap_region_estimation
@@ -59,14 +59,14 @@ from preprocesses.orientation import compute_and_register_orientations
 from preprocesses.region import OverlapRegionEstimator
 from preprocesses.segmentation import run_segmentation
 from shortlists.factory import create_shortlist_generator, create_shortlist_updater
-from storage import (
+from scripts.storage import (
     concat_matched_keypoints,
     filter_matched_keypoints_by_mask_regions,
     fuse_line2d_matching_sets_late,
     fuse_matching_sets_late,
 )
 from utils.camvis import save_camera_debug_info
-from workspace import log
+from scripts.workspace import log
 
 
 class IMC2025Pipeline(Pipeline):

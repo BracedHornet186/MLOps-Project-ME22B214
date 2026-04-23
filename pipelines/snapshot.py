@@ -3,9 +3,9 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Optional
 
-from data import DEFAULT_SNAPSHOT_DIR
+from scripts.data import DEFAULT_SNAPSHOT_DIR
 from pipelines.scene import Scene
-from storage import (
+from scripts.storage import (
     InMemoryKeypointStorage,
     InMemoryLocalFeatureStorage,
     InMemoryMatchingStorage,

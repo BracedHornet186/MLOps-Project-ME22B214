@@ -47,12 +47,12 @@ import pycolmap
 import tqdm
 from PIL import ExifTags, Image
 
-from data import DEFAULT_OUTLIER_SCENE_NAME
+from scripts.data import DEFAULT_OUTLIER_SCENE_NAME
 from localizers.base import PostLocalizer
 from pipelines.common import Scene
 from postprocesses.localize_pixloc import localize_pixloc
 from postprocesses.localize_sfm import localize_sfm
-from storage import (
+from scripts.storage import (
     InMemoryKeypointStorage,
     InMemoryLocalFeatureStorage,
     InMemoryMatchingStorage,

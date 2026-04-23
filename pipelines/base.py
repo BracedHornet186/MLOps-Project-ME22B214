@@ -2,7 +2,7 @@ from typing import Optional
 import pandas as pd
 import tqdm
 
-from data_schema import DataSchema
+from scripts.data_schema import DataSchema
 from pipelines.scene import Scene
 
 

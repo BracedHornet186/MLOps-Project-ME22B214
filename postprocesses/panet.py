@@ -2,7 +2,7 @@ import cv2
 import torch
 import numpy as np
 import tqdm
-from data import resolve_model_path, FilePath
+from scripts.data import resolve_model_path, FilePath
 from models.panet.model import PANet
 from models.panet.refinement import refine_matches_coarse_to_fine
 from pipelines.scene import Scene

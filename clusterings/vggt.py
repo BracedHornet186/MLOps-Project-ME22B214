@@ -12,7 +12,7 @@ from vggt.models.vggt import VGGT
 
 from clusterings.base import Clustering, ClusteringResult
 from clusterings.config import VGGTClusteringConfig
-from data import resolve_model_path
+from scripts.data import resolve_model_path
 from matchers.vggt import load_and_preprocess_images_imc25
 
 

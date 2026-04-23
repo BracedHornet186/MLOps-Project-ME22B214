@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Literal, Optional, TypeAlias
 
-from core import ConfigBlock
+from scripts.core import ConfigBlock
 from matchers.config import MASt3RMatcherConfig
 from models.config import (
     APGeMConfig,

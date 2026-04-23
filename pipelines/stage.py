@@ -8,7 +8,7 @@ import hloc.utils.io
 import numpy as np
 import tqdm
 
-from extractor import (
+from scripts.extractor import (
     Line2DFeatureExtractor,
     LocalFeatureExtractor,
     extract_all,
@@ -30,7 +30,7 @@ from pipelines.matching import (
 )
 from pipelines.scene import Scene
 from preprocesses.config import SegmentationConfig
-from storage import (
+from scripts.storage import (
     InMemoryKeypointStorage,
     InMemoryLine2DFeatureStorage,
     InMemoryLine2DSegmentStorage,

@@ -10,7 +10,7 @@ from PIL import Image
 from transformers import AutoModelForMaskGeneration, AutoProcessor, pipeline
 
 import models.grounded_sam.model
-from data import resolve_model_path
+from scripts.data import resolve_model_path
 from models.config import GroundedSAMConfig
 from pipelines.scene import Scene
 from preprocesses.config import SegmentationConfig

@@ -6,7 +6,7 @@ import numpy as np
 import torch
 import tqdm
 
-from data import resolve_model_path
+from scripts.data import resolve_model_path
 from models.ncmnet.main import load_model
 from models.ncmnet.ncmnet import NCMNet
 from pipelines.common import Scene

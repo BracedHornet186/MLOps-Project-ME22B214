@@ -13,7 +13,7 @@ from PIL import Image
 from timm import create_model as timm_create_model
 from torch import nn
 
-from data import resolve_model_path
+from scripts.data import resolve_model_path
 from models.config import CheckOrientationModelConfig
 from preprocesses.config import OrientationNormalizationConfig
 from pipelines.scene import Scene

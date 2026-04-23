@@ -6,7 +6,7 @@ import pandas as pd
 from data import FilePath
 from pipelines.base import Pipeline
 from shortlists.base import get_all_pairs
-from storage import (InMemoryKeypointStorage, InMemoryMatchingStorage,
+from scripts.storage import (InMemoryKeypointStorage, InMemoryMatchingStorage,
                      InMemoryTwoViewGeometryStorage)
 
 

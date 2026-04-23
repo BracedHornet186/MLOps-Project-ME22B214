@@ -381,7 +381,7 @@ class LightGlue(nn.Module):
                 # )
 
                 # TODO
-                from data import resolve_model_path
+                from scripts.data import resolve_model_path
                 state_dict = torch.load(str(resolve_model_path("GIM_LIGHTGLUE_WITH_SUPERPOINT")), map_location='cpu')
 
         if state_dict:

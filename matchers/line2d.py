@@ -2,7 +2,7 @@ from typing import Any, Optional
 import limap.line2d
 from numpy import ndarray
 
-from data import resolve_model_path
+from scripts.data import resolve_model_path
 from matchers.base import Line2DFeatureMatcher
 from matchers.config import LIMAPMatcherConfig
 

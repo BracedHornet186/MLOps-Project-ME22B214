@@ -14,7 +14,7 @@ from torch.utils.data.dataset import Dataset
 from transformers.image_utils import load_image
 from transformers.models.siglip import SiglipImageProcessor, SiglipVisionModel
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from global_descriptors.base import CustomDescriptorExtractor
 from models.config import HuggingFaceModelConfig
 from pipelines.scene import Scene

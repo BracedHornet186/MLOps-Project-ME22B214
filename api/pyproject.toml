@@ -24,7 +24,7 @@ dependencies = [
     "dust3r",
     "e2cnn>=0.2.3",
     "faiss-cpu>=1.10.0",
-    "fastapi==0.115.0",
+    "fastapi==0.115.2",
     "gradio>=5.29.0",
     "h5py>=3.13.0",
     "hloc",
@@ -82,27 +82,25 @@ dependencies = [
     "vggt",
     "wheel>=0.45.1",
     "yacs>=0.1.8",
+    "lightglue @ file:///app/bundle/oss/lightglue-0.0-py3-none-any.whl",
+    "dedode @ file:///app/bundle/oss/dedode-0.0.1-py3-none-any.whl",
+    "hloc @ file:///app/bundle/oss/hloc-1.5-py3-none-any.whl",
+    "asmk @ file:///app/bundle/oss/asmk-0.1-cp311-cp311-linux_x86_64.whl",
+    "vggt @ file:///app/bundle/oss/vggt-0.0.1-py3-none-any.whl",
+    "dad @ file:///app/bundle/oss/dad-0.2.0-py3-none-any.whl",
+    "croco @ file:///app/bundle/oss/croco-0.1.2-py3-none-any.whl",
+    "dsine @ file:///app/bundle/oss/mpsfm/dsine/dsine-0.0.0-py3-none-any.whl",
+    "mono @ file:///app/bundle/oss/mpsfm/Metric3D/mono-0.0.0-py3-none-any.whl",
+    "mpsfm @ file:///app/bundle/oss/mpsfm/mpsfm-0.1.0-py3-none-any.whl",
+    "superglue-pretrained-network @ file:///app/bundle/oss/mpsfm/superpoint/superglue_pretrained_network-0.0.0-py3-none-any.whl",
+    "utils3d @ file:///app/bundle/oss/moge/utils3d-0.0.2-py3-none-any.whl",
+    "moge @ file:///app/bundle/oss/moge/moge-1.0.0-py3-none-any.whl",
+    "curope @ file:///app/bundle/oss/curope-0.0.0-cp311-cp311-linux_x86_64.whl",
+    "depth-anything-v2 @ file:///app/bundle/oss/depth_anything_v2-0.0.1-py3-none-any.whl",
+    "dust3r @ file:///app/bundle/oss/dust3r-0.1.0-py3-none-any.whl",
+    "mast3r @ file:///app/bundle/oss/mast3r-0.1.0-py3-none-any.whl",
+    "pyrender @ file:///app/bundle/oss/pyrender-0.1.45-py3-none-any.whl"
 ]
-
-[tool.uv.sources]
-lightglue = { path = "bundle/oss/lightglue-0.0-py3-none-any.whl" }
-dedode = { path = "bundle/oss/dedode-0.0.1-py3-none-any.whl" }
-hloc = { path = "bundle/oss/hloc-1.5-py3-none-any.whl" }
-asmk = { path = "bundle/oss/asmk-0.1-cp311-cp311-linux_x86_64.whl" }
-vggt = { path = "bundle/oss/vggt-0.0.1-py3-none-any.whl" }
-dad = { path = "bundle/oss/dad-0.2.0-py3-none-any.whl" }
-croco = { path = "bundle/oss/croco-0.1.2-py3-none-any.whl" }
-dsine = { path = "bundle/oss/mpsfm/dsine/dsine-0.0.0-py3-none-any.whl" }
-mono = { path = "bundle/oss/mpsfm/Metric3D/mono-0.0.0-py3-none-any.whl" }
-mpsfm = { path = "bundle/oss/mpsfm/mpsfm-0.1.0-py3-none-any.whl" }
-superglue-pretrained-network = { path = "bundle/oss/mpsfm/superpoint/superglue_pretrained_network-0.0.0-py3-none-any.whl" }
-utils3d = { path = "bundle/oss/moge/utils3d-0.0.2-py3-none-any.whl" }
-moge = { path = "bundle/oss/moge/moge-1.0.0-py3-none-any.whl" }
-curope = { path = "bundle/oss/curope-0.0.0-cp311-cp311-linux_x86_64.whl" }
-depth-anything-v2 = { path = "bundle/oss/depth_anything_v2-0.0.1-py3-none-any.whl" }
-dust3r = { path = "bundle/oss/dust3r-0.1.0-py3-none-any.whl" }
-mast3r = { path = "bundle/oss/mast3r-0.1.0-py3-none-any.whl" }
-pyrender = { path = "bundle/oss/pyrender-0.1.45-py3-none-any.whl" }
 
 [tool.ruff]
 extend-exclude = [

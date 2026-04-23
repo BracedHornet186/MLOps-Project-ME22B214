@@ -12,7 +12,7 @@ import torchvision.transforms as T
 from moge.model.v1 import MoGeModel
 from torch.utils.data.dataset import Dataset
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from global_descriptors.base import CustomDescriptorExtractor
 from models.config import MoGeModelConfig
 from models.moge.feature import MoGeFeatureModel

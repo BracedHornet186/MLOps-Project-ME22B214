@@ -16,8 +16,8 @@ import os
 import sys
 from pathlib import Path
 
-from config import load_pipeline_config
-from data import IMC2025TrainData, DEFAULT_DATASET_DIR
+from scripts.config import load_pipeline_config
+from scripts.data import IMC2025TrainData, DEFAULT_DATASET_DIR
 
 
 def _count_malformed(series, expected_len: int) -> int:

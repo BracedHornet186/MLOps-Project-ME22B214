@@ -7,7 +7,7 @@ import numpy as np
 import streamlit as st
 from PIL import Image, ImageDraw
 
-from data import resolve_model_path
+from scripts.data import resolve_model_path
 from pipelines.scene import make_scene_graph
 from pipelines.snapshot import SceneSnapshot, find_snapshots
 from models.config import DoppelGangersModelConfig

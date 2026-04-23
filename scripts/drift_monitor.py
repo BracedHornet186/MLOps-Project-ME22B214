@@ -13,9 +13,8 @@ Baselines are the EDA statistics saved to data/processed/eda_baselines.json.
 Live statistics are read from data/processed/features/<scene>/
 
 All alerts are:
-  1. Printed to stdout (captured by Airflow logs)
-  2. Written to data/processed/drift_report.json
-  3. Exposed as Prometheus gauges (when called from the API)
+  1. Written to data/processed/drift_report.json
+  2. Exposed as Prometheus gauges (when called from the API)
 """
 
 from __future__ import annotations

@@ -27,7 +27,7 @@ ROOT = Path(__file__).resolve().parent.parent
 def main() -> None:
     # Import the existing drift monitor
     sys.path.insert(0, str(ROOT / "scripts"))
-    from drift_monitor import DriftMonitor
+    from scripts.drift_monitor import DriftMonitor
 
     baselines_path = ROOT / "data" / "baselines" / "eda_baselines.json"
     if not baselines_path.exists():

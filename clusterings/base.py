@@ -8,8 +8,8 @@ from typing import Any, TypeVar, cast
 
 import numpy as np
 
-from data import DEFAULT_OUTLIER_SCENE_NAME
-from data_schema import DataSchema
+from scripts.data import DEFAULT_OUTLIER_SCENE_NAME
+from scripts.data_schema import DataSchema
 from pipelines.scene import Scene
 
 T = TypeVar("T")

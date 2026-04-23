@@ -56,7 +56,7 @@ from torch import nn
 
 from .models.base_model import BaseModel
 from .models.utils.misc import pad_and_stack
-from data import resolve_model_path
+from scripts.data import resolve_model_path
 
 
 def simple_nms(scores, radius):

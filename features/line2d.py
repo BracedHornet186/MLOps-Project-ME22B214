@@ -7,7 +7,7 @@ import numpy as np
 import torch
 from numpy import ndarray
 
-from data import resolve_model_path
+from scripts.data import resolve_model_path
 from features.base import Line2DFeatureHandler, read_image
 from features.config import LIMAPConfig
 from preprocess import _get_resized_wh

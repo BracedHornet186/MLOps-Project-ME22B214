@@ -14,7 +14,7 @@ from features.config import Line2DFeatureConfig, LocalFeatureConfig
 from pipelines.scene import Scene
 from preprocesses.config import ResizeConfig, RotationConfig
 from preprocesses.region import Cropper
-from storage import (
+from scripts.storage import (
     Line2DFeatureStorage,
     Line2DSegmentStorage,
     LocalFeatureStorage,

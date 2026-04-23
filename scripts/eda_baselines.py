@@ -30,8 +30,8 @@ import numpy as np
 import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from config import load_pipeline_config
-from data import IMC2025TrainData, DEFAULT_DATASET_DIR
+from scripts.config import load_pipeline_config
+from scripts.data import IMC2025TrainData, DEFAULT_DATASET_DIR
 
 
 def compute_sharpness(image_path: str) -> float:

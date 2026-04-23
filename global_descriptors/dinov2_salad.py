@@ -9,7 +9,7 @@ import torch
 from PIL import Image
 from torch.utils.data.dataset import Dataset
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from global_descriptors.base import DescriptorExtractor
 from models.config import DINOv2SALADConfig
 from models.dinov2_salad.model import dinov2_salad, dinov2_salad_input_transform

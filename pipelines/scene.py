@@ -16,7 +16,7 @@ import networkx as nx
 import numpy as np
 from PIL import Image
 
-from data import (
+from scripts.data import (
     DEFAULT_OUTLIER_SCENE_NAME,
     DEFAULT_SPACE_NAME,
     DEFAULT_TMP_DIR,
@@ -24,7 +24,7 @@ from data import (
     DirPath,
     FilePath,
 )
-from data_schema import DataSchema
+from scripts.data_schema import DataSchema
 from preprocesses.region import Cropper, OverlapRegionCropper, whole_image_bbox
 
 IMAGE_CACHE_NUM_LIMIT = 1000

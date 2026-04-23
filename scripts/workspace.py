@@ -25,7 +25,7 @@ except ImportError:
     rich = None
 
 
-from data import SHOW_PREF_TIME
+from scripts.data import SHOW_PREF_TIME
 
 
 global_workspace_dict = {}

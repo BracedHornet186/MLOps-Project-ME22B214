@@ -23,7 +23,7 @@ Binding:
   api_node = APIGateway.bind(gpu_node)
 
 Start with:
-  serve run api.serve_app:api_node --host 0.0.0.0 --port 8000
+  serve run serve_app:api_node
 """
 
 from __future__ import annotations
@@ -88,19 +88,6 @@ MAX_POINT_COUNT       = int(os.environ.get("SCENE3D_MAX_POINTS", "500000"))
 RESULTS_DIR           = Path(os.environ.get("RESULTS_DIR", "/tmp/reconstruction_results"))
 AIRFLOW_API_URL       = os.environ.get("AIRFLOW_API_URL", "http://airflow-apiserver:8080")
 ALLOWED_IMAGE_EXTS    = {".jpg", ".jpeg", ".png", ".tif", ".tiff", ".bmp", ".webp"}
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Prometheus metrics  (module-level so both deployments share the same registry)
-# ─────────────────────────────────────────────────────────────────────────────
-
-api_requests_total       = Counter("api_requests_total",       "Total HTTP requests",              ["method", "endpoint", "status"])
-api_errors_total         = Counter("api_errors_total",         "Total 4xx/5xx responses",          ["endpoint"])
-inference_latency_seconds= Histogram("inference_latency_seconds","End-to-end inference wall-clock", buckets=[10,30,60,120,180,300,600,900])
-reconstruction_maa       = Gauge("reconstruction_maa",         "mAA score of most recent job")
-registration_rate_gauge  = Gauge("registered_images_ratio",    "Fraction of images placed")
-active_jobs_gauge        = Gauge("active_jobs_total",          "Running jobs")
-model_ready_gauge        = Gauge("model_server_ready",         "1 if GPU worker ready")
-data_valid_images_gauge  = Gauge("data_valid_images_total",    "Valid images in current dataset")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Job store
@@ -177,7 +164,7 @@ class HealthResponse(BaseModel):
 class JobStatusResponse(BaseModel):
     job_id:            str
     stage:             str
-    status:            str          # legacy alias for stage
+    status:            str
     progress:          int
     message:           str
     created_at:        float
@@ -438,18 +425,18 @@ class GPUModelWorker:
 # ─────────────────────────────────────────────────────────────────────────────
 
 fastapi_app = FastAPI(title="Scene Reconstruction API", version=API_VERSION)
-
+ 
 fastapi_app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
+ 
 # ─────────────────────────────────────────────────────────────────────────────
 # API Gateway Deployment
 # ─────────────────────────────────────────────────────────────────────────────
-
+ 
 @serve.deployment(
     num_replicas=2,
     ray_actor_options={"num_gpus": 0, "num_cpus": 2},
@@ -457,33 +444,51 @@ fastapi_app.add_middleware(
 @serve.ingress(fastapi_app)
 class APIGateway:
 
+
     def __init__(self, gpu_worker_handle):
         self.gpu_worker  = gpu_worker_handle
         self.job_manager = JobManager(MAX_CONCURRENT_JOBS)
         self.job_manager.init_semaphore()
         self._refresh_data_metrics()
 
+        # ─────────────────────────────────────────────────────────────────────────────
+        # Prometheus metrics  (module-level so both deployments share the same registry)
+        # ─────────────────────────────────────────────────────────────────────────────
+
+        self.api_requests_total       = Counter("api_requests_total",       "Total HTTP requests",              ["method", "endpoint", "status"])
+        self.api_errors_total         = Counter("api_errors_total",         "Total 4xx/5xx responses",          ["endpoint"])
+        self.inference_latency_seconds= Histogram("inference_latency_seconds","End-to-end inference wall-clock", buckets=[10,30,60,120,180,300,600,900])
+        self.reconstruction_maa       = Gauge("reconstruction_maa",         "mAA score of most recent job")
+        self.registration_rate_gauge  = Gauge("registered_images_ratio",    "Fraction of images placed")
+        self.active_jobs_gauge        = Gauge("active_jobs_total",          "Running jobs")
+        self.model_ready_gauge        = Gauge("model_server_ready",         "1 if GPU worker ready")
+        self.data_valid_images_gauge  = Gauge("data_valid_images_total",    "Valid images in current dataset")
+
+
     # ── Infrastructure ────────────────────────────────────────────────────────
 
     @fastapi_app.get("/health", response_model=HealthResponse, tags=["infra"])
     async def health(self):
-        api_requests_total.labels("GET", "/health", "200").inc()
-        return HealthResponse(status="ok", version=API_VERSION, timestamp=time.time())
+        return HealthResponse(
+            status="ok",
+            version=API_VERSION,
+            timestamp=time.time()
+        )
 
     @fastapi_app.get("/ready", tags=["infra"])
     async def ready(self):
         try:
             result = await self.gpu_worker.ping.remote()
             if result.get("ready"):
-                model_ready_gauge.set(1)
-                api_requests_total.labels("GET", "/ready", "200").inc()
+                self.model_ready_gauge.set(1)
+                self.api_requests_total.labels("GET", "/ready", "200").inc()
                 return {"status": "ready", "device": result.get("device", "unknown")}
         except Exception as e:
-            model_ready_gauge.set(0)
-            api_errors_total.labels("/ready").inc()
+            self.model_ready_gauge.set(0)
+            self.api_errors_total.labels("/ready").inc()
             raise HTTPException(status_code=503, detail=f"GPU worker not ready: {e}")
-        model_ready_gauge.set(0)
-        api_errors_total.labels("/ready").inc()
+        self.model_ready_gauge.set(0)
+        self.api_errors_total.labels("/ready").inc()
         raise HTTPException(status_code=503, detail="GPU worker not ready")
 
     @fastapi_app.get("/metrics", tags=["infra"])
@@ -507,7 +512,7 @@ class APIGateway:
             check_performance=True,
         )
         update_prometheus_drift_metrics(report)
-        api_requests_total.labels("GET", "/drift", "200").inc()
+        self.api_requests_total.labels("GET", "/drift", "200").inc()
         return report.as_dict()
 
     @fastapi_app.post("/drift/trigger-retrain", tags=["monitoring"])
@@ -555,7 +560,7 @@ class APIGateway:
             dataset_name=dataset_name,
             scene_name=scene_name,
         )
-        api_requests_total.labels("POST", "/upload", "202").inc()
+        self.api_requests_total.labels("POST", "/upload", "202").inc()
         return {"job_id": job_id, "message": "Pipeline started."}
 
     # ── Status / download ─────────────────────────────────────────────────────
@@ -622,7 +627,7 @@ class APIGateway:
     ):
         rec           = self.job_manager.get_job(job_id)
         rec.started_at= time.time()
-        active_jobs_gauge.inc()
+        self.active_jobs_gauge.inc()
 
         async with self.job_manager.semaphore:
             try:
@@ -687,9 +692,9 @@ class APIGateway:
 
                 # Update Prometheus ────────────────────────────────────────────
                 elapsed = time.time() - rec.started_at
-                inference_latency_seconds.observe(elapsed)
+                self.inference_latency_seconds.observe(elapsed)
                 if rec.registration_rate is not None:
-                    registration_rate_gauge.set(rec.registration_rate)
+                    self.registration_rate_gauge.set(rec.registration_rate)
 
             except Exception as e:
                 log.error("Job %s failed: %s", job_id, e, exc_info=True)
@@ -698,10 +703,10 @@ class APIGateway:
                     f"Pipeline error: {e}",
                     error=str(e),
                 )
-                api_errors_total.labels("/upload").inc()
+                self.api_errors_total.labels("/upload").inc()
             finally:
                 rec.finished_at = time.time()
-                active_jobs_gauge.dec()
+                self.active_jobs_gauge.dec()
 
     # ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -714,7 +719,7 @@ class APIGateway:
         if report_path.exists():
             try:
                 report = json.loads(report_path.read_text())
-                data_valid_images_gauge.set(report.get("total_images", 0))
+                self.data_valid_images_gauge.set(report.get("total_images", 0))
             except Exception as e:
                 log.warning("Could not read validation_report.json: %s", e)
 

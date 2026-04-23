@@ -10,7 +10,7 @@ import models.dirtorch.nets as nets
 from models.dirtorch.utils import common
 from models.dirtorch.utils.pytorch_loader import get_loader
 from models.dirtorch.utils.common import tonumpy, matmul, pool
-from data import FilePath
+from scripts.data import FilePath
 
 #
 # Adapted from https://github.com/cvg/Hierarchical-Localization/blob/master/hloc/extractors/dir.py

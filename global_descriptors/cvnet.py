@@ -9,7 +9,7 @@ import torch
 import torchvision.transforms as T
 from torch.utils.data.dataset import Dataset
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from global_descriptors.base import DescriptorExtractor
 from models.config import CVNetConfig
 from models.cvnet.model.CVNet_Rerank_model import CVNet_Rerank

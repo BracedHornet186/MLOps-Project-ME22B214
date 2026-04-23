@@ -10,7 +10,7 @@ from PIL import Image
 from torch.utils.data.dataset import Dataset
 
 import models.patchnetvlad.models.models_generic
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from global_descriptors.base import DescriptorExtractor
 from models.config import PatchNetVLADModelConfig
 from models.patchnetvlad.model import (

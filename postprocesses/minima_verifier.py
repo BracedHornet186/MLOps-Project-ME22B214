@@ -7,7 +7,7 @@ import torch
 from kornia.feature.loftr.loftr import LoFTR
 from PIL import Image
 
-from data import resolve_model_path
+from scripts.data import resolve_model_path
 from matchers.visualizer import draw_img
 from models.minima.depth_model import init_depth_model, predict_depth
 from models.minima.model import create_minima_lightglue, create_minima_loftr

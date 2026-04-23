@@ -45,17 +45,11 @@ cd croco/models/curope/
 python setup.py build_ext --inplace
 cd ../../
 
-Build the packages as *.whl file and move them into bundle/oss before uv sync.
+Build the packages as *.whl file by
 python -m build --no-isolation
+and move the whl to bundle/oss
 
 export LD_LIBRARY_PATH=.venv/lib/python3.11/site-packages/torch/lib:$LD_LIBRARY_PATH
-
-```
-./venv/bin/python3 scripts/train_experiment.py \ 
-        --config conf/mast3r.yaml \ 
-        --datasets ETs stairs \ 
-        --experiment-name scene_reconstruction
-```
 
 UI
 # Backend (terminal 1)

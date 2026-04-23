@@ -7,7 +7,7 @@ from typing import Literal, Optional
 import torch
 import tqdm
 
-from extractor import LocalFeatureExtractor, extract_all
+from scripts.extractor import LocalFeatureExtractor, extract_all
 from features.factory import create_local_feature_handler
 from matchers.base import (
     DetectorFreeMatcher,
@@ -23,7 +23,7 @@ from postprocesses.config import MatchingFilterConfig
 from postprocesses.matching_filter import create_matching_filter
 from preprocesses.config import SegmentationConfig
 from preprocesses.region import OverlapRegionCropper
-from storage import (
+from scripts.storage import (
     InMemoryKeypointStorage,
     InMemoryLocalFeatureStorage,
     InMemoryMatchedKeypointStorage,

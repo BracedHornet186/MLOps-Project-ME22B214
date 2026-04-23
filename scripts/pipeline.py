@@ -4,8 +4,8 @@ from typing import Optional
 
 import torch
 
-from config import PipelineConfig
-from distributed import DistConfig
+from scripts.config import PipelineConfig
+from scripts.distributed import DistConfig
 from pipelines.base import Pipeline
 from pipelines.imc2025_mast3r_pipeline import IMC2025MASt3RPipeline
 from pipelines.imc2025_pipeline import IMC2025Pipeline

@@ -13,8 +13,8 @@ import torch
 import torch.backends.cudnn
 import yaml
 
-from config import SubmissionConfig
-from data_schema import DataSchema
+from scripts.config import SubmissionConfig
+from scripts.data_schema import DataSchema
 
 
 def _strtobool(val: str) -> int:
