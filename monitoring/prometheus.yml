@@ -33,7 +33,7 @@ scrape_configs:
     metrics_path: /metrics
     scrape_interval: 10s
     static_configs:
-      - targets: ["api:8000"]
+      - targets: ["ray-serve:8000"]
     # Only scrape when inference profile is up
     honor_labels: true
 
@@ -49,12 +49,6 @@ scrape_configs:
     metrics_path: /metrics
     static_configs:
       - targets: ["airflow-apiserver:8080"]
-
-  # Model Server
-  - job_name: "model-server"
-    metrics_path: /metrics
-    static_configs:
-      - targets: ["model-server:8001"]
 
   # Node Exporter
   - job_name: "node-exporter"

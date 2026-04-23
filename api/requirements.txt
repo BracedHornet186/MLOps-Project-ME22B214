@@ -1,10 +1,29 @@
+# api/requirements.txt
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Ray Serve ─────────────────────────────────────────────────────────────────
+ray[serve]==2.44.0
+
+# ── API / gateway ─────────────────────────────────────────────────────────────
 fastapi==0.115.0
 uvicorn[standard]==0.30.0
+python-multipart>=0.0.9
 httpx==0.27.0
 prometheus_client==0.20.0
 pydantic>=2.0
-python-multipart>=0.0.9
+PyYAML>=6.0
+
+# ── ML pipeline ───────────────────────────────────────────────────────────────
+mlflow==3.10.1
+pandas>=2.0
 numpy<2
+opencv-python-headless>=4.8
+pycolmap>=3.11.1
+kornia>=0.8.0
+Pillow>=10.0
+tqdm>=4.60
+scipy>=1.10
+
+# ── Point cloud decimation ────────────────────────────────────────────────────
 open3d>=0.18.0
 trimesh>=4.0.0
-PyYAML>=6.0

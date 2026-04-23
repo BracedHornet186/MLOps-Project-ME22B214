@@ -67,8 +67,6 @@ x-airflow-common:
     - "${DOCKER_GID:-984}"
   depends_on:
     &airflow-common-depends-on
-    # redis:
-    #   condition: service_healthy
     postgres:
       condition: service_healthy
 
@@ -90,18 +88,6 @@ services:
       retries: 5
       start_period: 5s
     restart: always
-
-  # redis:
-  #   image: redis:7.2-bookworm
-  #   expose:
-  #     - 6379
-  #   healthcheck:
-  #     test: ["CMD", "redis-cli", "ping"]
-  #     interval: 10s
-  #     timeout: 30s
-  #     retries: 50
-  #     start_period: 30s
-  #   restart: always
 
   node-exporter:
     image: prom/node-exporter:v1.8.1
@@ -135,68 +121,13 @@ services:
       start_period: 20s
     restart: always
 
-  # ── FastAPI gateway ─────────────────────────────────────────────────────────
-  # CPU-only — delegates all ML work to model-server.
-  # Exposes /health, /ready, /reconstruct, /metrics, /experiments
-
-  api:
+  # ── Ray Serve (unified GPU + API gateway) ───────────────────────────────────
+  ray-serve:
     build:
       context: .
       dockerfile: api/Dockerfile
     ports:
       - "8000:8000"
-    environment:
-      MODEL_SERVER_URL: "http://model-server:8001"
-      MLFLOW_TRACKING_URI: "http://mlflow:5000"
-      DEFAULT_DATASET_DIR: "/app/data"
-      PRODUCTION_CONFIG_PATH: "/app/conf/best_config.yaml"
-      RESULTS_DIR: "/app/results"
-    volumes:
-      - ./data:/app/data:ro
-      - ./conf:/app/conf:ro
-      - reconstruction-results:/app/results
-    depends_on:
-      mlflow:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "--fail", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 5s
-      retries: 5
-      start_period: 15s
-    restart: always
-    profiles:
-      - inference
-
-  # ── React + Three.js Frontend ───────────────────────────────────────────────
-  
-  scene3d-ui:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        VITE_API_URL: /api
-    container_name: scene3d-ui
-    ports:
-      - "5173:80"
-    depends_on:
-      api:
-        condition: service_healthy
-    profiles:
-      - inference
-    restart: unless-stopped
-
-  # ── Model server ────────────────────────────────────────────────────────────
-  # Holds the GPU exclusively.
-  # Workers=1 enforced; concurrency guard inside server.py.
-  # start_period=120s because MASt3R weight loading takes ~90s.
-
-  model-server:
-    build:
-      context: .
-      dockerfile: model_server/Dockerfile
-    ports:
-      - "8001:8001"
     environment:
       MLFLOW_TRACKING_URI: "http://mlflow:5000"
       DEFAULT_DATASET_DIR: "/app/data"
@@ -204,6 +135,10 @@ services:
       PIPELINE_CONFIG_FALLBACK: "/app/conf/mast3r.yaml"
       RESULTS_DIR: "/app/results"
       CUDA_VISIBLE_DEVICES: "0"
+      SCENE3D_MAX_UPLOAD_MB: "500"
+      SCENE3D_VOXEL_SIZE: "0.02"
+      SCENE3D_MAX_POINTS: "500000"
+      AIRFLOW_API_URL: "http://airflow-apiserver:8080"
     volumes:
       - ./data:/app/data:ro
       - ./conf:/app/conf:ro
@@ -220,14 +155,32 @@ services:
       mlflow:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "--fail", "http://localhost:8001/health"]
+      test: ["CMD", "curl", "--fail", "http://localhost:8000/health"]
       interval: 60s
       timeout: 10s
       retries: 5
-      start_period: 120s
+      start_period: 180s
     restart: on-failure
     profiles:
       - inference
+
+  # ── React + Three.js Frontend ───────────────────────────────────────────────
+
+  scene3d-ui:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: /api
+    container_name: scene3d-ui
+    ports:
+      - "5173:80"
+    depends_on:
+      ray-serve:
+        condition: service_healthy
+    profiles:
+      - inference
+    restart: unless-stopped
 
   # ── Airflow components ──────────────────────────────────────────────────────
 
@@ -358,25 +311,6 @@ services:
     depends_on:
       <<: *airflow-common-depends-on
 
-  # flower:
-  #   <<: *airflow-common
-  #   command: celery flower
-  #   profiles:
-  #     - flower
-  #   ports:
-  #     - "5555:5555"
-  #   healthcheck:
-  #     test: ["CMD", "curl", "--fail", "http://localhost:5555/"]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 5
-  #     start_period: 30s
-  #   restart: always
-  #   depends_on:
-  #     <<: *airflow-common-depends-on
-  #     airflow-init:
-  #       condition: service_completed_successfully
-
   # ── Monitoring ──────────────────────────────────────────────────────────────
 
   prometheus:
@@ -442,7 +376,7 @@ services:
 
   grafana:
     image: grafana/grafana:11.1.0
-    ports:  
+    ports:
       - "3000:3000"
     environment:
       GF_SECURITY_ADMIN_USER: admin
@@ -454,13 +388,8 @@ services:
       - grafana-data:/var/lib/grafana
     restart: always
 
-  # ── ML pipeline image builder ────────────────────────────────────────────────
-  # Builds Dockerfile.pipeline and tags it as my-dvc-pipeline:latest.
-  # Run once before starting the stack:
-  #   docker compose build ml-pipeline-builder
-  # or bring it up under the build profile:
-  #   docker compose --profile build up ml-pipeline-builder
-
+  # ── ML pipeline image builder ─────────────────────────────────────────────
+  
   ml-pipeline-builder:
     build:
       context: .
