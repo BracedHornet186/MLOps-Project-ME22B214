@@ -96,11 +96,12 @@ COPY api/serve_app.py ./serve_app.py
 RUN touch /app/__init__.py
 
 # ── Expose API ────────────────────────────────────────────────────────────────
+ENV RAY_DASHBOARD_HOST="0.0.0.0"
 EXPOSE 8000
-
+EXPOSE 8265
 # ── Healthcheck ───────────────────────────────────────────────────────────────
 HEALTHCHECK --interval=60s --timeout=10s --start-period=180s --retries=5 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-# ── Start Ray Serve ───────────────────────────────────────────────────────────
-CMD ["serve", "run", "serve_app:api_node"]
+# # ── Start Ray Serve ───────────────────────────────────────────────────────────
+# CMD ["serve", "run", "serve_app:api_node"]

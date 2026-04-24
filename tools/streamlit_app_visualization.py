@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import streamlit as st
 from PIL import Image, ImageDraw
-
+import sys
 from scripts.data import resolve_model_path
 from pipelines.scene import make_scene_graph
 from pipelines.snapshot import SceneSnapshot, find_snapshots
@@ -16,6 +16,8 @@ from matchers.visualizer import draw as plot_matches
 
 st.set_page_config(layout="wide")
 
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
 @st.cache_resource
 def load_snapshot(snapshot_file: str) -> SceneSnapshot:

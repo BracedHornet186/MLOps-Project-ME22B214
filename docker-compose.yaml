@@ -128,8 +128,11 @@ services:
       dockerfile: api/Dockerfile
     ports:
       - "8000:8000"
+      - "8265:8265"
     shm_size: '16gb'
     environment:
+      PYTHONUNBUFFERED: 1
+      RAY_DASHBOARD_HOST: "0.0.0.0"
       MLFLOW_TRACKING_URI: "http://mlflow:5000"
       DEFAULT_DATASET_DIR: "/app/data"
       PIPELINE_CONFIG: "/app/conf/best_config.yaml"
@@ -140,6 +143,7 @@ services:
       SCENE3D_VOXEL_SIZE: "0.02"
       SCENE3D_MAX_POINTS: "500000"
       AIRFLOW_API_URL: "http://airflow-apiserver:8080"
+    command: bash -c "ray start --head --dashboard-host=0.0.0.0 && serve run serve_app:api_node"
     volumes:
       - ./data:/app/data:ro
       - ./conf:/app/conf:ro
@@ -152,9 +156,6 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
-    depends_on:
-      mlflow:
-        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8000/ready"]
       interval: 60s

@@ -59,6 +59,7 @@ from prometheus_client import (
     generate_latest,
 )
 from pydantic import BaseModel
+import ray
 from ray import serve
 
 # ── Project root on path ──────────────────────────────────────────────────────
@@ -69,10 +70,11 @@ sys.path.insert(0, str(ROOT / "scripts"))
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s — %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)],
+    force=True
 )
 log = logging.getLogger("serve_app")
 
-# ray.init()
 serve.start(detached=True, http_options={"host": "0.0.0.0"})
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -353,7 +355,14 @@ class GPUModelWorker:
                 )
 
                 # ── 4. Run pipeline ───────────────────────────────────────────
-                log.info("Job %s: starting pipeline …", job_id[:8])
+                log.info("Job %s: starting pipeline …", job_id)
+                
+                # Monkey-patch the scenes config so it persists data into our job's tmpdir
+                import pipelines.scene
+                pipelines.scene.IS_SCENE_SPACE_DIR_PERSISTENT = True
+                pipelines.scene.DEFAULT_TMP_DIR = tmpdir
+                pipelines.scene.DEFAULT_SPACE_NAME = "colmap_outputs"
+
                 submission_df = self.pipeline.run(
                     df=submission_input_df,
                     data_schema=data_schema,
@@ -377,31 +386,45 @@ class GPUModelWorker:
                 submission_df.to_csv(persist_csv, index=False)
 
                 # ── 7. Export PLY (COLMAP sparse reconstruction) ──────────────
-                persist_ply: Optional[Path] = None
+                persist_plys: list[Path] = []
                 try:
                     import pycolmap
-                    max_pts      = -1
-                    best_rec_dir = None
+
                     for pts_file in tmpdir.rglob("points3D.bin"):
                         try:
-                            rec = pycolmap.Reconstruction(str(pts_file.parent))
-                            if len(rec.points3D) > max_pts:
-                                max_pts      = len(rec.points3D)
-                                best_rec_dir = pts_file.parent
-                        except Exception:
-                            pass
-                    if best_rec_dir is not None:
-                        persist_ply = RESULTS_DIR / f"sparse_{job_id[:8]}.ply"
-                        pycolmap.Reconstruction(str(best_rec_dir)).export_PLY(str(persist_ply))
-                        log.info(
-                            "Job %s: exported PLY (%d 3D points) → %s",
-                            job_id[:8], max_pts, persist_ply,
-                        )
-                    else:
-                        log.info("Job %s: no COLMAP reconstruction found for PLY export", job_id[:8])
+                            rec_dir = pts_file.parent
+                            rec = pycolmap.Reconstruction(str(rec_dir))
+
+                            if len(rec.points3D) == 0:
+                                continue
+
+                            # Extract cluster name and model name from path
+                            # typically: <cluster_name>/colmap_rec/<model_id>/points3D.bin
+                            cluster_name = rec_dir.parent.parent.name
+                            model_name = rec_dir.name
+
+                            ply_path = RESULTS_DIR / f"{cluster_name}_model{model_name}_{job_id[:8]}.ply"
+
+                            rec.export_PLY(str(ply_path))
+
+                            persist_plys.append(str(ply_path))
+
+                            log.info(
+                                "Job %s: exported %s (%d pts) → %s",
+                                job_id[:8],
+                                cluster_name,
+                                len(rec.points3D),
+                                ply_path,
+                            )
+
+                        except Exception as e:
+                            log.warning("Skipping reconstruction: %s", e)
+
+                    if not persist_plys:
+                        log.info("Job %s: no valid reconstructions found", job_id[:8])
+
                 except Exception as e:
                     log.warning("Job %s: PLY export failed: %s", job_id[:8], e)
-
                 log.info(
                     "Job %s done — registered=%d/%d (%.1f%%)  elapsed=%.1fs",
                     job_id[:8], registered, n_images, 100 * reg_rate, elapsed,
@@ -414,7 +437,7 @@ class GPUModelWorker:
                     "registration_rate":       round(reg_rate, 4),
                     "inference_latency_seconds": round(elapsed, 2),
                     "result_csv_path":         str(persist_csv),
-                    "raw_ply_path":            str(persist_ply) if persist_ply and persist_ply.exists() else None,
+                    "raw_ply_paths":            [str(ply) for ply in persist_plys] if persist_plys else None,
                 }
 
         finally:
@@ -600,7 +623,12 @@ class APIGateway:
             raise HTTPException(status_code=409, detail="Not done yet")
         if not rec.ply_path or not Path(rec.ply_path).exists():
             raise HTTPException(status_code=404, detail="PLY not found")
-        return FileResponse(rec.ply_path, media_type="application/octet-stream")
+        ply_paths = json.loads(rec.ply_path)
+        zip_path = Path("/tmp") / f"{job_id}.zip"
+        with zipfile.ZipFile(zip_path, "w") as zf:
+            for p in ply_paths:
+                zf.write(p, arcname=Path(p).name)
+        return FileResponse(zip_path, media_type="application/zip")
 
     @fastapi_app.get("/jobs/{job_id}/download", tags=["inference"])
     async def download_csv(self, job_id: str):
@@ -617,6 +645,62 @@ class APIGateway:
             filename=f"submission_{job_id[:8]}.csv",
             media_type="text/csv",
         )
+
+    @fastapi_app.get("/clusters/{job_id}", tags=["inference"])
+    async def get_clusters(self, job_id: str):
+        """Per-cluster reconstruction statistics for the dashboard."""
+        if job_id not in self.job_manager.jobs:
+            raise HTTPException(status_code=404, detail="Job not found")
+        rec = self.job_manager.get_job(job_id)
+        if rec.stage != JobStage.DONE or not rec.ply_path:
+            return {"clusters": []}
+
+        ply_paths = json.loads(rec.ply_path)
+        clusters = []
+        for idx, ply in enumerate(ply_paths):
+            p = Path(ply)
+            if not p.exists():
+                continue
+            # Try to get stats from the decimated PLY
+            try:
+                from utils.decimate import get_point_cloud_stats
+                stats = get_point_cloud_stats(str(p))
+                n_pts = stats.n_points
+            except Exception:
+                n_pts = 0
+
+            # Parse cluster/model name from filename pattern:
+            # <cluster>_decimated_<model>_<jobid>.ply
+            stem_parts = p.stem.split("_")
+            cluster_name = stem_parts[0] if stem_parts else f"cluster{idx}"
+            model_name = stem_parts[2] if len(stem_parts) > 2 else f"model{idx}"
+
+            clusters.append({
+                "id": idx,
+                "name": f"{cluster_name}_{model_name}",
+                "num_points3D": n_pts,
+                "filename": p.name,
+            })
+        return {"clusters": clusters}
+
+    @fastapi_app.get("/download/{job_id}/{filename}", tags=["inference"])
+    async def download_single_ply(self, job_id: str, filename: str):
+        """Download a single PLY file by name."""
+        if job_id not in self.job_manager.jobs:
+            raise HTTPException(status_code=404)
+        rec = self.job_manager.get_job(job_id)
+        if rec.stage != JobStage.DONE or not rec.ply_path:
+            raise HTTPException(status_code=409, detail="Not done yet")
+        ply_paths = json.loads(rec.ply_path)
+        for p in ply_paths:
+            if Path(p).name == filename:
+                if Path(p).exists():
+                    return FileResponse(
+                        p,
+                        media_type="application/octet-stream",
+                        filename=filename,
+                    )
+        raise HTTPException(status_code=404, detail="PLY file not found")
 
     # ── Background reconstruction task ────────────────────────────────────────
 
@@ -660,32 +744,53 @@ class APIGateway:
                     result_path=result.get("result_csv_path"),
                 )
 
-                raw_ply = result.get("raw_ply_path")
+                raw_plys = result.get("raw_ply_paths", [])
 
                 # CPU-side decimation ─────────────────────────────────────────
-                if raw_ply and Path(raw_ply).exists():
+                decimated_plys = []
+
+                if raw_plys:
                     self.job_manager.update_job(
                         job_id, JobStage.DECIMATING,
-                        "Optimising 3D point cloud for browser …",
+                        f"Optimising {len(raw_plys)} clusters …",
                     )
+
                     from utils.decimate import voxel_downsample_ply, get_point_cloud_stats
 
-                    decimated_ply = str(
-                        Path(raw_ply).parent / f"decimated_{job_id[:8]}.ply"
-                    )
-                    await asyncio.to_thread(
-                        voxel_downsample_ply,
-                        raw_ply, decimated_ply,
-                        voxel_size=VOXEL_SIZE,
-                        max_points=MAX_POINT_COUNT,
-                    )
-                    stats = get_point_cloud_stats(decimated_ply)
+                    for raw_ply in raw_plys:
+                        if not Path(raw_ply).exists():
+                            continue
+
+                        cluster_name = Path(raw_ply).stem.split("_")[0]
+                        model_name = Path(raw_ply).stem.split("_")[1]
+
+                        decimated_ply = str(
+                            Path(raw_ply).parent / f"{cluster_name}_decimated_{model_name}_{job_id[:8]}.ply"
+                        )
+
+                        await asyncio.to_thread(
+                            voxel_downsample_ply,
+                            raw_ply,
+                            decimated_ply,
+                            voxel_size=VOXEL_SIZE,
+                            max_points=MAX_POINT_COUNT,
+                        )
+
+                        decimated_plys.append(decimated_ply)
+
+                        total_points = 0
+
+                        for ply in decimated_plys:
+                            stats = get_point_cloud_stats(ply)
+                            total_points += stats.n_points
+
                     self.job_manager.update_job(
-                        job_id, JobStage.DONE,
-                        f"Reconstruction successful ({stats.n_points:,} points)",
-                        ply_path=decimated_ply,
-                        n_points=stats.n_points,
-                    )
+                    job_id,
+                    JobStage.DONE,
+                    f"{len(decimated_plys)} clusters reconstructed ({total_points:,} total points)",
+                    ply_path=json.dumps(decimated_plys),   # store list
+                    n_points=total_points,
+                )
                 else:
                     log.warning("Job %s: no PLY from GPU worker — skipping decimation", job_id[:8])
                     self.job_manager.update_job(

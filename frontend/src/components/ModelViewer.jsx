@@ -1,25 +1,23 @@
 /**
- * PointCloudViewer.jsx
+ * ModelViewer.jsx
  * ─────────────────────────────────────────────────────────────────
- * Three.js-powered 3D point cloud viewer using @react-three/fiber.
- * Loads a .ply file from the backend, renders it with orbit controls,
- * and provides UI knobs for point size, auto-rotate, and background.
+ * Three.js point cloud viewer with multi-cluster dropdown.
+ * Loads individual PLY files via /download/{jobId}/{filename}.
  */
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { PLYLoader } from "three/examples/jsm/loaders/PLYLoader.js";
+import axios from "axios";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8002";
+const API = import.meta.env.VITE_API_URL || "/api";
 
-/* ══════════════════════════════════════════════════════════════════
-   Inner Three.js scene (rendered inside <Canvas>)
-   ══════════════════════════════════════════════════════════════════ */
+/* ── Inner scene components ─────────────────────────────────────── */
+
 function PointCloud({ geometry, pointSize }) {
   const ref = useRef();
 
-  /* Centre the cloud on the scene origin */
   useEffect(() => {
     if (!geometry) return;
     geometry.computeBoundingBox();
@@ -46,11 +44,11 @@ function PointCloud({ geometry, pointSize }) {
   );
 }
 
-function SceneSetup({ autoRotate, bgColor }) {
+function SceneSetup({ autoRotate }) {
   const { scene } = useThree();
   useEffect(() => {
-    scene.background = new THREE.Color(bgColor);
-  }, [bgColor, scene]);
+    scene.background = new THREE.Color("#0f1117");
+  }, [scene]);
 
   return (
     <>
@@ -67,27 +65,32 @@ function SceneSetup({ autoRotate, bgColor }) {
   );
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   Main exported component
-   ══════════════════════════════════════════════════════════════════ */
-export default function PointCloudViewer({ jobId, nPoints }) {
+/* ── Main viewer component ──────────────────────────────────────── */
+
+export default function ModelViewer({ jobId, clusters }) {
+  const [selectedFile, setSelectedFile] = useState(null);
   const [geometry, setGeometry] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [pointSize, setPointSize] = useState(0.015);
-  const [autoRotate, setAutoRotate] = useState(true);
-  const [darkBg, setDarkBg] = useState(true);
+  const [autoRotate, setAutoRotate] = useState(false);
 
-  const bgColor = darkBg ? "#060a14" : "#e2e8f0";
-
-  /* ── Load PLY from backend ──────────────────────────────────── */
+  // Auto-select first cluster when clusters arrive
   useEffect(() => {
-    if (!jobId) return;
+    if (clusters?.length > 0 && !selectedFile) {
+      setSelectedFile(clusters[0].filename);
+    }
+  }, [clusters, selectedFile]);
+
+  // Load PLY when selection changes
+  useEffect(() => {
+    if (!jobId || !selectedFile) return;
     setLoading(true);
     setError(null);
+    setGeometry(null);
 
+    const url = `${API}/download/${jobId}/${selectedFile}`;
     const loader = new PLYLoader();
-    const url = `${API_BASE}/download/${jobId}`;
 
     fetch(url)
       .then((res) => {
@@ -98,12 +101,13 @@ export default function PointCloudViewer({ jobId, nPoints }) {
         const geo = loader.parse(buffer);
         geo.computeVertexNormals();
 
-        // If no vertex colors, generate a gradient palette
+        // Generate gradient colors if no vertex colors
         if (!geo.attributes.color) {
           const count = geo.attributes.position.count;
           const colors = new Float32Array(count * 3);
           const positions = geo.attributes.position.array;
-          let yMin = Infinity, yMax = -Infinity;
+          let yMin = Infinity,
+            yMax = -Infinity;
           for (let i = 0; i < count; i++) {
             const y = positions[i * 3 + 1];
             yMin = Math.min(yMin, y);
@@ -118,7 +122,10 @@ export default function PointCloudViewer({ jobId, nPoints }) {
             colors[i * 3 + 1] = c.g;
             colors[i * 3 + 2] = c.b;
           }
-          geo.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+          geo.setAttribute(
+            "color",
+            new THREE.Float32BufferAttribute(colors, 3)
+          );
         }
 
         setGeometry(geo);
@@ -128,23 +135,35 @@ export default function PointCloudViewer({ jobId, nPoints }) {
         setError(err.message);
         setLoading(false);
       });
-  }, [jobId]);
+  }, [jobId, selectedFile]);
+
+  const noClusters = !clusters || clusters.length === 0;
 
   return (
-    <div className="glass-card viewer-card fade-in">
+    <div className="panel viewer-panel" id="model-viewer">
       {/* Toolbar */}
-      <div className="viewer-toolbar">
-        <h3>
-          🌐 3D Point Cloud
-          {nPoints > 0 && (
-            <span className="point-count-badge">
-              {nPoints.toLocaleString()} pts
-            </span>
-          )}
+      <div className="viewer-bar">
+        <h3 className="panel-title" style={{ margin: 0 }}>
+          3D Point Cloud
         </h3>
 
         <div className="viewer-controls">
-          <label>
+          {!noClusters && clusters.length > 1 && (
+            <select
+              className="viewer-select"
+              value={selectedFile || ""}
+              onChange={(e) => setSelectedFile(e.target.value)}
+              id="cluster-select"
+            >
+              {clusters.map((c) => (
+                <option key={c.id} value={c.filename}>
+                  {c.name} ({c.num_points3D?.toLocaleString()} pts)
+                </option>
+              ))}
+            </select>
+          )}
+
+          <label className="viewer-ctrl-label">
             Size
             <input
               type="range"
@@ -155,37 +174,34 @@ export default function PointCloudViewer({ jobId, nPoints }) {
               onChange={(e) => setPointSize(parseFloat(e.target.value))}
             />
           </label>
-          <label>
+
+          <label className="viewer-ctrl-label">
             <input
               type="checkbox"
               checked={autoRotate}
               onChange={(e) => setAutoRotate(e.target.checked)}
             />
-            Auto-rotate
-          </label>
-          <label>
-            <input
-              type="checkbox"
-              checked={darkBg}
-              onChange={(e) => setDarkBg(e.target.checked)}
-            />
-            Dark
+            Rotate
           </label>
         </div>
       </div>
 
       {/* Canvas */}
-      <div className="viewer-canvas-wrapper">
+      <div className="viewer-canvas">
         {loading && (
-          <div className="viewer-loading">
-            <div className="spinner" />
-            Loading point cloud…
+          <div className="viewer-overlay">
+            <span className="spinner-sm" />
+            <span>Loading point cloud…</span>
           </div>
         )}
         {error && (
-          <div className="viewer-loading">
-            <span style={{ fontSize: "2rem" }}>⚠️</span>
-            <span style={{ color: "#fca5a5" }}>{error}</span>
+          <div className="viewer-overlay">
+            <span>⚠️ {error}</span>
+          </div>
+        )}
+        {noClusters && !loading && (
+          <div className="viewer-overlay">
+            <span>No reconstruction available yet</span>
           </div>
         )}
         {!error && (
@@ -194,8 +210,10 @@ export default function PointCloudViewer({ jobId, nPoints }) {
             gl={{ antialias: true, alpha: false }}
             dpr={[1, 2]}
           >
-            <SceneSetup autoRotate={autoRotate} bgColor={bgColor} />
-            {geometry && <PointCloud geometry={geometry} pointSize={pointSize} />}
+            <SceneSetup autoRotate={autoRotate} />
+            {geometry && (
+              <PointCloud geometry={geometry} pointSize={pointSize} />
+            )}
           </Canvas>
         )}
       </div>

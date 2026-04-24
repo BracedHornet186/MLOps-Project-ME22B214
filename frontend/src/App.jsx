@@ -1,81 +1,81 @@
 /**
  * App.jsx
- * ──────────────────────────────────────────────────────────────────────────
- * Main application shell for the 3D Scene Reconstruction Web UI.
+ * ─────────────────────────────────────────────────────────────────
+ * Dashboard layout for 3D Reconstruction system.
  *
- * State machine:
- *   IDLE  →  upload completes  →  PROCESSING  →  done  →  VIEWING
- *                                               ↘ failed → PROCESSING (with error)
- *   VIEWING  →  "New Job" button  →  IDLE
+ *  ┌──────────────── Header ─────────────────┐
+ *  │ Left Panel          │  Right Panel       │
+ *  │  Upload + Stages    │  3D Viewer         │
+ *  ├─────────────────────┴────────────────────┤
+ *  │          Stats Table (bottom)            │
+ *  └──────────────────────────────────────────┘
  */
-import { useCallback, useState } from "react";
-import UploadZone from "./components/UploadZone";
-import ProgressTracker from "./components/ProgressTracker";
-import PointCloudViewer from "./components/PointCloudViewer";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import Header from "./components/Header";
+import UploadPanel from "./components/UploadPanel";
+import StageTracker from "./components/StageTracker";
+import StatsTable from "./components/StatsTable";
+import ModelViewer from "./components/ModelViewer";
+import useJobStatus from "./hooks/useJobStatus";
 import "./index.css";
 
-const PHASE = { IDLE: "idle", PROCESSING: "processing", VIEWING: "viewing" };
+const API = import.meta.env.VITE_API_URL || "/api";
 
 export default function App() {
-  const [phase, setPhase] = useState(PHASE.IDLE);
   const [jobId, setJobId] = useState(null);
-  const [nPoints, setNPoints] = useState(0);
+  const [clusters, setClusters] = useState([]);
+  const { status } = useJobStatus(jobId);
 
-  /* ── Callbacks ──────────────────────────────────────────────── */
-  const onJobCreated = useCallback((id) => {
+  const stage = status?.stage || null;
+  const isDone = stage === "success";
+  const isRunning = jobId && !isDone && stage !== "failed";
+
+  // Fetch clusters when job completes
+  useEffect(() => {
+    if (!isDone || !jobId) return;
+    axios
+      .get(`${API}/clusters/${jobId}`)
+      .then(({ data }) => setClusters(data.clusters || []))
+      .catch(() => setClusters([]));
+  }, [isDone, jobId]);
+
+  const handleNewJob = (id) => {
     setJobId(id);
-    setPhase(PHASE.PROCESSING);
-  }, []);
+    setClusters([]);
+  };
 
-  const onComplete = useCallback((data) => {
-    setNPoints(data.n_points || 0);
-    setPhase(PHASE.VIEWING);
-  }, []);
-
-  const onFailed = useCallback(() => {
-    /* stay on PROCESSING so the error message is visible */
-  }, []);
-
-  const reset = () => {
-    setPhase(PHASE.IDLE);
+  const handleReset = () => {
     setJobId(null);
-    setNPoints(0);
+    setClusters([]);
   };
 
   return (
-    <>
-      {/* Animated gradient background */}
-      <div className="app-bg" />
+    <div className="dashboard">
+      <Header jobId={jobId} stage={stage} />
 
-      {/* Header */}
-      <header className="app-header">
-        <h1>Scene Reconstruct 3D</h1>
-        <p>Upload overlapping 2D images → explore the 3D point cloud</p>
-      </header>
+      <div className="dashboard-body">
+        {/* ── Left Panel ──────────────────────────────────────── */}
+        <aside className="dashboard-left">
+          <UploadPanel onJobCreated={handleNewJob} disabled={isRunning} />
 
-      <main className="app-main">
-        {/* ── Phase: IDLE ──────────────────────────────────────── */}
-        {phase === PHASE.IDLE && <UploadZone onJobCreated={onJobCreated} />}
+          {status && <StageTracker status={status} />}
 
-        {/* ── Phase: PROCESSING ────────────────────────────────── */}
-        {phase === PHASE.PROCESSING && (
-          <ProgressTracker
-            jobId={jobId}
-            onComplete={onComplete}
-            onFailed={onFailed}
-          />
-        )}
-
-        {/* ── Phase: VIEWING ───────────────────────────────────── */}
-        {phase === PHASE.VIEWING && (
-          <>
-            <PointCloudViewer jobId={jobId} nPoints={nPoints} />
-            <button className="upload-btn" onClick={reset}>
-              🔄 Start New Reconstruction
+          {isDone && (
+            <button className="btn-secondary" onClick={handleReset}>
+              New Reconstruction
             </button>
-          </>
-        )}
-      </main>
-    </>
+          )}
+        </aside>
+
+        {/* ── Right Panel ─────────────────────────────────────── */}
+        <main className="dashboard-right">
+          <ModelViewer jobId={jobId} clusters={clusters} />
+        </main>
+      </div>
+
+      {/* ── Bottom Stats ──────────────────────────────────────── */}
+      {status && <StatsTable jobId={jobId} status={status} />}
+    </div>
   );
 }
