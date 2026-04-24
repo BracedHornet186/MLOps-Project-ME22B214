@@ -22,7 +22,7 @@ from torch.utils.data.distributed import DistributedSampler
 from tqdm import tqdm
 
 import models.posfeat.losses.preprocess_utils as putils
-from data import FilePath
+from scripts.data import FilePath
 from models.config import PosFeatDetectorConfig, PosFeatModelConfig
 from models.posfeat.losses.preprocess_utils import (denormalize_coords,
                                                     sample_feat_by_coord)

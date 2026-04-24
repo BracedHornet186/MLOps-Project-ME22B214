@@ -6,10 +6,10 @@ from pathlib import Path
 import numpy as np
 from tqdm import tqdm
 
-from data import FilePath
+from scripts.data import FilePath
 from pipelines.scene import Scene
 from postprocesses.base import MatchingFilter
-from storage import InMemoryKeypointStorage, InMemoryMatchingStorage
+from scripts.storage import InMemoryKeypointStorage, InMemoryMatchingStorage
 
 
 class FeatureTrackMatchingFilter(MatchingFilter):

@@ -4,15 +4,15 @@ import cv2
 import numpy as np
 import torch
 
-from data import FilePath, resolve_model_path
-from extractor import LocalFeatureExtractor
+from scripts.data import FilePath, resolve_model_path
+from scripts.extractor import LocalFeatureExtractor
 from features.factory import create_local_feature_handler
 from matchers.base import DetectorFreeMatcher
 from matchers.config import MagicLeapSuperGlueRotationConfig
 from models._research_only.magicleap.superglue import SuperGlue
 from preprocesses.config import RotationConfig
 from preprocesses.region import OverlapRegionCropper
-from storage import MatchedKeypointStorage
+from scripts.storage import MatchedKeypointStorage
 
 
 def read_image(path: str) -> np.ndarray:

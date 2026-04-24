@@ -7,12 +7,12 @@ import torch
 import torchvision.transforms as T
 from pydantic import BaseModel
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from features.base import (LocalFeatureHandler, LocalFeatureOutputs,
                            postprocess, read_image)
 from features.config import LANetConfig
 from models.lanet.network_v1.model import PointModel as LANetV1
-from preprocess import resize_image_opencv, resize_image_tensor
+from scripts.preprocess import resize_image_opencv, resize_image_tensor
 from preprocesses.config import ResizeConfig, RotationConfig
 from preprocesses.region import Cropper
 

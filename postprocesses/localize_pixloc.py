@@ -24,7 +24,7 @@ from models.pixloc.pixlib.models import get_model
 from models.pixloc.pixlib.utils.experiments import load_experiment
 from models.pixloc.utils.quaternions import qvec2rotmat, rotmat2qvec
 from pipelines.scene import Scene
-from storage import InMemoryKeypointStorage, InMemoryMatchingStorage
+from scripts.storage import InMemoryKeypointStorage, InMemoryMatchingStorage
 
 
 default_confs = {

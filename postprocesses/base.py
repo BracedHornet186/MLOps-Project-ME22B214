@@ -5,7 +5,7 @@ from typing import Optional
 import tqdm
 
 from pipelines.common import Scene
-from storage import (
+from scripts.storage import (
     InMemoryKeypointStorage,
     InMemoryMatchingStorage,
     InMemoryTwoViewGeometryStorage,

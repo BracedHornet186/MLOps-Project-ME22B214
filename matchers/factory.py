@@ -4,7 +4,7 @@ from typing import Optional
 
 import torch
 
-from extractor import LocalFeatureExtractor
+from scripts.extractor import LocalFeatureExtractor
 from features.factory import create_local_feature_handler
 from matchers._research_only.aspanformer import ASpanFormerMatcher
 from matchers._research_only.magicleap_superglue import MagicLeapSuperGlueMatcher

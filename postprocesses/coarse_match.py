@@ -8,7 +8,7 @@ import numpy as np
 from tqdm import tqdm
 
 from pipelines.scene import Scene
-from storage import (
+from scripts.storage import (
     InMemoryKeypointStorage,
     InMemoryMatchingStorage,
     MatchedKeypointStorage,

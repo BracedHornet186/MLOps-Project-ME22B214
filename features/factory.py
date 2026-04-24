@@ -147,7 +147,7 @@ def create_local_feature_handler(
         assert conf.posfeat
         handler = PosFeatHandler(conf.posfeat, device=device)
     elif conf.type == "relf":
-        from extractor import LocalFeatureExtractor
+        from scripts.extractor import LocalFeatureExtractor
 
         assert conf.relf
         detector = LocalFeatureExtractor(

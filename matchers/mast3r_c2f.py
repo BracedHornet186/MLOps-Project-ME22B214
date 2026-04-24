@@ -28,7 +28,7 @@ from mast3r.model import AsymmetricMASt3R
 from mast3r.utils.coarse_to_fine import crop_slice, select_pairs_of_crops
 from PIL import Image
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from matchers.base import DetectorFreeMatcher
 from matchers.config import MASt3RC2FMatcherConfig
 from models.mast3r.model import get_mast3r_model
@@ -41,7 +41,7 @@ from models.mast3r.visloc import (
 )
 from models.mast3r.visloc_utils import get_HW_resolution, rescale_points3d
 from preprocesses.region import OverlapRegionCropper
-from storage import MatchedKeypointStorage
+from scripts.storage import MatchedKeypointStorage
 
 
 def read_image(path: str) -> np.ndarray:

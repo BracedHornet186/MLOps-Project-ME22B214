@@ -5,13 +5,13 @@ import kornia
 import numpy as np
 import torch
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from matchers.base import LocalFeatureMatcher
 from matchers.config import OpenGlueConfig
 from models.openglue.inference import load_openglue_matcher, match_og_superglue
 from postprocesses.panet import PANetRefiner
 from preprocesses.region import OverlapRegionCropper
-from storage import LocalFeatureStorage, MatchingStorage
+from scripts.storage import LocalFeatureStorage, MatchingStorage
 
 
 def read_image(path: str) -> np.ndarray:

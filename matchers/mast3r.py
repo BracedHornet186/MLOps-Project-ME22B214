@@ -26,12 +26,12 @@ from mast3r.fast_nn import extract_correspondences_nonsym, fast_reciprocal_NNs
 from mast3r.model import AsymmetricMASt3R
 from PIL import Image
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from matchers.base import DetectorFreeMatcher
 from matchers.config import MASt3RMatcherConfig
 from models.mast3r.model import get_mast3r_model
 from preprocesses.region import OverlapRegionCropper
-from storage import MatchedKeypointStorage
+from scripts.storage import MatchedKeypointStorage
 
 
 def read_image(path: str) -> np.ndarray:

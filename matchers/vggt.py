@@ -16,14 +16,14 @@ from vggt.models.vggt import VGGT
 from vggt.utils.visual_track import visualize_tracks_on_images
 
 from scripts.data import resolve_model_path
-from extractor import LocalFeatureExtractor, extract_all
+from scripts.extractor import LocalFeatureExtractor, extract_all
 from features.factory import create_local_feature_handler
 from matchers.base import PointTrackingMatcher
 from matchers.config import VGGTMatcherConfig
 from models.vggt.custom_model import CustomVGGT
 from pipelines.scene import Scene
 from preprocesses.region import OverlapRegionCropper
-from storage import (
+from scripts.storage import (
     InMemoryKeypointStorage,
     InMemoryLocalFeatureStorage,
     KeypointStorage,

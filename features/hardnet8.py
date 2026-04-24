@@ -10,11 +10,11 @@ from kornia.feature import (HardNet8, KeyNetDetector, LAFAffNetShapeEstimator,
 from kornia.utils.image import image_to_tensor
 from pydantic import BaseModel
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from features.base import (LocalFeatureHandler, LocalFeatureOutputs,
                            postprocess, read_image)
 from features.config import KeyNetAffNetHardNet8Config
-from preprocess import resize_image_tensor
+from scripts.preprocess import resize_image_tensor
 from preprocesses.config import ResizeConfig, RotationConfig
 from preprocesses.region import Cropper
 

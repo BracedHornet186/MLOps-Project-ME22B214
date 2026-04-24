@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 from pydantic import BaseModel
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from features.base import (
     LocalFeatureHandler,
     LocalFeatureOutputs,
@@ -24,10 +24,10 @@ from models._research_only.silk.backbones.silk.silk import (
 from models._research_only.silk.backbones.superpoint.vgg import ParametricVGG
 from models._research_only.silk.config.model import load_model_from_checkpoint
 from postprocesses.nms import nms_local_features
-from preprocess import resize_image_opencv
+from scripts.preprocess import resize_image_opencv
 from preprocesses.config import ResizeConfig, RotationConfig
 from preprocesses.region import Cropper
-from workspace import log
+from scripts.workspace import log
 
 SILK_DEFAULT_OUTPUT = (  # outputs required when running the model
     "dense_positions",

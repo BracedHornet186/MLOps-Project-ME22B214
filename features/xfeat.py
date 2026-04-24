@@ -8,8 +8,8 @@ import torch
 import torch.nn as nn
 import torchvision.transforms as T
 
-from data import FilePath, resolve_model_path
-from extractor import LocalFeatureExtractor
+from scripts.data import FilePath, resolve_model_path
+from scripts.extractor import LocalFeatureExtractor
 from features.base import (
     LocalFeatureHandler,
     LocalFeatureOutputs,
@@ -21,7 +21,7 @@ from features.base import (
 from lightglue.utils import numpy_image_to_torch
 from features.config import XFeatConfig
 from models.xfeat.xfeat import XFeat
-from preprocess import resize_image_tensor
+from scripts.preprocess import resize_image_tensor
 from preprocesses.config import ResizeConfig, RotationConfig
 from preprocesses.region import Cropper
 

@@ -2,7 +2,7 @@ from typing import List, Optional, Tuple
 
 import tqdm
 
-from data import FilePath
+from scripts.data import FilePath
 from pipelines.scene import Scene
 
 

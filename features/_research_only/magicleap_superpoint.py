@@ -11,7 +11,7 @@ import torch
 import torch.nn as nn
 from pydantic import BaseModel
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from features.base import (
     LocalFeatureHandler,
     LocalFeatureOutputs,
@@ -26,7 +26,7 @@ from models._research_only.magicleap.superpoint import SuperPoint
 from models._research_only.magicleap.utils import frame2tensor, process_resize
 from preprocesses.config import ResizeConfig, RotationConfig
 from preprocesses.region import Cropper
-from workspace import log
+from scripts.workspace import log
 
 
 class MagicLeapSuperPointHandler(LocalFeatureHandler):

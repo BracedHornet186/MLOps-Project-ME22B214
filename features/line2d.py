@@ -10,7 +10,7 @@ from numpy import ndarray
 from scripts.data import resolve_model_path
 from features.base import Line2DFeatureHandler, read_image
 from features.config import LIMAPConfig
-from preprocess import _get_resized_wh
+from scripts.preprocess import _get_resized_wh
 from preprocesses.config import ResizeConfig, RotationConfig
 from preprocesses.region import Cropper
 

@@ -9,12 +9,12 @@ import numpy as np
 import torch
 import tqdm
 
-from data import FilePath
-from extractor import LocalFeatureExtractor, extract_all
+from scripts.data import FilePath
+from scripts.extractor import LocalFeatureExtractor, extract_all
 from pipelines.common import Scene
 from postprocesses.panet import PANetRefiner
 from preprocesses.region import Cropper, OverlapRegionCropper, OverlapRegionEstimator
-from storage import (
+from scripts.storage import (
     InMemoryLocalFeatureStorage,
     KeypointStorage,
     Line2DFeatureStorage,

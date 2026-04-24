@@ -12,7 +12,7 @@ from lightglue import ALIKED as _ALIKED
 from lightglue.aliked import DKD, SDDH, ConvBlock, Extractor, resnet
 from lightglue.utils import ImagePreprocessor, numpy_image_to_torch
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from features.base import (
     LocalFeatureHandler,
     LocalFeatureOutputs,

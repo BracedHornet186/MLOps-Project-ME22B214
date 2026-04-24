@@ -15,7 +15,7 @@ from dust3r.utils.image import load_images
 from mast3r.model import AsymmetricMASt3R
 from torch.utils.data.dataset import Dataset
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from models.mast3r.model import get_mast3r_model
 from pipelines.scene import Scene
 from retrievers.base import Retriever

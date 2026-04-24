@@ -6,7 +6,7 @@ import numpy as np
 import torch
 from kornia.utils.image import image_to_tensor
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from features.base import (
     LocalFeatureHandler,
     LocalFeatureOutputs,
@@ -15,7 +15,7 @@ from features.base import (
 )
 from features.config import DarkFeatConfig
 from models.darkfeat.model import DarkFeat
-from preprocess import resize_image_tensor
+from scripts.preprocess import resize_image_tensor
 from preprocesses.config import ResizeConfig, RotationConfig
 from preprocesses.orientation import OrientationNormalizer
 from preprocesses.region import Cropper

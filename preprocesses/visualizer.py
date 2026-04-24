@@ -9,11 +9,11 @@ import pycolmap
 from kornia_moons.feature import draw_LAF_matches
 from PIL import Image
 
-from data import FilePath
-from extractor import LocalFeatureExtractor
+from scripts.data import FilePath
+from scripts.extractor import LocalFeatureExtractor
 from features.base import read_image
 from matchers.base import DetectorFreeMatcher, LocalFeatureMatcher
-from storage import (InMemoryKeypointStorage, InMemoryLocalFeatureStorage,
+from scripts.storage import (InMemoryKeypointStorage, InMemoryLocalFeatureStorage,
                      InMemoryMatchedKeypointStorage, InMemoryMatchingStorage)
 from preprocesses.region import OverlapRegionEstimatorConfig, OverlapRegionEstimator
 

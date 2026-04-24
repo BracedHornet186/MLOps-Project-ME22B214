@@ -6,15 +6,15 @@ import torch
 import torch.cuda.amp
 from PIL import Image
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from matchers.base import DetectorFreeMatcher
 from matchers.config import RoMaConfig
 from models.roma.models.model_zoo import roma_outdoor
 from postprocesses.nms import nms_matched_keypoints, sort_matched_keypoints_by_score
 from preprocesses.orientation import OrientationNormalizer
 from preprocesses.region import OverlapRegionCropper
-from storage import MatchedKeypointStorage
-from workspace import log
+from scripts.storage import MatchedKeypointStorage
+from scripts.workspace import log
 
 
 def read_image(path: str) -> np.ndarray:

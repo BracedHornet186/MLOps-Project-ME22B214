@@ -7,13 +7,13 @@ import torch
 import torch.nn as nn
 from pydantic import BaseModel
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from features.base import (LocalFeatureHandler, LocalFeatureOutputs,
                            create_rotator, keypoints_to_lafs,
                            lafs_to_keypoints, postprocess, read_image)
 from features.config import SuperPointConfig
 from models.superpoint.model import SuperPointNetBn
-from preprocess import resize_image_opencv, resize_image_tensor
+from scripts.preprocess import resize_image_opencv, resize_image_tensor
 from preprocesses.config import ResizeConfig, RotationConfig
 from preprocesses.region import Cropper
 

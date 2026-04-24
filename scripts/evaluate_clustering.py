@@ -9,7 +9,7 @@ import tqdm
 
 from clusterings.config import ClusteringConfig
 from clusterings.factory import create_clustering
-from data import IMC2025TrainData
+from scripts.data import IMC2025TrainData
 
 
 def parse_args() -> Namespace:

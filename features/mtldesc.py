@@ -6,12 +6,12 @@ import numpy as np
 import torch
 from kornia.utils.image import image_to_tensor
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from features.base import (LocalFeatureHandler, LocalFeatureOutputs, create_rotator,
                            postprocess, read_image)
 from features.config import MTLDescConfig
 from models.mtldesc.mtldesc import MTLDescExtractor
-from preprocess import resize_image_tensor
+from scripts.preprocess import resize_image_tensor
 from preprocesses.config import ResizeConfig, RotationConfig
 from preprocesses.region import Cropper
 

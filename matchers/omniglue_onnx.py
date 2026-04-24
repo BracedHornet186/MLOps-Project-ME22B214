@@ -5,7 +5,7 @@ import numpy as np
 import torch
 import torch.cuda.amp
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from features.base import read_image
 from matchers.base import DetectorFreeMatcher
 from matchers.config import OmniGlueONNXConfig
@@ -14,10 +14,10 @@ try:
 except Exception:
     print("Notfound: onnxruntime")
     OmniGlue = None
-from preprocess import resize_image_opencv
+from scripts.preprocess import resize_image_opencv
 from preprocesses.config import ResizeConfig
 from preprocesses.region import OverlapRegionCropper
-from storage import MatchedKeypointStorage
+from scripts.storage import MatchedKeypointStorage
 
 
 class OmniGlueONNXMatcher(DetectorFreeMatcher):

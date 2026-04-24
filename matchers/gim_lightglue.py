@@ -7,12 +7,12 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from matchers.base import LocalFeatureMatcher
 from matchers.config import GIMLightGlueConfig
 from postprocesses.panet import PANetRefiner
 from preprocesses.region import OverlapRegionCropper
-from storage import LocalFeatureStorage, MatchingStorage
+from scripts.storage import LocalFeatureStorage, MatchingStorage
 from models.gim.gluefactory.models.matchers.lightglue import LightGlue
 
 

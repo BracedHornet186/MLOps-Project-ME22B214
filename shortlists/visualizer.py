@@ -9,7 +9,7 @@ import tqdm
 from PIL import Image
 from torchvision.utils import make_grid
 
-from data import FilePath, load_train_df
+from scripts.data import FilePath, load_train_df
 from pipelines.common import create_data_dict, iterate_scenes
 from pipelines.scene import Scene
 from shortlists.base import ShortlistGenerator

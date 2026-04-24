@@ -45,7 +45,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from config import PipelineConfig, SubmissionConfig
-from data import DEFAULT_DATASET_DIR, IMC2025TrainData, setup_data_schema
+from scripts.data import DEFAULT_DATASET_DIR, IMC2025TrainData, setup_data_schema
 from distributed import DistConfig
 from pipeline import create_pipeline
 

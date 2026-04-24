@@ -5,7 +5,7 @@ import torch
 from lightglue.dog_hardnet import SIFT, DoGHardNet, HardNet, LAFDescriptor
 from lightglue.utils import numpy_image_to_torch
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from features.base import (
     LocalFeatureHandler,
     LocalFeatureOutputs,

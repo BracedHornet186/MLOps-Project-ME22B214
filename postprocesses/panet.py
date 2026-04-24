@@ -7,7 +7,7 @@ from models.panet.model import PANet
 from models.panet.refinement import refine_matches_coarse_to_fine
 from pipelines.scene import Scene
 from postprocesses.config import PANetRefinerConfig
-from storage import InMemoryKeypointStorage, InMemoryMatchingStorage
+from scripts.storage import InMemoryKeypointStorage, InMemoryMatchingStorage
 from typing import Optional, Tuple
 
 

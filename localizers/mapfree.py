@@ -9,14 +9,14 @@ import tqdm
 
 from dust3r.cloud_opt.init_im_poses import align_multiple_poses
 
-from data import FilePath
+from scripts.data import FilePath
 from localizers.base import PostLocalizer, Localizer
 from localizers.common import get_default_K
 from localizers.config import MapFreeConfig
 from matchers.factory import create_detector_free_matcher
 from models.mapfree.pose_solver import PnPSolver
 from pipelines.scene import Scene
-from storage import (
+from scripts.storage import (
     InMemoryKeypointStorage,
     InMemoryMatchedKeypointStorage,
     InMemoryMatchingStorage,

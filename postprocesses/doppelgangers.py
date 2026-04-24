@@ -12,15 +12,15 @@ import torch.utils.data
 import tqdm
 from PIL import Image, ImageOps
 
-from colmap import remove_records
-from data import FilePath, resolve_model_path
+from scripts.colmap import remove_records
+from scripts.data import FilePath, resolve_model_path
 from models.config import DoppelGangersModelConfig
 from models.doppelgangers.models.cnn_classifier import decoder as DoppelGangers
 from models.doppelgangers.third_party.loftr import LoFTR, default_cfg
 from models.doppelgangers.utils.dataset import read_loftr_matches
 from pipelines.scene import Scene
 from postprocesses.base import TwoViewGeometryPruner
-from storage import InMemoryKeypointStorage, InMemoryTwoViewGeometryStorage
+from scripts.storage import InMemoryKeypointStorage, InMemoryTwoViewGeometryStorage
 
 
 def dict2namespace(config):

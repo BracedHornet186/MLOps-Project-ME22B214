@@ -9,7 +9,7 @@ import numpy as np
 from pipelines.scene import Scene
 from shortlists.base import ShortlistUpdater
 from shortlists.config import LocalFeatureBasedANNShortlistUpdaterConfig
-from storage import LocalFeatureStorage
+from scripts.storage import LocalFeatureStorage
 
 
 class LocalFeatureBasedANNShortlistUpdater(ShortlistUpdater):

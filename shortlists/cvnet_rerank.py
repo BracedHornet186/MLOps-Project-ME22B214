@@ -9,13 +9,13 @@ import tqdm
 from PIL import Image
 from torchvision.transforms.functional import InterpolationMode
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from models.config import CVNetConfig
 from models.cvnet.model.CVNet_Rerank_model import CVNet_Rerank
 from pipelines.scene import Scene
 from shortlists.base import ShortlistGenerator, get_all_pairs
 from shortlists.config import ShortlistGeneratorConfig
-from workspace import log
+from scripts.workspace import log
 
 
 class CVNetRerankShortlistGenerator(ShortlistGenerator):

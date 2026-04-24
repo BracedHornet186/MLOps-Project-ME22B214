@@ -11,8 +11,8 @@ from pipelines.verification import compute_ransac_inlier_counts, run_ransac
 from shortlists.base import ShortlistGenerator, ShortlistUpdater, get_all_pairs
 from shortlists.config import (PreMatchingShortlistUpdaterConfig,
                                ShortlistGeneratorConfig)
-from storage import InMemoryMatchedKeypointStorage
-from workspace import log
+from scripts.storage import InMemoryMatchedKeypointStorage
+from scripts.workspace import log
 
 
 class PreMatchingRandomWalkShortlistGenerator(ShortlistGenerator):

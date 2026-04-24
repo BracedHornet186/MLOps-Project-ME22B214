@@ -12,7 +12,7 @@ from models.ncmnet.ncmnet import NCMNet
 from pipelines.common import Scene
 from postprocesses.base import MatchingFilter
 from postprocesses.config import NCMNetConfig
-from storage import InMemoryKeypointStorage, InMemoryMatchingStorage
+from scripts.storage import InMemoryKeypointStorage, InMemoryMatchingStorage
 
 
 def read_image(path: str) -> np.ndarray:

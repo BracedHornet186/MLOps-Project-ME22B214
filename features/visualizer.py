@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import kornia
 from kornia_moons.feature import visualize_LAF
 
-from data import FilePath
+from scripts.data import FilePath
 from features.base import LocalFeatureHandler, LocalFeatureOutputs
 from preprocesses.config import ResizeConfig, RotationConfig
 from preprocesses.region import Cropper

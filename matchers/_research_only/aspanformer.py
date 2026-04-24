@@ -4,15 +4,15 @@ import cv2
 import numpy as np
 import torch
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from matchers.base import DetectorFreeMatcher
 from matchers.config import ASpanFormerConfig
 from models.aspanformer.aspanformer.aspanformer import ASpanFormer
 from models.aspanformer.config.default import get_cfg_defaults
 from models.aspanformer.utils.misc import lower_config
-from preprocess import resize_image_opencv
+from scripts.preprocess import resize_image_opencv
 from preprocesses.region import OverlapRegionCropper
-from storage import MatchedKeypointStorage
+from scripts.storage import MatchedKeypointStorage
 
 
 def read_image(path: FilePath) -> np.ndarray:

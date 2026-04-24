@@ -7,7 +7,7 @@ import torch
 import torch.nn as nn
 from pydantic import BaseModel
 
-from data import FilePath, LocalFeatureOutputs, resolve_model_path
+from scripts.data import FilePath, LocalFeatureOutputs, resolve_model_path
 from features.base import LocalFeatureHandler, read_image
 from features.config import FeatureSetConfig
 from postprocesses.nms import nms_local_features

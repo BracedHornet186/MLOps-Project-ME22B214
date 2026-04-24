@@ -4,7 +4,7 @@ import numpy as np
 import tqdm
 
 from pipelines.scene import Scene
-from storage import InMemoryKeypointStorage, InMemoryMatchingStorage
+from scripts.storage import InMemoryKeypointStorage, InMemoryMatchingStorage
 
 
 class Localizer:

@@ -5,16 +5,16 @@ import numpy as np
 import torch
 from dotmap import DotMap
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from matchers.base import DetectorFreeMatcher
 from matchers.config import ECOTRConfig
 from models.ecotr.config.default import get_cfg_defaults
 from models.ecotr.models.ecotr_engines import ECOTR_Engine
 from models.ecotr.utils.misc import lower_config
-from preprocess import resize_image_opencv
+from scripts.preprocess import resize_image_opencv
 from preprocesses.region import OverlapRegionCropper
-from storage import MatchedKeypointStorage
-from workspace import log
+from scripts.storage import MatchedKeypointStorage
+from scripts.workspace import log
 
 
 def read_image(path: str) -> np.ndarray:

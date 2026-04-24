@@ -6,7 +6,7 @@ import torch.nn as nn
 from lightglue.sift import SIFT
 from lightglue.utils import load_image, numpy_image_to_torch
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from features.base import (
     LocalFeatureHandler,
     LocalFeatureOutputs,

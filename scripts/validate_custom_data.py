@@ -11,7 +11,7 @@ from pathlib import Path
 import cv2
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from data import DEFAULT_DATASET_DIR
+from scripts.data import DEFAULT_DATASET_DIR
 
 
 SUPPORTED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".tif"}

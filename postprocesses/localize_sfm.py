@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 from models.pixloc.utils.quaternions import qvec2rotmat
 from pipelines.scene import Scene
-from storage import InMemoryKeypointStorage, InMemoryMatchingStorage
+from scripts.storage import InMemoryKeypointStorage, InMemoryMatchingStorage
 
 
 def get_focal(image_path: str, err_on_default: bool = False) -> float:

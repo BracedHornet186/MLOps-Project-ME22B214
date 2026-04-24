@@ -7,13 +7,13 @@ import torch
 import torch.nn as nn
 from pydantic import BaseModel
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from features.base import (LocalFeatureHandler, LocalFeatureOutputs, create_rotator,
                            postprocess, read_image)
 from features.config import SFD2Config
 from models.sfd2.extractor import extract_resnet_return
 from models.sfd2.sfd2 import ResSegNet, ResSegNetV2
-from preprocess import resize_image_opencv, resize_image_tensor
+from scripts.preprocess import resize_image_opencv, resize_image_tensor
 from preprocesses.config import ResizeConfig, RotationConfig
 from preprocesses.region import Cropper
 

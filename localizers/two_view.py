@@ -9,14 +9,14 @@ import scipy.spatial.distance
 import torch
 import tqdm
 
-from data import FilePath
+from scripts.data import FilePath
 from localizers.base import Localizer, PostLocalizer
 from localizers.common import get_default_K
 from localizers.config import TwoViewLocalizerConfig
 from pipelines.verification import run_ransac
 from matchers.factory import create_detector_free_matcher
 from pipelines.scene import Scene
-from storage import (
+from scripts.storage import (
     InMemoryKeypointStorage,
     InMemoryMatchedKeypointStorage,
     InMemoryMatchingStorage,

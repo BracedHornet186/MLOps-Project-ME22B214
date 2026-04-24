@@ -6,18 +6,18 @@ import numpy as np
 import torch
 from yacs.config import CfgNode as CN
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from matchers.base import DetectorFreeMatcher
 from matchers.config import SE2LoFTRConfig
 from models.se2loftr.config.default import get_cfg_defaults
 from models.se2loftr.loftr.loftr import LoFTR
-from preprocess import paired_pre_resize, resize_image_opencv
+from scripts.preprocess import paired_pre_resize, resize_image_opencv
 from preprocesses.config import ResizeConfig
 from preprocesses.orientation import OrientationNormalizer
 from preprocesses.region import OverlapRegionCropper
 from pipelines.verification import run_ransac
-from storage import MatchedKeypointStorage
-from workspace import log
+from scripts.storage import MatchedKeypointStorage
+from scripts.workspace import log
 
 
 def read_image(path: FilePath) -> np.ndarray:

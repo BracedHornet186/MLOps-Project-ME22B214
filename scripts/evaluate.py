@@ -16,7 +16,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from config import load_pipeline_config
-from data import DEFAULT_DATASET_DIR
+from scripts.data import DEFAULT_DATASET_DIR
 import utils.imc25.metric as imc25_metric
 
 logging.basicConfig(

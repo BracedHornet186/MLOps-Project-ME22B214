@@ -11,13 +11,13 @@ from mast3r.model import AsymmetricMASt3R
 from mpsfm.extraction.pairwise.models.utils.featuremap import NNs_sparse
 
 from scripts.data import resolve_model_path
-from extractor import LocalFeatureExtractor, extract_all
+from scripts.extractor import LocalFeatureExtractor, extract_all
 from matchers.base import PointTrackingMatcher
 from matchers.config import MASt3RMPSFMSparseMatcherConfig
 from matchers.mast3r import load_images_fixed
 from models.mast3r.model import get_mast3r_model
 from preprocesses.region import OverlapRegionCropper
-from storage import KeypointStorage, MatchedKeypointStorage, MatchingStorage
+from scripts.storage import KeypointStorage, MatchedKeypointStorage, MatchingStorage
 
 
 class MASt3RMPSFMSparseMatcher(PointTrackingMatcher):

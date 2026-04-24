@@ -37,7 +37,7 @@ from global_descriptors.siglip2 import SigLIP2GlobalDescriptorExtractor
 from pipelines.scene import Scene
 from shortlists.base import ShortlistGenerator, get_all_pairs
 from shortlists.config import ShortlistGeneratorConfig
-from workspace import log
+from scripts.workspace import log
 
 
 class GlobalDescriptorShortlistGenerator(ShortlistGenerator):

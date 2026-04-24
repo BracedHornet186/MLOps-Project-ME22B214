@@ -10,13 +10,13 @@ from vggt.models.vggt import VGGT
 from vggt.utils.geometry import unproject_depth_map_to_point_map
 from vggt.utils.pose_enc import pose_encoding_to_extri_intri
 
-from colmap import remove_records
+from scripts.colmap import remove_records
 from scripts.data import resolve_model_path
 from matchers.vggt import load_and_preprocess_images_imc25
 from pipelines.scene import Scene
 from postprocesses.base import TwoViewGeometryPruner
 from postprocesses.config import VGGTTwoViewGeometryPrunerConfig
-from storage import InMemoryKeypointStorage, InMemoryTwoViewGeometryStorage
+from scripts.storage import InMemoryKeypointStorage, InMemoryTwoViewGeometryStorage
 
 
 class VGGTTwoViewGeometryPruner(TwoViewGeometryPruner):

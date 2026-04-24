@@ -7,15 +7,15 @@ import kornia
 import torch
 from pydantic import BaseModel
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from features.base import LocalFeatureHandler, LocalFeatureOutputs, lafs_to_keypoints, read_image
 from features.config import FeatureBoosterConfig
 from features.alike import ALIKEHandler
 from models.featurebooster.model import FeatureBooster
-from preprocess import resize_image_opencv, resize_image_tensor
+from scripts.preprocess import resize_image_opencv, resize_image_tensor
 from preprocesses.config import ResizeConfig, RotationConfig
 from preprocesses.region import Cropper
-from workspace import log
+from scripts.workspace import log
 
 
 # Adapted from https://github.com/SJTU-ViSYS/FeatureBooster/blob/main/config.yaml

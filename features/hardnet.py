@@ -11,12 +11,12 @@ from kornia.utils.image import image_to_tensor
 from kornia_moons.feature import laf_from_opencv_SIFT_kpts
 from pydantic import BaseModel
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from models.openglue.models.features.opencv import DoGOpenCVAffNetHardNet
 from features.base import (LocalFeatureHandler, LocalFeatureOutputs,
                            postprocess, read_image)
 from features.config import HardNetConfig
-from preprocess import resize_image_tensor
+from scripts.preprocess import resize_image_tensor
 from preprocesses.config import ResizeConfig, RotationConfig
 from preprocesses.region import Cropper
 

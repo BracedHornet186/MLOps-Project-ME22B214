@@ -11,7 +11,7 @@ from pipelines.verification import compute_ransac_inlier_counts
 from shortlists.base import ShortlistUpdater
 from shortlists.config import Line2DFeatureShortlistUpdaterConfig
 from shortlists.imc2024 import create_global_descriptor_extractors, extract_global_features
-from storage import InMemoryMatchedKeypointStorage, Line2DFeatureStorage
+from scripts.storage import InMemoryMatchedKeypointStorage, Line2DFeatureStorage
 from utils.vlad import VLAD
 
 

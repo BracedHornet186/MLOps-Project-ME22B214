@@ -21,7 +21,7 @@ from pathlib import Path
 import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from data import IMC2025TrainData, DEFAULT_DATASET_DIR
+from scripts.data import IMC2025TrainData, DEFAULT_DATASET_DIR
 
 
 def _log_to_mlflow(metrics: dict, inventory_path: Path, metrics_path: Path) -> None:

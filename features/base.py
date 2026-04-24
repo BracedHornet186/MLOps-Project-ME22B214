@@ -9,7 +9,7 @@ import torch
 from kornia.utils.image import image_to_tensor
 from PIL import Image
 
-from data import FilePath, LocalFeatureOutputs
+from scripts.data import FilePath, LocalFeatureOutputs
 from preprocesses.config import ResizeConfig, RotationConfig
 from preprocesses.homography_adaptation import HomographyAdaptation
 from preprocesses.region import Cropper

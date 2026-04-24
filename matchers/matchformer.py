@@ -6,18 +6,18 @@ import numpy as np
 import torch
 from yacs.config import CfgNode as CN
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from matchers.base import DetectorFreeMatcher
 from matchers.config import MatchformerConfig
 from models.matchformer.defaultmf import get_cfg_defaults
 from models.matchformer.matchformer import Matchformer
-from preprocess import resize_image_opencv
+from scripts.preprocess import resize_image_opencv
 from preprocesses.config import ResizeConfig
 from preprocesses.orientation import OrientationNormalizer
 from preprocesses.region import OverlapRegionCropper
 from postprocesses.nms import sort_matched_keypoints_by_score
-from storage import MatchedKeypointStorage
-from workspace import log
+from scripts.storage import MatchedKeypointStorage
+from scripts.workspace import log
 
 
 def read_image(path: FilePath) -> np.ndarray:

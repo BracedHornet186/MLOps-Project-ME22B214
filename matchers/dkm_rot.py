@@ -6,16 +6,16 @@ import torch
 import torch.cuda.amp
 from PIL import Image
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from matchers.base import DetectorFreeMatcher
 from matchers.config import DKMRotationConfig
 from models.dkm.models.model_zoo import DKMv3_outdoor
 from postprocesses.nms import nms_matched_keypoints, sort_matched_keypoints_by_score
-from preprocess import resize_image_opencv
+from scripts.preprocess import resize_image_opencv
 from preprocesses.homography_adaptation import HomographyAdaptation
 from preprocesses.region import OverlapRegionCropper
-from storage import MatchedKeypointStorage
-from workspace import log
+from scripts.storage import MatchedKeypointStorage
+from scripts.workspace import log
 
 
 def read_image(path: str) -> np.ndarray:

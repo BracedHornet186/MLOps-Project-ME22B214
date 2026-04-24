@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 
 from clusterings.base import Clustering
-from data import arr_to_str, nan_R_str, nan_t_str
+from scripts.data import arr_to_str, nan_R_str, nan_t_str
 from scripts.data_schema import DataSchema
 from pipelines.scene import Scene
 

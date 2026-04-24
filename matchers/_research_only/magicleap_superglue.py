@@ -6,14 +6,14 @@ import kornia
 import numpy as np
 import torch
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from matchers.base import LocalFeatureMatcher
 from matchers.config import MagicLeapSuperGlueConfig
 from postprocesses.panet import PANetRefiner
 from models._research_only.magicleap.superglue import SuperGlue
 from models._research_only.magicleap.utils import frame2tensor
 from preprocesses.region import OverlapRegionCropper
-from storage import InMemoryLocalFeatureStorage, LocalFeatureStorage, MatchingStorage
+from scripts.storage import InMemoryLocalFeatureStorage, LocalFeatureStorage, MatchingStorage
 
 
 def read_image(path: str) -> np.ndarray:

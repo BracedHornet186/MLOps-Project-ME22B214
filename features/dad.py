@@ -10,7 +10,7 @@ import torch
 from dad.utils import check_not_i16, sample_keypoints
 from PIL import Image
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from features.base import (
     LocalFeatureHandler,
     LocalFeatureOutputs,
@@ -20,7 +20,7 @@ from features.base import (
     read_image,
 )
 from features.config import DaDConfig
-from preprocess import resize_image_tensor
+from scripts.preprocess import resize_image_tensor
 from preprocesses.config import ResizeConfig, RotationConfig
 from preprocesses.region import Cropper
 

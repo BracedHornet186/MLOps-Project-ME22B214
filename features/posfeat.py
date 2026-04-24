@@ -5,12 +5,12 @@ import kornia
 import numpy as np
 import torch
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from features.base import (LocalFeatureHandler, LocalFeatureOutputs, create_rotator, read_image,
                            remove_border_keypoints)
 from features.config import PosFeatConfig
 from models.posfeat.extractor import PosFeatExtractor
-from preprocess import resize_image_opencv
+from scripts.preprocess import resize_image_opencv
 from preprocesses.config import ResizeConfig, RotationConfig
 from preprocesses.region import Cropper
 

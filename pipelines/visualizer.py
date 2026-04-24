@@ -3,7 +3,7 @@ from collections import defaultdict
 
 import pandas as pd
 
-from data import FilePath
+from scripts.data import FilePath
 from pipelines.base import Pipeline
 from shortlists.base import get_all_pairs
 from scripts.storage import (InMemoryKeypointStorage, InMemoryMatchingStorage,

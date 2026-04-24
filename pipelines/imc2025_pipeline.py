@@ -212,7 +212,7 @@ class IMC2025Pipeline(Pipeline):
 
             if self.dist_conf.is_master():
                 allocated_gb = torch.cuda.memory_allocated() / 1024**3
-                log.info(f"[GPU Memory] {allocated_gb:.2f} GB after {scene.dataset}")
+                log(f"[GPU Memory] {allocated_gb:.2f} GB after {scene.dataset}")
 
         progress_bar.update(1)
 

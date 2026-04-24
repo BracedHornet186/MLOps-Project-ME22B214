@@ -3,7 +3,7 @@ from typing import Any, Callable, Optional
 import numpy as np
 import tqdm
 
-from data import FilePath, LocalFeatureExtractionOutputs
+from scripts.data import FilePath, LocalFeatureExtractionOutputs
 from features.base import (
     Line2DFeatureHandler,
     LocalFeatureHandler,

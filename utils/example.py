@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Self
 
-from data import DEFAULT_DATASET_DIR, DataSchema, IMC2025TrainData
+from scripts.data import DEFAULT_DATASET_DIR, DataSchema, IMC2025TrainData
 
 
 class ExampleScene:

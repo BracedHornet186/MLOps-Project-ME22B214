@@ -15,7 +15,7 @@ import tqdm
 from PIL import Image, ImageOps
 from transformers import AutoImageProcessor, AutoModel
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from models.doppelgangers.models.cnn_classifier import decoder as DoppelGangers
 from models.doppelgangers.utils.dataset import read_loftr_matches
 from models.doppelgangers.third_party.loftr import LoFTR, default_cfg
@@ -26,7 +26,7 @@ from shortlists.global_descriptor import (
     GlobalDescriptorShortlistGenerator,
     create_global_descriptor_extractor,
 )
-from workspace import log
+from scripts.workspace import log
 
 
 def dict2namespace(config):

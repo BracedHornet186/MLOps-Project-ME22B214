@@ -5,18 +5,18 @@ import kornia
 import numpy as np
 import torch
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from matchers.base import DetectorFreeMatcher
 from matchers.config import QuadTreeConfig
 from models.quadtree.config.default import get_cfg_defaults
 from models.quadtree.lightning.lightning_loftr import PL_LoFTR
 from postprocesses.nms import sort_matched_keypoints_by_score
-from preprocess import paired_pre_resize, resize_image_opencv
+from scripts.preprocess import paired_pre_resize, resize_image_opencv
 from preprocesses.config import ResizeConfig
 from preprocesses.orientation import OrientationNormalizer
 from preprocesses.region import OverlapRegionCropper
-from storage import MatchedKeypointStorage
-from workspace import log
+from scripts.storage import MatchedKeypointStorage
+from scripts.workspace import log
 
 
 def read_image(path: FilePath) -> np.ndarray:

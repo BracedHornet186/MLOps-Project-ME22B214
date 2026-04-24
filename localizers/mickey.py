@@ -14,12 +14,12 @@ from models.mickey.datasets.utils import correct_intrinsic_scale
 from models.mickey.models.MicKey.modules.utils.training_utils import colorize, generate_heat_map
 from models.mickey.config.default import cfg
 
-from data import FilePath,resolve_model_path
+from scripts.data import FilePath,resolve_model_path
 from localizers.base import PostLocalizer, Localizer
 from localizers.common import get_default_K
 from localizers.config import MicKeyConfig
 from pipelines.scene import Scene
-from storage import (
+from scripts.storage import (
     InMemoryKeypointStorage,
     InMemoryMatchedKeypointStorage,
     InMemoryMatchingStorage,

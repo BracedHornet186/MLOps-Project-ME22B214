@@ -18,7 +18,7 @@ from pipelines.scene import Scene
 from shortlists.base import ShortlistGenerator, get_all_pairs
 from shortlists.config import ShortlistGeneratorConfig
 from shortlists.global_descriptor import create_global_descriptor_extractor
-from workspace import log
+from scripts.workspace import log
 
 
 class GlobalDescriptorFPSShortlistGenerator(ShortlistGenerator):

@@ -7,7 +7,7 @@ import tqdm
 import yaml
 from PIL import Image
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from models.fsnet.FSNet_model import FSNet_model, FSNet_model_handler
 from models.fsnet.modules.utils import ImagePairLoader
 from postprocesses.config import FSNetConfig, RANSACConfig

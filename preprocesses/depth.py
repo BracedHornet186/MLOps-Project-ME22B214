@@ -7,7 +7,7 @@ import tqdm
 from PIL import Image
 from transformers import AutoImageProcessor, AutoModelForDepthEstimation
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from pipelines.scene import Scene
 from preprocesses.config import DepthEstimationConfig
 

@@ -7,15 +7,15 @@ import torch.cuda.amp
 from lightglue.utils import numpy_image_to_torch
 from PIL import Image
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from features.base import read_image
 from matchers.base import DetectorFreeMatcher
 from matchers.config import XFeatStarMatcherConfig
 from models.xfeat.xfeat import XFeat
-from preprocess import resize_image_tensor
+from scripts.preprocess import resize_image_tensor
 from preprocesses.config import ResizeConfig
 from preprocesses.region import OverlapRegionCropper
-from storage import MatchedKeypointStorage
+from scripts.storage import MatchedKeypointStorage
 
 
 class XFeatStarMatcher(DetectorFreeMatcher):

@@ -19,7 +19,7 @@ from shortlists.global_descriptor import (
     MASt3RRetrievalSPoCGlobalDescriptorExtractor,
     PatchNetVLADGlobalDescriptorExtractor,
 )
-from workspace import log
+from scripts.workspace import log
 
 
 class IMC2024ShortlistGenerator(ShortlistGenerator):

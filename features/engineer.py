@@ -441,7 +441,7 @@ class FeatureEngineer:
         Returns a callable extractor(path, image_reader) → (lafs, kpts, scores, descs).
         Wraps LocalFeatureExtractor with the correct handler config.
         """
-        from extractor import LocalFeatureExtractor
+        from scripts.extractor import LocalFeatureExtractor
         from features.factory import create_local_feature_handler
         from features.config import LocalFeatureConfig
         from preprocesses.config import ResizeConfig

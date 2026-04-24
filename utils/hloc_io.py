@@ -5,8 +5,8 @@ import numpy as np
 import hloc.utils.io
 from hloc.utils.parsers import names_to_pair
 
-from data import FilePath
-from storage import (
+from scripts.data import FilePath
+from scripts.storage import (
     InMemoryLocalFeatureStorage,
     InMemoryMatchedKeypointStorage,
     InMemoryMatchingStorage,
@@ -200,7 +200,7 @@ def import_matching_from_hloc(
 
 
 if __name__ == "__main__":
-    from extractor import extract_all
+    from scripts.extractor import extract_all
     from pipeline import DetectorBasedPipeline, DetectorFreePipeline
     from pipelines.matching import run_detector_free_matching
     from utils.debug import get_first_scene, setup_data_and_pipeline

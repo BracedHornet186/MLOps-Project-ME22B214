@@ -12,14 +12,14 @@ import torch
 from kornia_moons.feature import draw_LAF_matches
 from PIL import Image
 
-from data import FilePath
+from scripts.data import FilePath
 from data_schema import DataSchema
-from extractor import LocalFeatureExtractor
+from scripts.extractor import LocalFeatureExtractor
 from matchers.base import DetectorFreeMatcher, LocalFeatureMatcher, PointTrackingMatcher
 from pipelines.config import RANSACConfig
 from pipelines.scene import Scene
 from pipelines.verification import run_ransac
-from storage import (
+from scripts.storage import (
     InMemoryKeypointStorage,
     InMemoryLocalFeatureStorage,
     InMemoryMatchedKeypointStorage,

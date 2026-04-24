@@ -14,7 +14,7 @@ from shortlists.imc2024 import (
     create_global_descriptor_extractors,
     extract_global_features,
 )
-from storage import (
+from scripts.storage import (
     InMemoryMatchedKeypointStorage,
     InMemoryMatchingStorage,
     Line2DSegmentStorage,

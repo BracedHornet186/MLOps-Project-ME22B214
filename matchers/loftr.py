@@ -5,15 +5,15 @@ import kornia
 import numpy as np
 import torch
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from matchers.base import DetectorFreeMatcher
 from matchers.config import LoFTRConfig
-from preprocess import paired_pre_resize, resize_image_tensor
+from scripts.preprocess import paired_pre_resize, resize_image_tensor
 from preprocesses.config import ResizeConfig
 from preprocesses.orientation import OrientationNormalizer
 from preprocesses.region import OverlapRegionCropper
-from storage import MatchedKeypointStorage
-from workspace import log, perf_time
+from scripts.storage import MatchedKeypointStorage
+from scripts.workspace import log, perf_time
 
 
 def read_image(path: FilePath) -> np.ndarray:

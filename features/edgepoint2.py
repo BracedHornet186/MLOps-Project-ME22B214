@@ -10,7 +10,7 @@ import torch
 from dad.utils import check_not_i16, sample_keypoints
 from PIL import Image
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from features.base import (
     LocalFeatureHandler,
     LocalFeatureOutputs,
@@ -21,7 +21,7 @@ from features.base import (
 )
 from features.config import EdgePoint2Config
 from models.edgepoint2.edgepoint2 import EdgePoint2Wrapper
-from preprocess import resize_image_opencv
+from scripts.preprocess import resize_image_opencv
 from preprocesses.config import ResizeConfig, RotationConfig
 from preprocesses.region import Cropper
 

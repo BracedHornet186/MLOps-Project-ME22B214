@@ -8,8 +8,8 @@ import torch
 import torch.nn as nn
 import torchvision.transforms as T
 
-from data import FilePath, resolve_model_path
-from extractor import LocalFeatureExtractor
+from scripts.data import FilePath, resolve_model_path
+from scripts.extractor import LocalFeatureExtractor
 from features.base import (
     LocalFeatureHandler,
     LocalFeatureOutputs,
@@ -19,7 +19,7 @@ from features.base import (
 from features.config import RELFConfig
 from models.relf.descriptor_utils import DescGroupPoolandNorm
 from models.relf.load_model import load_model
-from preprocess import resize_image_tensor
+from scripts.preprocess import resize_image_tensor
 from preprocesses.config import ResizeConfig, RotationConfig
 from preprocesses.region import Cropper
 

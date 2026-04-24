@@ -27,14 +27,14 @@ from mast3r.fast_nn import bruteforce_reciprocal_nns, extract_correspondences_no
 from mast3r.model import AsymmetricMASt3R
 from PIL import Image
 
-from data import FilePath, resolve_model_path
-from extractor import LocalFeatureExtractor
+from scripts.data import FilePath, resolve_model_path
+from scripts.extractor import LocalFeatureExtractor
 from matchers.base import DetectorFreeMatcher, PointTrackingMatcher
 from matchers.config import MASt3RSparseMatcherConfig
 from matchers.mast3r import load_images_fixed
 from models.mast3r.model import get_mast3r_model
 from preprocesses.region import OverlapRegionCropper
-from storage import KeypointStorage, MatchedKeypointStorage, MatchingStorage
+from scripts.storage import KeypointStorage, MatchedKeypointStorage, MatchingStorage
 
 
 def read_image(path: str) -> np.ndarray:

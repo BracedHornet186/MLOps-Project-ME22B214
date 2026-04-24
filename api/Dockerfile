@@ -54,14 +54,22 @@ RUN cythonize *.pyx
 
 WORKDIR /tmp/asmk/
 
+# Install faiss-cpu
+RUN pip install faiss-cpu>=1.10.0
+
 # Build the wheel
 RUN python -m build --no-isolation
 
 # Install the freshly built wheel
 RUN pip install dist/*.whl
 
+WORKDIR /app
+
 # ── Copy dependency definition first (for caching) ────────────────────────────
 COPY api/pyproject.toml .
+
+# ── Install project ───────────────────────────────────────────────────────────
+RUN pip install -e .
 
 # ── Copy full project source ──────────────────────────────────────────────────
 COPY scripts/             ./scripts/
@@ -86,9 +94,6 @@ COPY api/serve_app.py ./serve_app.py
 
 # Ensure package root
 RUN touch /app/__init__.py
-
-# ── Install project ───────────────────────────────────────────────────────────
-RUN pip install -e .
 
 # ── Expose API ────────────────────────────────────────────────────────────────
 EXPOSE 8000

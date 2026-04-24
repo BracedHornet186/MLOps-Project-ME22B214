@@ -6,7 +6,7 @@ from typing import Literal, Optional, Union
 import yaml
 from pydantic import BaseModel
 
-from core import ConfigBlock
+from scripts.core import ConfigBlock
 from models.config import (
     APGeMConfig,
     CVNetConfig,

@@ -72,6 +72,9 @@ logging.basicConfig(
 )
 log = logging.getLogger("serve_app")
 
+# ray.init()
+serve.start(detached=True, http_options={"host": "0.0.0.0"})
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Configuration
 # ─────────────────────────────────────────────────────────────────────────────

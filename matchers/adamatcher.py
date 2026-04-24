@@ -8,19 +8,19 @@ import torch
 from dotmap import DotMap
 from yacs.config import CfgNode as CN
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from matchers.base import DetectorFreeMatcher
 from matchers.config import AdaMatcherConfig
 from models.adamatcher.adamatcher.adamatcher import AdaMatcher
 from models.adamatcher.config.default import get_cfg_defaults
 from models.adamatcher.utils.misc import lower_config
-from preprocess import resize_image_opencv
+from scripts.preprocess import resize_image_opencv
 from preprocesses.config import ResizeConfig
 from preprocesses.orientation import OrientationNormalizer
 from preprocesses.region import OverlapRegionCropper
 from postprocesses.nms import sort_matched_keypoints_by_score
-from storage import MatchedKeypointStorage, MatchingStorage
-from workspace import log
+from scripts.storage import MatchedKeypointStorage, MatchingStorage
+from scripts.workspace import log
 
 
 def read_image(path: FilePath) -> np.ndarray:

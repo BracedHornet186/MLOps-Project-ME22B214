@@ -11,12 +11,12 @@ from kornia.core import Module, ModuleList, Tensor
 from kornia.core.check import KORNIA_CHECK
 from kornia.feature.lightglue import LearnableFourierPositionalEncoding, TransformerLayer, MatchAssignment, TokenConfidence
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from matchers.base import LocalFeatureMatcher
 from matchers.config import LightGlueConfig
 from postprocesses.panet import PANetRefiner
 from preprocesses.region import OverlapRegionCropper
-from storage import LocalFeatureStorage, MatchingStorage
+from scripts.storage import LocalFeatureStorage, MatchingStorage
 
 
 def read_image(path: str) -> np.ndarray:

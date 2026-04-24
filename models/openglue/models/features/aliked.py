@@ -14,9 +14,9 @@ from features.aliked import ALIKEDHandler
 from features.config import ALIKEDConfig, LocalFeatureConfig
 from features.factory import create_local_feature_handler
 from preprocesses.config import ResizeConfig
-from preprocess import resize_image_opencv
-from extractor import LocalFeatureExtractor
-from data import FilePath
+from scripts.preprocess import resize_image_opencv
+from scripts.extractor import LocalFeatureExtractor
+from scripts.data import FilePath
 
 
 CONFIG_V1 = LocalFeatureConfig(

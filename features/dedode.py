@@ -16,7 +16,7 @@ from kornia.feature.dedode.encoder import VGG_DINOv2
 from kornia.utils.image import image_to_tensor
 from pydantic import BaseModel
 
-from data import FilePath, resolve_model_path
+from scripts.data import FilePath, resolve_model_path
 from features.base import (
     LocalFeatureHandler,
     LocalFeatureOutputs,
@@ -24,7 +24,7 @@ from features.base import (
     read_image,
 )
 from features.config import DeDoDeConfig
-from preprocess import resize_image_tensor
+from scripts.preprocess import resize_image_tensor
 from preprocesses.config import ResizeConfig, RotationConfig
 from preprocesses.region import Cropper
 
