@@ -31,6 +31,7 @@ from docker.types import Mount
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 
+PROJECT_ROOT = os.environ.get("PROJECT_ROOT","/opt/airflow/project")
 ALERT_EMAIL = os.environ.get("SMTP_MAIL_FROM", "mlops-team@example.com")
 SMTP_USER = os.environ.get("SMTP_USER", "yashpurswani4@gmail.com")
 
@@ -85,7 +86,7 @@ with DAG(
 
     wait_for_train_dir = FileSensor(
         task_id="wait_for_train_dir",
-        filepath=f"{HOST_PROJECT_ROOT}/data/train",
+        filepath=f"{PROJECT_ROOT}/data/train",
         poke_interval=60,
         timeout=300,
         mode="reschedule",
@@ -94,7 +95,7 @@ with DAG(
 
     wait_for_train_labels = FileSensor(
         task_id="wait_for_train_labels",
-        filepath=f"{HOST_PROJECT_ROOT}/data/train_labels.csv",
+        filepath=f"{PROJECT_ROOT}/data/train_labels.csv",
         poke_interval=60,
         timeout=300,
         mode="reschedule",
@@ -103,7 +104,7 @@ with DAG(
 
     wait_for_train_thresholds = FileSensor(
         task_id="wait_for_train_thresholds",
-        filepath=f"{HOST_PROJECT_ROOT}/data/train_thresholds.csv",
+        filepath=f"{PROJECT_ROOT}/data/train_thresholds.csv",
         poke_interval=60,
         timeout=300,
         mode="reschedule",
@@ -118,7 +119,7 @@ with DAG(
         html_content=(
             "<h3>⚠️ Pipeline cannot start</h3>"
             "<p>One or more required data files are missing under "
-            f"<code>{HOST_PROJECT_ROOT}/data/</code>:</p>"
+            f"<code>{PROJECT_ROOT}/data/</code>:</p>"
             "<ul>"
             "<li><code>train/</code></li>"
             "<li><code>train_labels.csv</code></li>"
@@ -166,7 +167,7 @@ with DAG(
 
     select_best_run = BashOperator(
         task_id="select_best_run",
-        bash_command=f"cd {HOST_PROJECT_ROOT} && python scripts/select_best_run.py",
+        bash_command=f"cd {PROJECT_ROOT} && python scripts/select_best_run.py",
     )
 
     notify_user = EmailOperator(
@@ -177,7 +178,7 @@ with DAG(
         html_content=(
             "<h3>Production Config Updated</h3>"
             "<p>A new best run has been promoted to production.</p>"
-            f"<p>Config written to: <code>{HOST_PROJECT_ROOT}/conf/best_config.yaml</code></p>"
+            f"<p>Config written to: <code>{PROJECT_ROOT}/conf/best_config.yaml</code></p>"
         ),
     )
 

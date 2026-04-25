@@ -1,0 +1,12 @@
+{
+  "status": "warn",
+  "status_code": 1,
+  "total_rows_before_drop": 1945,
+  "total_images": 22,
+  "total_scenes": 3,
+  "missing_files": 1923,
+  "duplicate_images": 0,
+  "malformed_R": 0,
+  "malformed_t": 0,
+  "issue_count": 1923
+}

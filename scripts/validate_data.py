@@ -4,8 +4,8 @@ scripts/validate_data.py
 Stage 1 — Data Validation.
 
 Reads DVC-tracked CSVs, runs schema checks, writes:
-    - data/baselines/validation_report.json
-    - data/baselines/validation_metrics.json
+    - data/validation/validation_report.json
+    - data/validation/validation_metrics.json
 """
 
 from __future__ import annotations
@@ -62,7 +62,7 @@ def main() -> None:
     if conf.pipeline.type != "imc2025" or conf.pipeline.imc2025_pipeline is None:
         raise ValueError(f"Expected an imc2025 pipeline config, got type={conf.pipeline.type}")
 
-    output_dir = Path(DEFAULT_DATASET_DIR) / "baselines"
+    output_dir = Path(DEFAULT_DATASET_DIR) / "validation"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Keep missing-file counts before rows are dropped.

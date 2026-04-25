@@ -22,6 +22,7 @@ dependencies = [
     "dotmap>=1.3.30",
     "dsine",
     "dust3r",
+    "dvc",
     "e2cnn>=0.2.3",
     "faiss-cpu>=1.10.0",
     "fastapi==0.115.2",

@@ -12,9 +12,9 @@ stages:
       - data/train_thresholds.csv
       - data/train
     outs:
-      - data/baselines/validation_report.json
+      - data/validation/validation_report.json
     metrics:
-      - data/baselines/validation_metrics.json
+      - data/validation/validation_metrics.json
 
   eda_baselines:
     cmd: python scripts/eda_baselines.py
@@ -24,7 +24,11 @@ stages:
       - scripts/data_schema.py
       - data/train_labels.csv
       - data/train
-      - data/baselines/validation_report.json
+      - data/validation/validation_report.json
+    outs:
+      - data/baselines/resolution_hist.png
+      - data/baselines/similarity_matrix.png
+      - data/baselines/sharpness_hist.png
     metrics:
       - data/baselines/eda_baselines.json
       - data/baselines/eda_metrics.json

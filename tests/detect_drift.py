@@ -40,7 +40,7 @@ def main() -> None:
         print("ok")  # Don't block on missing baselines; just skip drift check
         sys.exit(0)
 
-    report_path = ROOT / "data" / "baselines" / "drift_report.json"
+    report_path = ROOT / "data" / "monitoring" / "drift_report.json"
 
     monitor = DriftMonitor(baselines_path=baselines_path)
 

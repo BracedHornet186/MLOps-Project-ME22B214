@@ -1,2 +1,5 @@
-/validation_report.json
-/validation_metrics.json
+/eda_baselines.json
+/eda_metrics.json
+/resolution_hist.png
+/similarity_matrix.png
+/sharpness_hist.png

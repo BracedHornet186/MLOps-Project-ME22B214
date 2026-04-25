@@ -3,7 +3,7 @@ import subprocess
 import mlflow
 
 def main():
-    mlflow_uri = os.environ.get("MLFLOW_TRACKING_URI", "http://localhost:5000")
+    mlflow_uri = os.environ.get("MLFLOW_TRACKING_URI", "http://mlflow:5000")
     experiment_name = os.environ.get("MLFLOW_EXPERIMENT_NAME", "scene_reconstruction_dvc")
 
     mlflow.set_tracking_uri(mlflow_uri)

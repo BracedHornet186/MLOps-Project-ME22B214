@@ -178,9 +178,9 @@ stages:
     deps:
     - path: data/train
       hash: md5
-      md5: 11d2518b261811cc9330913e36cd75ab.dir
-      size: 5134387059
-      nfiles: 1958
+      md5: 7bf67ac358a0ab8382635751d531bc7e.dir
+      size: 7468734
+      nfiles: 23
     - path: data/train_labels.csv
       hash: md5
       md5: 65d4ed3b1e80b4db596acadd29e09f29
@@ -191,62 +191,74 @@ stages:
       size: 1806
     - path: scripts/data.py
       hash: md5
-      md5: f4f8fc8508df8eaadd835383da5c20dc
-      size: 16992
+      md5: bf362ae6e2053555d3cd6f9c5c20cc36
+      size: 17008
     - path: scripts/data_schema.py
       hash: md5
       md5: 266cc683be0b08d73a85b842f2376371
       size: 2515
     - path: scripts/validate_data.py
       hash: md5
-      md5: 6db726f61a62a39e7f52debeb79d7582
-      size: 4652
+      md5: d55a9c4c91dd776818ab6be4a792fd32
+      size: 4671
     outs:
-    - path: data/baselines/validation_metrics.json
+    - path: data/validation/validation_metrics.json
       hash: md5
-      md5: 979a6bd7532451059c904fda59f4293e
-      size: 209
-    - path: data/baselines/validation_report.json
+      md5: bbb9b1b85861d933318335df6bf8af71
+      size: 212
+    - path: data/validation/validation_report.json
       hash: md5
-      md5: b428f61218ff3efcc9cc9b351c144446
-      size: 227
+      md5: 14cfcc0edfe68a95e79d697619fdfb88
+      size: 232
   eda_baselines:
     cmd: python scripts/eda_baselines.py
     deps:
-    - path: data/baselines/validation_report.json
-      hash: md5
-      md5: b428f61218ff3efcc9cc9b351c144446
-      size: 227
     - path: data/train
       hash: md5
-      md5: 11d2518b261811cc9330913e36cd75ab.dir
-      size: 5134387059
-      nfiles: 1958
+      md5: 7bf67ac358a0ab8382635751d531bc7e.dir
+      size: 7468734
+      nfiles: 23
     - path: data/train_labels.csv
       hash: md5
       md5: 65d4ed3b1e80b4db596acadd29e09f29
       size: 430314
+    - path: data/validation/validation_report.json
+      hash: md5
+      md5: 14cfcc0edfe68a95e79d697619fdfb88
+      size: 232
     - path: scripts/data.py
       hash: md5
-      md5: f4f8fc8508df8eaadd835383da5c20dc
-      size: 16992
+      md5: bf362ae6e2053555d3cd6f9c5c20cc36
+      size: 17008
     - path: scripts/data_schema.py
       hash: md5
       md5: 266cc683be0b08d73a85b842f2376371
       size: 2515
     - path: scripts/eda_baselines.py
       hash: md5
-      md5: 291dd014ff3d311edbfeb1ff7771c8ae
-      size: 9629
+      md5: 6e2254e079e7096e203ca50c5301b98a
+      size: 9645
     outs:
     - path: data/baselines/eda_baselines.json
       hash: md5
-      md5: 46a8db12a01b363a5d282f3aab395a3b
-      size: 936
+      md5: 0dc5b77daea6cb77efede2075e6e5bfc
+      size: 945
     - path: data/baselines/eda_metrics.json
       hash: md5
-      md5: b15e6b695bebc9f30150b3ee914d524a
-      size: 319
+      md5: fba8b8dc31ab6201930444f2dd79e263
+      size: 334
+    - path: data/baselines/resolution_hist.png
+      hash: md5
+      md5: 1ddb2ac38e507666661c21916a85c1e5
+      size: 26620
+    - path: data/baselines/sharpness_hist.png
+      hash: md5
+      md5: 1c6229627be6d6bc29774751a339181a
+      size: 22613
+    - path: data/baselines/similarity_matrix.png
+      hash: md5
+      md5: 8a5dc055582b6fc09c976ec76bf85695
+      size: 16432
   image_preprocess:
     cmd: python scripts/image_processing.py --preprocess-conf 
       conf/preprocess.yaml
@@ -257,33 +269,33 @@ stages:
       size: 2864
     - path: data/train
       hash: md5
-      md5: 11d2518b261811cc9330913e36cd75ab.dir
-      size: 5134387059
-      nfiles: 1958
+      md5: 7bf67ac358a0ab8382635751d531bc7e.dir
+      size: 7468734
+      nfiles: 23
     - path: data/train_labels.csv
       hash: md5
       md5: 65d4ed3b1e80b4db596acadd29e09f29
       size: 430314
     - path: pipelines/scene.py
       hash: md5
-      md5: 339efa58ff26ab4b3d2e457fa53619f0
-      size: 23454
+      md5: 5eaa190e7b64d8e15dff1ddb980f0e76
+      size: 23470
     - path: preprocesses/deblur.py
       hash: md5
-      md5: 2ccd59ad0f711a7b92db7f8bd860fe29
-      size: 4898
+      md5: fdf8d5fe0aed4b7e68ff5912759da379
+      size: 4906
     - path: preprocesses/orientation.py
       hash: md5
-      md5: 1cd0c5d177975d5ffe2744fd731e45f6
-      size: 7257
+      md5: 47e74f3bfab0b66bb63493024a09e153
+      size: 7265
     - path: preprocesses/pipeline.py
       hash: md5
       md5: 811a659131aa19127d14471c56d5ab29
       size: 12579
     - path: scripts/data.py
       hash: md5
-      md5: f4f8fc8508df8eaadd835383da5c20dc
-      size: 16992
+      md5: bf362ae6e2053555d3cd6f9c5c20cc36
+      size: 17008
     - path: scripts/data_schema.py
       hash: md5
       md5: 266cc683be0b08d73a85b842f2376371
@@ -298,17 +310,17 @@ stages:
     outs:
     - path: data/processed/images
       hash: md5
-      md5: 49578802f98ce5ff98665ef90ec8ea58.dir
-      size: 5812358294
-      nfiles: 1945
+      md5: f24fa243e1d209ba5b9c8aaef8690b45.dir
+      size: 8507441
+      nfiles: 22
     - path: data/processed/preprocess_metrics.json
       hash: md5
-      md5: 96b1219fe53da841a74b2c0199403027
-      size: 312
+      md5: 2a7d02dbda7fbee34e2ae7f1ca59fc09
+      size: 302
     - path: data/processed/preprocess_report.json
       hash: md5
-      md5: 9429c5532911374ed24e51fbdbc1f691
-      size: 12674
+      md5: 2ceffc26b8fb1558fede6955a0aafe0d
+      size: 1495
   evaluate:
     cmd: python scripts/evaluate.py --config conf/mast3r.yaml
     deps:
@@ -348,9 +360,9 @@ stages:
     deps:
     - path: data/processed/images
       hash: md5
-      md5: 49578802f98ce5ff98665ef90ec8ea58.dir
-      size: 5812358294
-      nfiles: 1945
+      md5: f24fa243e1d209ba5b9c8aaef8690b45.dir
+      size: 8507441
+      nfiles: 22
     - path: data/train_labels.csv
       hash: md5
       md5: 65d4ed3b1e80b4db596acadd29e09f29

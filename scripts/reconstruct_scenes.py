@@ -44,10 +44,10 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from config import PipelineConfig, SubmissionConfig
+from scripts.config import PipelineConfig, SubmissionConfig
 from scripts.data import DEFAULT_DATASET_DIR, IMC2025TrainData, setup_data_schema
-from distributed import DistConfig
-from pipeline import create_pipeline
+from scripts.distributed import DistConfig
+from scripts.pipeline import create_pipeline
 
 logging.basicConfig(
     level=logging.INFO,

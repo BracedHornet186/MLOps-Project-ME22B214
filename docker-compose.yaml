@@ -12,8 +12,8 @@ x-airflow-common:
     AIRFLOW__CORE__EXECUTOR: LocalExecutor
     AIRFLOW_CONN_FS_DEFAULT: 'fs://'
     AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
-    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN_CMD: "echo -n postgresql+psycopg2://airflow:$(cat /run/secrets/postgres_password)@postgres/airflow"
-    AIRFLOW__CELERY__RESULT_BACKEND_CMD: "echo -n db+postgresql+psycopg2://airflow:$(cat /run/secrets/postgres_password)@postgres/airflow"
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+    AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql+psycopg2://airflow:airflow@postgres/airflow
     AIRFLOW__CORE__FERNET_KEY: ${FERNET_KEY}
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
     AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
@@ -60,10 +60,7 @@ x-airflow-common:
     - mlflow-artifacts:/opt/mlflow/artifacts
     # Docker-out-of-Docker: lets DockerOperator spawn sibling containers
     - /var/run/docker.sock:/var/run/docker.sock
-  secrets:
-    - postgres_password
   user: "${AIRFLOW_UID:-1000}:0"
-  # user: "0:0"
   # Allow the Airflow process to write to the Docker socket (gid must match host docker group)
   group_add:
     - "${DOCKER_GID:-984}"
@@ -80,10 +77,8 @@ services:
     image: postgres:16
     environment:
       POSTGRES_USER: airflow
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      POSTGRES_PASSWORD: airflow
       POSTGRES_DB: airflow
-    secrets:
-      - postgres_password
     volumes:
       - postgres-db-volume:/var/lib/postgresql/data
     healthcheck:
@@ -140,7 +135,7 @@ services:
       RAY_DASHBOARD_HOST: "0.0.0.0"
       RAY_GRAFANA_HOST: "http://localhost:3001"
       RAY_PROMETHEUS_HOST: "http://prometheus:9090"
-      # MLFLOW_TRACKING_URI: "http://mlflow:5000"
+      MLFLOW_TRACKING_URI: "http://mlflow:5000"
       DEFAULT_DATASET_DIR: "/app/data"
       PIPELINE_CONFIG: "/app/conf/best_config.yaml"
       PIPELINE_CONFIG_FALLBACK: "/app/conf/mast3r.yaml"
@@ -150,7 +145,7 @@ services:
       SCENE3D_VOXEL_SIZE: "0.02"
       SCENE3D_MAX_POINTS: "500000"
       AUTH_ENABLED: "true"
-      # AIRFLOW_API_URL: "http://airflow-apiserver:8080"
+      AIRFLOW_API_URL: "http://airflow-apiserver:8080"
     command: bash -c "ray start --head --dashboard-host=0.0.0.0 && serve run serve_app:api_node"
     secrets:
       - jwt_secret
@@ -419,8 +414,6 @@ services:
 secrets:
   jwt_secret:
     file: ./secrets/jwt_secret
-  postgres_password:
-    file: ./secrets/postgres_password
   grafana_admin_password:
     file: ./secrets/grafana_admin_password
 
