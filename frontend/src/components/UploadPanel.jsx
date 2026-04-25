@@ -5,9 +5,7 @@
  * Validates ZIP files. Disables while a job is running.
  */
 import { useCallback, useRef, useState } from "react";
-import axios from "axios";
-
-const API = import.meta.env.VITE_API_URL || "/api";
+import apiClient from "../api";
 
 export default function UploadPanel({ onJobCreated, disabled }) {
   const [file, setFile] = useState(null);
@@ -39,7 +37,7 @@ export default function UploadPanel({ onJobCreated, disabled }) {
     formData.append("file", file);
 
     try {
-      const { data } = await axios.post(`${API}/upload`, formData);
+      const { data } = await apiClient.post("/upload", formData);
       onJobCreated(data.job_id);
       setFile(null);
     } catch (err) {

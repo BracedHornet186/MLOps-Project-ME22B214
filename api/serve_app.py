@@ -481,7 +481,7 @@ fastapi_app.add_middleware(
  
 @serve.deployment(
     LoggingConfig(log_level="INFO"),
-    num_replicas=2,
+    num_replicas=1,
     ray_actor_options={"num_gpus": 0, "num_cpus": 2},
 )
 @serve.ingress(fastapi_app)
@@ -938,7 +938,7 @@ class APIGateway:
 
                 # Save temporal drift and metrics history
                 try:
-                    drift_history_path = DATA_DIR / "monitoring" / "drift_history.jsonl"
+                    drift_history_path = RESULTS_DIR / "monitoring" / "drift_history.jsonl"
                     drift_history_path.parent.mkdir(parents=True, exist_ok=True)
                     
                     drift_entry = {

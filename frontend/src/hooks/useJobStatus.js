@@ -5,9 +5,7 @@
  * Returns { status, error, isPolling }.
  */
 import { useEffect, useRef, useState, useCallback } from "react";
-import axios from "axios";
-
-const API = import.meta.env.VITE_API_URL || "/api";
+import apiClient from "../api";
 const POLL_MS = 2000;
 
 export default function useJobStatus(jobId) {
@@ -29,7 +27,7 @@ export default function useJobStatus(jobId) {
 
     const poll = async () => {
       try {
-        const { data } = await axios.get(`${API}/status/${jobId}`);
+        const { data } = await apiClient.get(`/status/${jobId}`);
         setStatus(data);
 
         if (data.stage === "success" || data.stage === "failed") {

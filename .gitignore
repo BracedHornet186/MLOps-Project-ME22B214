@@ -10,7 +10,7 @@ logs/
 __pycache__/
 .env
 extra/snapshot/
-asmk/
-croco/
+extra/asmk/
+extra/croco/
 secrets/
 certs/

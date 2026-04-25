@@ -90,6 +90,7 @@ If you wish to run the project natively for development, follow these steps:
 
 **1. Build ASMK:**
 ```bash
+cd extra/
 git clone https://github.com/jenicek/asmk
 cd asmk/cython/
 cythonize *.pyx
@@ -101,6 +102,7 @@ cd ..
 **2. Build CroCo / DUSt3r Kernels:**
 DUST3R relies on RoPE positional embeddings, requiring compiled CUDA kernels for faster runtime.
 ```bash
+cd extra/
 git clone https://github.com/naver/croco.git
 cd croco/models/curope/
 python -m build --no-isolation

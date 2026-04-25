@@ -4,9 +4,7 @@
  * Fetches GPU readiness from /ready on mount.
  */
 import { useEffect, useState } from "react";
-import axios from "axios";
-
-const API = import.meta.env.VITE_API_URL || "/api";
+import apiClient from "../api";
 
 export default function useGpuStatus() {
   const [gpu, setGpu] = useState({ ready: false, device: "—" });
@@ -15,7 +13,7 @@ export default function useGpuStatus() {
   useEffect(() => {
     const check = async () => {
       try {
-        const { data } = await axios.get(`${API}/ready`);
+        const { data } = await apiClient.get(`/ready`);
         setGpu({ ready: data.status === "ready", device: data.device || "—" });
       } catch {
         setGpu({ ready: false, device: "unavailable" });

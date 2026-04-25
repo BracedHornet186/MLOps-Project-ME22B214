@@ -4,24 +4,9 @@
  * Reconstruction statistics table showing per-cluster stats.
  */
 import { useEffect, useState } from "react";
-import axios from "axios";
+import apiClient from "../api";
 
-const API = import.meta.env.VITE_API_URL || "/api";
-
-export default function StatsTable({ jobId, status }) {
-  const [clusters, setClusters] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (!jobId || status?.stage !== "success") return;
-    setLoading(true);
-    axios
-      .get(`${API}/clusters/${jobId}`)
-      .then(({ data }) => setClusters(data.clusters || []))
-      .catch(() => setClusters([]))
-      .finally(() => setLoading(false));
-  }, [jobId, status?.stage]);
-
+export default function StatsTable({ jobId, status, clusters = [] }) {
   if (!status) return null;
 
   const isDone = status.stage === "success";
@@ -31,9 +16,7 @@ export default function StatsTable({ jobId, status }) {
     <div className="panel stats-panel" id="stats-table">
       <h3 className="panel-title">Reconstruction Statistics</h3>
 
-      {loading && <p className="stats-loading"><span className="spinner-sm" /> Loading cluster data…</p>}
-
-      {!loading && hasCluster && (
+      {hasCluster && (
         <div className="table-wrap">
           <table className="stats-table">
             <thead>
@@ -50,14 +33,27 @@ export default function StatsTable({ jobId, status }) {
                   <td className="num">{c.num_points3D?.toLocaleString() ?? "—"}</td>
                   <td className="mono" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <span>{c.filename}</span>
-                    <a
-                      href={`${API}/download/${jobId}/${c.filename}`}
-                      download
+                    <button
+                      onClick={async () => {
+                        try {
+                          const response = await apiClient.get(`/download/jobs/${jobId}/${c.filename}`, { responseType: 'blob' });
+                          const url = window.URL.createObjectURL(new Blob([response.data]));
+                          const link = document.createElement('a');
+                          link.href = url;
+                          link.setAttribute('download', c.filename);
+                          document.body.appendChild(link);
+                          link.click();
+                          link.remove();
+                        } catch (err) {
+                          console.error("Download failed:", err);
+                        }
+                      }}
                       className="btn-download"
                       title="Download PLY"
+                      style={{ background: 'none', border: 'none', cursor: 'pointer' }}
                     >
                       ⬇️
-                    </a>
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -66,14 +62,27 @@ export default function StatsTable({ jobId, status }) {
                 <td className="num">—</td>
                 <td className="mono" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                   <span>submission_{jobId.slice(0, 8)}.csv</span>
-                  <a
-                    href={`${API}/jobs/${jobId}/download`}
-                    download
+                  <button
+                    onClick={async () => {
+                      try {
+                        const response = await apiClient.get(`/download/jobs/${jobId}/csv`, { responseType: 'blob' });
+                        const url = window.URL.createObjectURL(new Blob([response.data]));
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.setAttribute('download', `submission_${jobId.slice(0, 8)}.csv`);
+                        document.body.appendChild(link);
+                        link.click();
+                        link.remove();
+                      } catch (err) {
+                        console.error("Download failed:", err);
+                      }
+                    }}
                     className="btn-download"
                     title="Download CSV"
+                    style={{ background: 'none', border: 'none', cursor: 'pointer' }}
                   >
                     ⬇️
-                  </a>
+                  </button>
                 </td>
               </tr>
             </tbody>
@@ -81,7 +90,7 @@ export default function StatsTable({ jobId, status }) {
         </div>
       )}
 
-      {!loading && isDone && clusters.length === 0 && (
+      {isDone && clusters.length === 0 && (
         <p className="stats-loading">No clusters found for this reconstruction.</p>
       )}
 

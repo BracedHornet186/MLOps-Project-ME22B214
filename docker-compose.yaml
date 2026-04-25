@@ -398,19 +398,6 @@ services:
       start_period: 15s
     restart: always
 
-  # ── ML pipeline image builder ─────────────────────────────────────────────
-
-  # ml-pipeline-builder:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile.pipeline
-  #   image: my-dvc-pipeline:latest
-  #   entrypoint: ["echo", "my-dvc-pipeline:latest built successfully"]
-  #   profiles:
-  #     - build
-  #   networks:
-  #     - default
-
 secrets:
   jwt_secret:
     file: ./secrets/jwt_secret

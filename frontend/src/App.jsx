@@ -11,18 +11,20 @@
  *  └──────────────────────────────────────────┘
  */
 import { useState, useEffect } from "react";
-import axios from "axios";
+import apiClient from "./api";
 import Header from "./components/Header";
 import UploadPanel from "./components/UploadPanel";
 import StageTracker from "./components/StageTracker";
 import StatsTable from "./components/StatsTable";
 import ModelViewer from "./components/ModelViewer";
+import Login from "./components/Login";
 import useJobStatus from "./hooks/useJobStatus";
 import "./index.css";
 
-const API = import.meta.env.VITE_API_URL || "/api";
-
 export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    !!localStorage.getItem("access_token")
+  );
   const [jobId, setJobId] = useState(null);
   const [clusters, setClusters] = useState([]);
   const { status } = useJobStatus(jobId);
@@ -31,11 +33,19 @@ export default function App() {
   const isDone = stage === "success";
   const isRunning = jobId && !isDone && stage !== "failed";
 
+  // Listen for unauthorized events to clear auth state
+  useEffect(() => {
+    const handleUnauthorized = () => setIsAuthenticated(false);
+    window.addEventListener("auth:unauthorized", handleUnauthorized);
+    return () =>
+      window.removeEventListener("auth:unauthorized", handleUnauthorized);
+  }, []);
+
   // Fetch clusters when job completes
   useEffect(() => {
     if (!isDone || !jobId) return;
-    axios
-      .get(`${API}/clusters/${jobId}`)
+    apiClient
+      .get(`/clusters/${jobId}`)
       .then(({ data }) => setClusters(data.clusters || []))
       .catch(() => setClusters([]));
   }, [isDone, jobId]);
@@ -49,6 +59,10 @@ export default function App() {
     setJobId(null);
     setClusters([]);
   };
+
+  if (!isAuthenticated) {
+    return <Login onLoginSuccess={() => setIsAuthenticated(true)} />;
+  }
 
   return (
     <div className="dashboard">
@@ -75,7 +89,7 @@ export default function App() {
       </div>
 
       {/* ── Bottom Stats ──────────────────────────────────────── */}
-      {status && <StatsTable jobId={jobId} status={status} />}
+      {status && <StatsTable jobId={jobId} status={status} clusters={clusters} />}
     </div>
   );
 }

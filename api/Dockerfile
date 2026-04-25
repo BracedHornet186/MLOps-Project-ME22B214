@@ -33,7 +33,7 @@ COPY bundle/ ./bundle/
 RUN pip install $(find ./bundle/oss -name "*.whl")
 
 # Copy source
-COPY croco/ /tmp/croco/
+COPY extra/croco/ /tmp/croco/
 
 WORKDIR /tmp/croco/models/curope
 
@@ -46,7 +46,7 @@ RUN pip install dist/*.whl
 ENV LD_LIBRARY_PATH=/usr/local/lib/python3.11/dist-packages/torch/lib:$LD_LIBRARY_PATH
 
 # Copy asmk source
-COPY asmk/ /tmp/asmk/
+COPY extra/asmk/ /tmp/asmk/
 
 # Cythonize the .pyx files in the cython directory
 WORKDIR /tmp/asmk/cython/

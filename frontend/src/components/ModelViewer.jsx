@@ -9,7 +9,6 @@ import { OrbitControls } from "@react-three/drei";
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { PLYLoader } from "three/examples/jsm/loaders/PLYLoader.js";
-import axios from "axios";
 
 const API = import.meta.env.VITE_API_URL || "/api";
 
@@ -75,6 +74,11 @@ export default function ModelViewer({ jobId, clusters }) {
   const [pointSize, setPointSize] = useState(0.015);
   const [autoRotate, setAutoRotate] = useState(false);
 
+  // Reset selectedFile when jobId changes
+  useEffect(() => {
+    setSelectedFile(null);
+  }, [jobId]);
+
   // Auto-select first cluster when clusters arrive
   useEffect(() => {
     if (clusters?.length > 0 && !selectedFile) {
@@ -91,8 +95,10 @@ export default function ModelViewer({ jobId, clusters }) {
 
     const url = `${API}/download/jobs/${jobId}/${selectedFile}`;
     const loader = new PLYLoader();
+    const token = localStorage.getItem("access_token");
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-    fetch(url)
+    fetch(url, { headers })
       .then((res) => {
         if (!res.ok) throw new Error(`Download failed (HTTP ${res.status})`);
         return res.arrayBuffer();
