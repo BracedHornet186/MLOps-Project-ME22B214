@@ -1,0 +1,96 @@
+# .github/workflows/security.yml
+# ─────────────────────────────────────────────────────────────────────────────
+# Security CI: Trivy image scanning + pip-audit dependency auditing
+# Runs on every push and pull request.
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: Security Scan
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ── Trivy: Container Image Scanning ──────────────────────────────────────
+  trivy-scan:
+    name: Trivy Image Scan
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - service: ray-serve
+            dockerfile: api/Dockerfile
+          - service: scene3d-ui
+            dockerfile: frontend/Dockerfile
+          - service: ml-pipeline-builder
+            dockerfile: Dockerfile.pipeline
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build ${{ matrix.target.service }} image
+        run: |
+          docker build -t mlops-${{ matrix.target.service }}:scan \
+            -f ${{ matrix.target.dockerfile }} .
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: mlops-${{ matrix.target.service }}:scan
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: 1
+          ignore-unfixed: true
+
+      - name: Upload Trivy SARIF report
+        if: always()
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: mlops-${{ matrix.target.service }}:scan
+          format: sarif
+          output: trivy-${{ matrix.target.service }}.sarif
+          severity: CRITICAL,HIGH
+
+      - name: Upload SARIF to GitHub Security
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-${{ matrix.target.service }}.sarif
+
+  # ── pip-audit: Python Dependency Auditing ────────────────────────────────
+  pip-audit:
+    name: Dependency Audit (pip-audit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install pip-audit
+        run: pip install pip-audit
+
+      - name: Audit API dependencies
+        run: |
+          echo "=== Auditing api/pyproject.toml ==="
+          pip-audit --requirement <(pip-compile --quiet --output-file=- api/pyproject.toml 2>/dev/null) \
+            --desc --output=json --output-file=pip-audit-report.json \
+            || true
+          cat pip-audit-report.json
+
+      - name: Audit pipeline dependencies
+        run: |
+          echo "=== Auditing root pyproject.toml ==="
+          pip-audit --requirement <(pip-compile --quiet --output-file=- pyproject.toml 2>/dev/null) \
+            --desc \
+            || true
+
+      - name: Upload audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pip-audit-report
+          path: pip-audit-report.json

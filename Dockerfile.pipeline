@@ -3,7 +3,6 @@
 # Ephemeral DVC/MLflow pipeline image.
 # Built once; Airflow DockerOperator launches short-lived containers from it.
 #
-# Python 3.11 (matches pyproject.toml: requires-python = "==3.11.*")
 # ─────────────────────────────────────────────────────────────────────────────
 FROM python:3.11-slim
 

@@ -21,7 +21,7 @@ export default function Header({ jobId, stage }) {
       <div className="header-meta">
         {jobId && (
           <span className="header-chip" id="header-job-id">
-            Job: <code>{jobId.slice(0, 8)}</code>
+            Job: <code>{jobId}</code>
           </span>
         )}
 

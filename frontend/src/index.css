@@ -278,6 +278,27 @@ body {
   background: var(--gray-50);
 }
 
+.btn-download {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 6px;
+  margin-left: 8px;
+  background: var(--blue-50);
+  color: var(--blue-600);
+  border: 1px solid var(--blue-100);
+  border-radius: var(--radius);
+  text-decoration: none;
+  font-size: 0.85rem;
+  transition: all 0.15s ease;
+  line-height: 1;
+}
+
+.btn-download:hover {
+  background: var(--blue-100);
+  transform: translateY(-1px);
+}
+
 /* ── Stage tracker ─────────────────────────────────────────────── */
 
 .stage-list {

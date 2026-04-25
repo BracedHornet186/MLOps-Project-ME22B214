@@ -31,7 +31,7 @@ def main() -> None:
 
     baselines_path = ROOT / "data" / "baselines" / "eda_baselines.json"
     if not baselines_path.exists():
-        baselines_path = ROOT / "data" / "processed" / "eda_baselines.json"
+        baselines_path = ROOT / "data" / "baselines" / "eda_baselines.json"
     if not baselines_path.exists():
         log.error(
             "EDA baselines not found at either expected path. "
@@ -40,13 +40,9 @@ def main() -> None:
         print("ok")  # Don't block on missing baselines; just skip drift check
         sys.exit(0)
 
-    features_dir = ROOT / "data" / "processed" / "features"
-    report_path = ROOT / "data" / "processed" / "drift_report.json"
+    report_path = ROOT / "data" / "baselines" / "drift_report.json"
 
-    monitor = DriftMonitor(
-        baselines_path=baselines_path,
-        features_dir=features_dir,
-    )
+    monitor = DriftMonitor(baselines_path=baselines_path)
 
     report = monitor.check(
         report_path=report_path,

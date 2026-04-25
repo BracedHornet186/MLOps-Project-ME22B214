@@ -86,14 +86,14 @@ COPY retrievers/          ./retrievers/
 COPY shortlists/          ./shortlists/
 COPY core/                ./core/
 COPY utils/               ./utils/
-COPY conf/                ./conf/
-COPY extra/               ./extra/
 
 # ── Copy API ──────────────────────────────────────────────────────────────────
 COPY api/serve_app.py ./serve_app.py
+COPY api/auth.py      ./api/auth.py
+COPY api/middleware.py ./api/middleware.py
 
 # Ensure package root
-RUN touch /app/__init__.py
+RUN touch /app/__init__.py /app/api/__init__.py
 
 # ── Expose API ────────────────────────────────────────────────────────────────
 ENV RAY_DASHBOARD_HOST="0.0.0.0"
@@ -102,6 +102,3 @@ EXPOSE 8265
 # ── Healthcheck ───────────────────────────────────────────────────────────────
 HEALTHCHECK --interval=60s --timeout=10s --start-period=180s --retries=5 \
     CMD curl -f http://localhost:8000/health || exit 1
-
-# # ── Start Ray Serve ───────────────────────────────────────────────────────────
-# CMD ["serve", "run", "serve_app:api_node"]

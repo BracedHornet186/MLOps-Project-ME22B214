@@ -6,14 +6,11 @@ Used by:
   - The Airflow preprocessing DAG (task: check_feature_drift)
   - The Airflow retraining DAG (task: run_drift_check)
   - The FastAPI /metrics endpoint (Prometheus gauge)
-  - Stage 6 monitoring callbacks
 
-Drift is detected using the Kolmogorov–Smirnov two-sample test.
-Baselines are the EDA statistics saved to data/processed/eda_baselines.json.
-Live statistics are read from data/processed/features/<scene>/
+Baselines are the EDA statistics saved to data/baselines/eda_baselines.json.
 
 All alerts are:
-  1. Written to data/processed/drift_report.json
+  1. Written to data/baselines/drift_report.json
   2. Exposed as Prometheus gauges (when called from the API)
 """
 
@@ -33,13 +30,13 @@ logger = logging.getLogger(__name__)
 # ── Constants ──────────────────────────────────────────────────────────────────
 
 DEFAULT_BASELINES_PATH = Path(
-    os.environ.get("DEFAULT_DATASET_DIR", "data") + "/processed/eda_baselines.json"
+    os.environ.get("DEFAULT_DATASET_DIR", "data") + "/baselines/eda_baselines.json"
 )
 DEFAULT_FEATURES_DIR = Path(
-    os.environ.get("DEFAULT_DATASET_DIR", "data") + "/processed/features"
+    os.environ.get("DEFAULT_DATASET_DIR", "data") + "/baselines/features"
 )
 DEFAULT_REPORT_PATH = Path(
-    os.environ.get("DEFAULT_DATASET_DIR", "data") + "/processed/drift_report.json"
+    os.environ.get("DEFAULT_DATASET_DIR", "data") + "/monitoring/drift_report.json"
 )
 
 # KS-test p-value threshold — alert when p < this value
@@ -112,7 +109,6 @@ class DriftMonitor:
     def __init__(
         self,
         baselines_path: Path = DEFAULT_BASELINES_PATH,
-        features_dir: Path = DEFAULT_FEATURES_DIR,
         ks_alpha: float = DEFAULT_KS_ALPHA,
         mlflow_uri: Optional[str] = None,
         reg_rate_drop_threshold: float = DEFAULT_REG_RATE_DROP_THRESHOLD,
@@ -157,39 +153,35 @@ class DriftMonitor:
             report.status = "ok"
             return report
 
+        if not live_stats:
+            logger.warning("No live_stats provided — skipping drift check")
+            report.status = "ok"
+            return report
+
         # ── 1. Descriptor norm drift ───────────────────────────────────────
-        if live_stats:
-            alerts = self._check_descriptor_norms_from_stats(live_stats)
-            report.alerts.extend(alerts)
-            report.n_features_checked += 1
-        else:
-            alerts = self._check_descriptor_norms_from_files()
-            report.alerts.extend(alerts)
-            report.n_features_checked += 1
+        alerts = self._check_descriptor_norms_from_stats(live_stats)
+        report.alerts.extend(alerts)
+        report.n_features_checked += 1
 
         # ── 2. Sharpness drift ─────────────────────────────────────────────
-        if live_stats:
-            alerts = self._check_sharpness(live_stats)
-            report.alerts.extend(alerts)
-            report.n_features_checked += 1
+        alerts = self._check_sharpness(live_stats)
+        report.alerts.extend(alerts)
+        report.n_features_checked += 1
 
         # ── 3. Resolution drift ────────────────────────────────────────────
-        if live_stats:
-            alerts = self._check_resolution(live_stats)
-            report.alerts.extend(alerts)
-            report.n_features_checked += 1
+        alerts = self._check_resolution(live_stats)
+        report.alerts.extend(alerts)
+        report.n_features_checked += 1
 
         # ── 4. Brightness drift ────────────────────────────────────────────
-        if live_stats:
-            alerts = self._check_brightness(live_stats)
-            report.alerts.extend(alerts)
-            report.n_features_checked += 1
+        alerts = self._check_brightness(live_stats)
+        report.alerts.extend(alerts)
+        report.n_features_checked += 1
 
         # ── 5. Contrast drift ──────────────────────────────────────────────
-        if live_stats:
-            alerts = self._check_contrast(live_stats)
-            report.alerts.extend(alerts)
-            report.n_features_checked += 1
+        alerts = self._check_contrast(live_stats)
+        report.alerts.extend(alerts)
+        report.n_features_checked += 1
 
         # ── 6. Performance proxy drift ─────────────────────────────────────
         if check_performance:
@@ -258,58 +250,6 @@ class DriftMonitor:
                         f"live={live_val:.4f}, baseline={b_mean:.4f}, z={z:.2f}"
                     ),
                 ))
-        return alerts
-
-    def _check_descriptor_norms_from_files(self) -> list[DriftAlert]:
-        """Load saved .npy descriptor files and run KS-test against baseline."""
-        from scipy.stats import ks_2samp
-
-        alerts: list[DriftAlert] = []
-        baseline_desc = self.baselines.get("descriptor", {})
-        if not baseline_desc:
-            return alerts
-
-        b_mean = baseline_desc.get("norm_mean", 0.0)
-        b_std  = baseline_desc.get("norm_std", 1.0) or 1.0
-
-        # Reconstruct a synthetic baseline sample from mean/std
-        rng = np.random.default_rng(42)
-        baseline_sample = rng.normal(b_mean, b_std, size=500)
-
-        npy_files = list(self.features_dir.rglob("global_dinov2.npy"))
-        if not npy_files:
-            return alerts
-
-        live_norms: list[float] = []
-        for npy_path in npy_files[:50]:  # cap at 50 scenes for speed
-            try:
-                feats = np.load(str(npy_path))
-                norms = np.linalg.norm(feats, axis=1)
-                live_norms.extend(norms.tolist())
-            except Exception:
-                pass
-
-        if len(live_norms) < 10:
-            return alerts
-
-        live_arr = np.array(live_norms)
-        ks_stat, p_val = ks_2samp(baseline_sample, live_arr)
-
-        if p_val < self.ks_alpha:
-            severity = "critical" if p_val < 0.001 else "warning"
-            alerts.append(DriftAlert(
-                feature="global_dinov2_norms",
-                stat_name="ks_p_value",
-                baseline_val=b_mean,
-                live_val=float(live_arr.mean()),
-                severity=severity,
-                message=(
-                    f"{severity.upper()} DRIFT [global_dinov2_norms]: "
-                    f"KS p={p_val:.4f} < alpha={self.ks_alpha} | "
-                    f"live_mean={live_arr.mean():.4f}, "
-                    f"baseline_mean={b_mean:.4f}"
-                ),
-            ))
         return alerts
 
     def _check_sharpness(self, live_stats: dict) -> list[DriftAlert]:
@@ -599,7 +539,6 @@ def main() -> None:
 
     parser = argparse.ArgumentParser(description="Run feature drift check")
     parser.add_argument("--baselines", default=str(DEFAULT_BASELINES_PATH))
-    parser.add_argument("--features-dir", default=str(DEFAULT_FEATURES_DIR))
     parser.add_argument("--report-out", default=str(DEFAULT_REPORT_PATH))
     parser.add_argument("--alpha", type=float, default=DEFAULT_KS_ALPHA)
     parser.add_argument("--check-performance", action="store_true",
@@ -610,7 +549,6 @@ def main() -> None:
 
     monitor = DriftMonitor(
         baselines_path=Path(args.baselines),
-        features_dir=Path(args.features_dir),
         ks_alpha=args.alpha,
         mlflow_uri=args.mlflow_uri,
     )

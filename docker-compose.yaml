@@ -12,9 +12,8 @@ x-airflow-common:
     AIRFLOW__CORE__EXECUTOR: LocalExecutor
     AIRFLOW_CONN_FS_DEFAULT: 'fs://'
     AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
-    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
-    AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql+psycopg2://airflow:airflow@postgres/airflow
-    AIRFLOW__CELERY__BROKER_URL: redis://:@redis:6379/0
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN_CMD: "echo -n postgresql+psycopg2://airflow:$(cat /run/secrets/postgres_password)@postgres/airflow"
+    AIRFLOW__CELERY__RESULT_BACKEND_CMD: "echo -n db+postgresql+psycopg2://airflow:$(cat /run/secrets/postgres_password)@postgres/airflow"
     AIRFLOW__CORE__FERNET_KEY: ${FERNET_KEY}
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
     AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
@@ -61,7 +60,10 @@ x-airflow-common:
     - mlflow-artifacts:/opt/mlflow/artifacts
     # Docker-out-of-Docker: lets DockerOperator spawn sibling containers
     - /var/run/docker.sock:/var/run/docker.sock
+  secrets:
+    - postgres_password
   user: "${AIRFLOW_UID:-1000}:0"
+  # user: "0:0"
   # Allow the Airflow process to write to the Docker socket (gid must match host docker group)
   group_add:
     - "${DOCKER_GID:-984}"
@@ -78,8 +80,10 @@ services:
     image: postgres:16
     environment:
       POSTGRES_USER: airflow
-      POSTGRES_PASSWORD: airflow
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
       POSTGRES_DB: airflow
+    secrets:
+      - postgres_password
     volumes:
       - postgres-db-volume:/var/lib/postgresql/data
     healthcheck:
@@ -123,6 +127,7 @@ services:
 
   # ── Ray Serve (unified GPU + API gateway) ───────────────────────────────────
   ray-serve:
+    image: mlops-project-me22b214-ray-serve:latest
     build:
       context: .
       dockerfile: api/Dockerfile
@@ -133,7 +138,9 @@ services:
     environment:
       PYTHONUNBUFFERED: 1
       RAY_DASHBOARD_HOST: "0.0.0.0"
-      MLFLOW_TRACKING_URI: "http://mlflow:5000"
+      RAY_GRAFANA_HOST: "http://localhost:3001"
+      RAY_PROMETHEUS_HOST: "http://prometheus:9090"
+      # MLFLOW_TRACKING_URI: "http://mlflow:5000"
       DEFAULT_DATASET_DIR: "/app/data"
       PIPELINE_CONFIG: "/app/conf/best_config.yaml"
       PIPELINE_CONFIG_FALLBACK: "/app/conf/mast3r.yaml"
@@ -142,11 +149,15 @@ services:
       SCENE3D_MAX_UPLOAD_MB: "500"
       SCENE3D_VOXEL_SIZE: "0.02"
       SCENE3D_MAX_POINTS: "500000"
-      AIRFLOW_API_URL: "http://airflow-apiserver:8080"
+      AUTH_ENABLED: "true"
+      # AIRFLOW_API_URL: "http://airflow-apiserver:8080"
     command: bash -c "ray start --head --dashboard-host=0.0.0.0 && serve run serve_app:api_node"
+    secrets:
+      - jwt_secret
     volumes:
       - ./data:/app/data:ro
       - ./conf:/app/conf:ro
+      - ./extra:/app/extra:ro
       - reconstruction-results:/app/results
       - mlflow-artifacts:/opt/mlflow/artifacts
     deploy:
@@ -165,6 +176,8 @@ services:
     restart: on-failure
     profiles:
       - inference
+    networks:
+      - default
 
   # ── React + Three.js Frontend ───────────────────────────────────────────────
 
@@ -176,13 +189,22 @@ services:
         VITE_API_URL: /api
     container_name: scene3d-ui
     ports:
+      - "443:443"
       - "5173:80"
+    volumes:
+      - ./certs:/etc/nginx/certs:ro
     depends_on:
       ray-serve:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 20
+      start_period: 10s
+    restart: on-failure
     profiles:
       - inference
-    restart: unless-stopped
 
   # ── Airflow components ──────────────────────────────────────────────────────
 
@@ -353,55 +375,54 @@ services:
       start_period: 10s
     restart: always
 
-  # grafana:
-  #   image: grafana/grafana:11.1.0
-  #   ports:
-  #     - "3000:3000"
-  #   environment:
-  #     GF_SECURITY_ADMIN_USER: admin
-  #     GF_SECURITY_ADMIN_PASSWORD: admin
-  #     GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/scene_reconstruction.json
-  #   volumes:
-  #     - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
-  #     - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
-  #     - grafana-data:/var/lib/grafana
-  #   depends_on:
-  #     prometheus:
-  #       condition: service_healthy
-  #   healthcheck:
-  #     test: ["CMD", "curl", "--fail", "http://localhost:3000/api/health"]
-  #     interval: 30s
-  #     timeout: 5s
-  #     retries: 5
-  #     start_period: 15s
-  #   restart: always
-
   grafana:
     image: grafana/grafana:11.1.0
     ports:
-      - "3000:3000"
+      - "3001:3000"
     environment:
       GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: admin
-      # GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/scene_reconstruction.json
+      GF_SECURITY_ADMIN_PASSWORD__FILE: /run/secrets/grafana_admin_password
+      GF_SECURITY_ALLOW_EMBEDDING: "true"
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/scene_reconstruction.json
+    secrets:
+      - grafana_admin_password
     volumes:
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
       - grafana-data:/var/lib/grafana
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
     restart: always
 
   # ── ML pipeline image builder ─────────────────────────────────────────────
 
-  ml-pipeline-builder:
-    build:
-      context: .
-      dockerfile: Dockerfile.pipeline
-    image: my-dvc-pipeline:latest
-    entrypoint: ["echo", "my-dvc-pipeline:latest built successfully"]
-    profiles:
-      - build
-    networks:
-      - default
+  # ml-pipeline-builder:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.pipeline
+  #   image: my-dvc-pipeline:latest
+  #   entrypoint: ["echo", "my-dvc-pipeline:latest built successfully"]
+  #   profiles:
+  #     - build
+  #   networks:
+  #     - default
+
+secrets:
+  jwt_secret:
+    file: ./secrets/jwt_secret
+  postgres_password:
+    file: ./secrets/postgres_password
+  grafana_admin_password:
+    file: ./secrets/grafana_admin_password
 
 volumes:
   postgres-db-volume:

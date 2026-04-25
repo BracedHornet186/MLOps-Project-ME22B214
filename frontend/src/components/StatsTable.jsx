@@ -48,9 +48,34 @@ export default function StatsTable({ jobId, status }) {
                 <tr key={c.id}>
                   <td>{c.name}</td>
                   <td className="num">{c.num_points3D?.toLocaleString() ?? "—"}</td>
-                  <td className="mono">{c.filename}</td>
+                  <td className="mono" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <span>{c.filename}</span>
+                    <a
+                      href={`${API}/download/${jobId}/${c.filename}`}
+                      download
+                      className="btn-download"
+                      title="Download PLY"
+                    >
+                      ⬇️
+                    </a>
+                  </td>
                 </tr>
               ))}
+              <tr>
+                <td>Submission CSV</td>
+                <td className="num">—</td>
+                <td className="mono" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <span>submission_{jobId.slice(0, 8)}.csv</span>
+                  <a
+                    href={`${API}/jobs/${jobId}/download`}
+                    download
+                    className="btn-download"
+                    title="Download CSV"
+                  >
+                    ⬇️
+                  </a>
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>

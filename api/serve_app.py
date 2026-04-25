@@ -48,7 +48,7 @@ from typing import Any, Optional
 
 import torch
 import uvicorn
-from fastapi import BackgroundTasks, FastAPI, File, HTTPException, UploadFile
+from fastapi import BackgroundTasks, Depends, FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from prometheus_client import (
@@ -59,8 +59,8 @@ from prometheus_client import (
     generate_latest,
 )
 from pydantic import BaseModel
-import ray
 from ray import serve
+from ray.serve.schema import LoggingConfig
 
 # ── Project root on path ──────────────────────────────────────────────────────
 ROOT = Path(__file__).resolve().parent.parent
@@ -70,12 +70,13 @@ sys.path.insert(0, str(ROOT / "scripts"))
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s — %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)],
-    force=True
 )
 log = logging.getLogger("serve_app")
 
-serve.start(detached=True, http_options={"host": "0.0.0.0"})
+serve.start(detached=True, 
+            http_options={"host": "0.0.0.0", "port": 8000},
+            logging_config={"log_level": "INFO"},
+        )
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Configuration
@@ -90,6 +91,7 @@ MAX_CONCURRENT_JOBS   = 1
 MAX_UPLOAD_SIZE_MB    = int(os.environ.get("SCENE3D_MAX_UPLOAD_MB", "500"))
 VOXEL_SIZE            = float(os.environ.get("SCENE3D_VOXEL_SIZE", "0.02"))
 MAX_POINT_COUNT       = int(os.environ.get("SCENE3D_MAX_POINTS", "500000"))
+DATA_DIR              = Path(os.environ.get("DEFAULT_DATASET_DIR", "data"))
 RESULTS_DIR           = Path(os.environ.get("RESULTS_DIR", "/tmp/reconstruction_results"))
 AIRFLOW_API_URL       = os.environ.get("AIRFLOW_API_URL", "http://airflow-apiserver:8080")
 ALLOWED_IMAGE_EXTS    = {".jpg", ".jpeg", ".png", ".tif", ".tiff", ".bmp", ".webp"}
@@ -131,6 +133,9 @@ class JobRecord(BaseModel):
     ply_path:     Optional[str]   = None
     error:        Optional[str]   = None
     registration_rate: Optional[float] = None
+    has_drift:         Optional[bool]   = None
+    drift_severity:    Optional[str]    = None
+    drift_report:      Optional[dict]   = None
 
 class JobManager:
     def __init__(self, max_concurrent: int):
@@ -180,6 +185,8 @@ class JobStatusResponse(BaseModel):
     registration_rate: Optional[float]
     error:             Optional[str]
     download_url:      Optional[str]
+    has_drift:         Optional[bool]   = None
+    drift_severity:    Optional[str]    = None
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Helpers shared between deployments
@@ -217,6 +224,7 @@ def _extract_zip_images(content: bytes, destination_dir: Path) -> int:
 # ─────────────────────────────────────────────────────────────────────────────
 
 @serve.deployment(
+    LoggingConfig(log_level="INFO"),
     num_replicas=1,
     ray_actor_options={"num_gpus": 1, "num_cpus": 4},
 )
@@ -224,7 +232,7 @@ class GPUModelWorker:
     """
     Holds the MASt3R pipeline permanently in VRAM.
     Loads once at startup; never reloads between requests.
-    No MLflow logging — job state lives in the API gateway's JobManager.
+    job state lives in the API gateway's JobManager.
     """
 
     def __init__(self):
@@ -277,7 +285,7 @@ class GPUModelWorker:
           3. Run pipeline.run()
           4. Compute registration rate
           5. Persist CSV + PLY to RESULTS_DIR
-          6. Return result dict (no MLflow)
+          6. Return result dict
         """
         import pandas as pd
         from scripts.data_schema import DataSchema
@@ -305,7 +313,7 @@ class GPUModelWorker:
                         dest.write_bytes(zf.read(name))
 
                 n_images = len(image_names)
-                log.info("Job %s: extracted %d images", job_id[:8], n_images)
+                log.info("Job %s: extracted %d images", job_id, n_images)
 
                 # ── 2. Build submission DataFrame ─────────────────────────────
                 rows = []
@@ -411,7 +419,7 @@ class GPUModelWorker:
 
                             log.info(
                                 "Job %s: exported %s (%d pts) → %s",
-                                job_id[:8],
+                                job_id,
                                 cluster_name,
                                 len(rec.points3D),
                                 ply_path,
@@ -421,13 +429,13 @@ class GPUModelWorker:
                             log.warning("Skipping reconstruction: %s", e)
 
                     if not persist_plys:
-                        log.info("Job %s: no valid reconstructions found", job_id[:8])
+                        log.info("Job %s: no valid reconstructions found", job_id)
 
                 except Exception as e:
-                    log.warning("Job %s: PLY export failed: %s", job_id[:8], e)
+                    log.warning("Job %s: PLY export failed: %s", job_id, e)
                 log.info(
                     "Job %s done — registered=%d/%d (%.1f%%)  elapsed=%.1fs",
-                    job_id[:8], registered, n_images, 100 * reg_rate, elapsed,
+                    job_id, registered, n_images, 100 * reg_rate, elapsed,
                 )
 
                 return {
@@ -451,7 +459,15 @@ class GPUModelWorker:
 # ─────────────────────────────────────────────────────────────────────────────
 
 fastapi_app = FastAPI(title="Scene Reconstruction API", version=API_VERSION)
- 
+
+# ── Auth router ───────────────────────────────────────────────────────────────
+from api.auth import auth_router, get_current_user
+fastapi_app.include_router(auth_router)
+
+# ── Middleware ────────────────────────────────────────────────────────────────
+from api.middleware import AccessLogMiddleware
+fastapi_app.add_middleware(AccessLogMiddleware)
+
 fastapi_app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -464,6 +480,7 @@ fastapi_app.add_middleware(
 # ─────────────────────────────────────────────────────────────────────────────
  
 @serve.deployment(
+    LoggingConfig(log_level="INFO"),
     num_replicas=2,
     ray_actor_options={"num_gpus": 0, "num_cpus": 2},
 )
@@ -525,24 +542,78 @@ class APIGateway:
 
     # ── Drift monitoring ─────────────────────────────
 
-    @fastapi_app.get("/drift", tags=["monitoring"])
-    async def drift_check(self):
+    async def _analyze_drift(self, content: bytes) -> dict:
         from scripts.drift_monitor import DriftMonitor, update_prometheus_drift_metrics
-        data_dir = Path(os.environ.get("DEFAULT_DATASET_DIR", "data"))
+        import cv2
+        import numpy as np
+
+        heights, widths = [], []
+        sharpness, brightness, contrast = [], [], []
+
+        with zipfile.ZipFile(io.BytesIO(content)) as zf:
+            for name in zf.namelist():
+                if name.startswith("__MACOSX/") or name.startswith("._"): continue
+                if not any(name.lower().endswith(ext) for ext in ALLOWED_IMAGE_EXTS): continue
+                img_bytes = zf.read(name)
+                nparr = np.frombuffer(img_bytes, np.uint8)
+                img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+                if img is None: continue
+
+                h, w = img.shape[:2]
+                heights.append(h)
+                widths.append(w)
+
+                gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                sharpness.append(cv2.Laplacian(gray, cv2.CV_64F).var())
+                brightness.append(np.mean(gray))
+                contrast.append(np.std(gray))
+
+        if not heights:
+            raise ValueError("No valid images found in ZIP")
+
+        live_stats = {
+            "height_mean": float(np.mean(heights)),
+            "width_mean": float(np.mean(widths)),
+            "sharpness_mean": float(np.mean(sharpness)),
+            "brightness_mean": float(np.mean(brightness)),
+            "contrast_mean": float(np.mean(contrast)),
+            "num_images": len(heights),
+            "brightness_std": float(np.std(brightness)),
+            "contrast_std": float(np.std(contrast)),
+            "sharpness_std": float(np.std(sharpness)),
+            "aspect_ratio_mean": float(np.mean([w/h for h, w in zip(heights, widths)])),
+        }
+
         monitor  = DriftMonitor(
-            baselines_path=data_dir / "processed" / "eda_baselines.json",
-            features_dir=data_dir / "processed" / "features",
+            baselines_path=DATA_DIR / "baselines" / "eda_baselines.json",
         )
         report = monitor.check(
-            report_path=data_dir / "processed" / "drift_report.json",
+            live_stats=live_stats,
+            report_path=DATA_DIR / "monitoring" / "drift_report.json",
             check_performance=True,
         )
         update_prometheus_drift_metrics(report)
-        self.api_requests_total.labels("GET", "/drift", "200").inc()
         return report.as_dict()
 
+    @fastapi_app.post("/drift", tags=["monitoring"])
+    async def drift_check(self, file: UploadFile = File(..., description="ZIP archive of images"), user: str = Depends(get_current_user)):
+        content = await file.read()
+        if not zipfile.is_zipfile(io.BytesIO(content)):
+            raise HTTPException(status_code=400, detail="Invalid ZIP")
+
+        try:
+            report_dict = await self._analyze_drift(content)
+            self.api_requests_total.labels("POST", "/drift", "200").inc()
+            return report_dict
+        except ValueError as e:
+            self.api_requests_total.labels("POST", "/drift", "400").inc()
+            raise HTTPException(status_code=400, detail=str(e))
+        except Exception as e:
+            self.api_requests_total.labels("POST", "/drift", "500").inc()
+            raise HTTPException(status_code=500, detail=f"Drift check failed: {e}")
+
     @fastapi_app.post("/drift/trigger-retrain", tags=["monitoring"])
-    async def trigger_retrain(self):
+    async def trigger_retrain(self, user: str = Depends(get_current_user)):
         import datetime
         import httpx
         try:
@@ -568,6 +639,7 @@ class APIGateway:
         file: UploadFile = File(..., description="ZIP archive of images"),
         dataset_name: str = "custom",
         scene_name:   str = "scene_01",
+        user: str = Depends(get_current_user),
     ):
         content = await file.read()
         if len(content) > MAX_UPLOAD_SIZE_MB * 1024 * 1024:
@@ -575,8 +647,32 @@ class APIGateway:
         if not zipfile.is_zipfile(io.BytesIO(content)):
             raise HTTPException(status_code=400, detail="Invalid ZIP")
 
+        # ── Drift Check ──────────────────────────────────────────────────────
+        has_drift, drift_severity, drift_report = None, None, None
+        try:
+            drift_report = await self._analyze_drift(content)
+            has_drift = drift_report.get("drift_detected", False)
+            if not has_drift and "has_drift" in drift_report:
+                has_drift = drift_report.get("has_drift")
+            drift_severity = drift_report.get("severity", "low")
+            
+            if has_drift:
+                log.warning(f"Drift detected in upload. Severity: {drift_severity}")
+                if drift_severity == "high":
+                    background_tasks.add_task(self.trigger_retrain)
+        except Exception as e:
+            log.warning("Drift analysis skipped or failed for upload: %s", e)
+
         job_id = str(uuid.uuid4())
         self.job_manager.create_job(job_id)
+        
+        if drift_report is not None:
+            self.job_manager.update_job(
+                job_id, JobStage.QUEUED, "Waiting in queue …",
+                has_drift=has_drift,
+                drift_severity=drift_severity,
+                drift_report=drift_report
+            )
 
         background_tasks.add_task(
             self._background_reconstruction,
@@ -593,11 +689,11 @@ class APIGateway:
 
     @fastapi_app.get("/status/{job_id}", response_model=JobStatusResponse, tags=["inference"])
     @fastapi_app.get("/jobs/{job_id}",   response_model=JobStatusResponse, tags=["inference"])
-    async def get_status(self, job_id: str):
+    async def get_status(self, job_id: str, user: str = Depends(get_current_user)):
         if job_id not in self.job_manager.jobs:
             raise HTTPException(status_code=404, detail="Job not found")
         rec          = self.job_manager.get_job(job_id)
-        download_url = f"/download/{job_id}" if rec.stage == JobStage.DONE and rec.ply_path else None
+        download_url = f"/download/jobs/{job_id}" if rec.stage == JobStage.DONE and rec.ply_path else None
         return JobStatusResponse(
             job_id=rec.job_id,
             stage=rec.stage.value,
@@ -612,10 +708,12 @@ class APIGateway:
             registration_rate=rec.registration_rate,
             error=rec.error,
             download_url=download_url,
+            has_drift=rec.has_drift,
+            drift_severity=rec.drift_severity,
         )
 
-    @fastapi_app.get("/download/{job_id}", tags=["inference"])
-    async def download_ply(self, job_id: str):
+    @fastapi_app.get("/download/jobs/{job_id}", tags=["inference"])
+    async def download_ply(self, job_id: str, user: str = Depends(get_current_user)):
         if job_id not in self.job_manager.jobs:
             raise HTTPException(status_code=404)
         rec = self.job_manager.get_job(job_id)
@@ -630,8 +728,8 @@ class APIGateway:
                 zf.write(p, arcname=Path(p).name)
         return FileResponse(zip_path, media_type="application/zip")
 
-    @fastapi_app.get("/jobs/{job_id}/download", tags=["inference"])
-    async def download_csv(self, job_id: str):
+    @fastapi_app.get("/download/jobs/{job_id}/csv", tags=["inference"])
+    async def download_csv(self, job_id: str, user: str = Depends(get_current_user)):
         """Download the raw submission CSV."""
         if job_id not in self.job_manager.jobs:
             raise HTTPException(status_code=404)
@@ -647,7 +745,7 @@ class APIGateway:
         )
 
     @fastapi_app.get("/clusters/{job_id}", tags=["inference"])
-    async def get_clusters(self, job_id: str):
+    async def get_clusters(self, job_id: str, user: str = Depends(get_current_user)):
         """Per-cluster reconstruction statistics for the dashboard."""
         if job_id not in self.job_manager.jobs:
             raise HTTPException(status_code=404, detail="Job not found")
@@ -683,8 +781,30 @@ class APIGateway:
             })
         return {"clusters": clusters}
 
-    @fastapi_app.get("/download/{job_id}/{filename}", tags=["inference"])
-    async def download_single_ply(self, job_id: str, filename: str):
+    @fastapi_app.get("/jobs/{job_id}/insights", tags=["inference"])
+    async def get_job_insights(self, job_id: str, user: str = Depends(get_current_user)):
+        """Get reconstruction + drift insights for a job."""
+        if job_id not in self.job_manager.jobs:
+            raise HTTPException(status_code=404, detail="Job not found")
+        rec = self.job_manager.get_job(job_id)
+        
+        recommendation = "No action needed."
+        if rec.has_drift and rec.drift_severity == "high":
+            recommendation = "High drift detected. Evaluated auto-retraining trigger."
+        elif rec.has_drift:
+            recommendation = "Moderate drift detected. Monitor future submissions."
+            
+        return {
+            "registration_rate": rec.registration_rate,
+            "n_points": rec.n_points,
+            "has_drift": rec.has_drift,
+            "drift_severity": rec.drift_severity,
+            "drift_report": rec.drift_report,
+            "recommendation": recommendation,
+        }
+
+    @fastapi_app.get("/download/jobs/{job_id}/{filename}", tags=["inference"])
+    async def download_single_ply(self, job_id: str, filename: str, user: str = Depends(get_current_user)):
         """Download a single PLY file by name."""
         if job_id not in self.job_manager.jobs:
             raise HTTPException(status_code=404)
@@ -792,7 +912,7 @@ class APIGateway:
                     n_points=total_points,
                 )
                 else:
-                    log.warning("Job %s: no PLY from GPU worker — skipping decimation", job_id[:8])
+                    log.warning("Job %s: no PLY from GPU worker — skipping decimation", job_id)
                     self.job_manager.update_job(
                         job_id, JobStage.DONE,
                         "Reconstruction successful (no point cloud available).",
@@ -815,6 +935,26 @@ class APIGateway:
             finally:
                 rec.finished_at = time.time()
                 self.active_jobs_gauge.dec()
+
+                # Save temporal drift and metrics history
+                try:
+                    drift_history_path = DATA_DIR / "monitoring" / "drift_history.jsonl"
+                    drift_history_path.parent.mkdir(parents=True, exist_ok=True)
+                    
+                    drift_entry = {
+                        "timestamp": rec.finished_at,
+                        "job_id": job_id,
+                        "registration_rate": rec.registration_rate,
+                        "n_images": rec.n_images,
+                        "n_points": rec.n_points,
+                        "has_drift": rec.has_drift,
+                        "drift_severity": rec.drift_severity,
+                        "drift_report": rec.drift_report,
+                    }
+                    with open(drift_history_path, "a") as f:
+                        f.write(json.dumps(drift_entry) + "\n")
+                except Exception as e:
+                    log.warning("Failed to save drift history: %s", e)
 
     # ── Helpers ───────────────────────────────────────────────────────────────
 

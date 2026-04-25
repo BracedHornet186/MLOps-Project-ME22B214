@@ -11,9 +11,9 @@ Tasks:
   4. select_best_run     – DockerOperator: promotes best mAA run to production
 
 DockerOperator details:
-  image        : my-dvc-pipeline:latest   (built from Dockerfile.pipeline)
+  image        : mlops-project-me22b214-ray-serve:latest   (built from Dockerfile.pipeline)
   network_mode : mlops_net                (pinned Compose default network)
-  mounts       : HOST_PROJECT_ROOT → /project  (bind-mount)
+  mounts       : HOST_PROJECT_ROOT → /app  (bind-mount)
 """
 
 from __future__ import annotations
@@ -31,7 +31,6 @@ from docker.types import Mount
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 
-PROJECT_ROOT = os.environ.get("PROJECT_ROOT", "/opt/airflow/project")
 ALERT_EMAIL = os.environ.get("SMTP_MAIL_FROM", "mlops-team@example.com")
 SMTP_USER = os.environ.get("SMTP_USER", "yashpurswani4@gmail.com")
 
@@ -51,13 +50,13 @@ MLFLOW_TRACKING_URI = os.environ.get("MLFLOW_TRACKING_URI", "http://mlflow:5000"
 # Ephemeral pipeline containers join it so they can reach `mlflow:5000`.
 COMPOSE_NETWORK = "mlops_net"
 
-PIPELINE_IMAGE = "my-dvc-pipeline:latest"
+PIPELINE_IMAGE = "mlops-project-me22b214-ray-serve:latest"
 
-# Bind-mount: host project dir → /project inside the pipeline container.
+# Bind-mount: host project dir → /app inside the pipeline container.
 # .dvc/, dvc.yaml, scripts/, conf/, data/ are all present under this path.
 _PROJECT_MOUNT = Mount(
     source=HOST_PROJECT_ROOT,
-    target="/project",
+    target="/app",
     type="bind",
 )
 
@@ -86,7 +85,7 @@ with DAG(
 
     wait_for_train_dir = FileSensor(
         task_id="wait_for_train_dir",
-        filepath=f"{PROJECT_ROOT}/data/train",
+        filepath=f"{HOST_PROJECT_ROOT}/data/train",
         poke_interval=60,
         timeout=300,
         mode="reschedule",
@@ -95,7 +94,7 @@ with DAG(
 
     wait_for_train_labels = FileSensor(
         task_id="wait_for_train_labels",
-        filepath=f"{PROJECT_ROOT}/data/train_labels.csv",
+        filepath=f"{HOST_PROJECT_ROOT}/data/train_labels.csv",
         poke_interval=60,
         timeout=300,
         mode="reschedule",
@@ -104,7 +103,7 @@ with DAG(
 
     wait_for_train_thresholds = FileSensor(
         task_id="wait_for_train_thresholds",
-        filepath=f"{PROJECT_ROOT}/data/train_thresholds.csv",
+        filepath=f"{HOST_PROJECT_ROOT}/data/train_thresholds.csv",
         poke_interval=60,
         timeout=300,
         mode="reschedule",
@@ -119,7 +118,7 @@ with DAG(
         html_content=(
             "<h3>⚠️ Pipeline cannot start</h3>"
             "<p>One or more required data files are missing under "
-            f"<code>{PROJECT_ROOT}/data/</code>:</p>"
+            f"<code>{HOST_PROJECT_ROOT}/data/</code>:</p>"
             "<ul>"
             "<li><code>train/</code></li>"
             "<li><code>train_labels.csv</code></li>"
@@ -144,9 +143,9 @@ with DAG(
         command=[
             "bash", "-c",
             (
-                f"trap 'chown -R {HOST_UID}:{HOST_GID} /project' EXIT; "
-                "set -e && cd /project && "
-                "export PYTHONPATH=/project && "
+                f"trap 'chown -R {HOST_UID}:{HOST_GID} /app' EXIT; "
+                "set -e && cd /app && "
+                "export PYTHONPATH=/app && "
                 "python3 scripts/run_pipeline_with_parent.py"   
             ),
         ],
@@ -167,7 +166,7 @@ with DAG(
 
     select_best_run = BashOperator(
         task_id="select_best_run",
-        bash_command=f"cd {PROJECT_ROOT} && python scripts/select_best_run.py",
+        bash_command=f"cd {HOST_PROJECT_ROOT} && python scripts/select_best_run.py",
     )
 
     notify_user = EmailOperator(
@@ -178,7 +177,7 @@ with DAG(
         html_content=(
             "<h3>Production Config Updated</h3>"
             "<p>A new best run has been promoted to production.</p>"
-            f"<p>Config written to: <code>{PROJECT_ROOT}/conf/best_config.yaml</code></p>"
+            f"<p>Config written to: <code>{HOST_PROJECT_ROOT}/conf/best_config.yaml</code></p>"
         ),
     )
 

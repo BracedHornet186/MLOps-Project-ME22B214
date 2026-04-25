@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from config import load_pipeline_config
+from scripts.config import load_pipeline_config
 from scripts.data import DEFAULT_DATASET_DIR
 import utils.imc25.metric as imc25_metric
 

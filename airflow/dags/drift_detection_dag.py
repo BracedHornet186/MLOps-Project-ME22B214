@@ -22,7 +22,7 @@ from airflow.providers.smtp.operators.smtp import EmailOperator
 from airflow.providers.standard.operators.empty import EmptyOperator
 from airflow.operators.python import BranchPythonOperator
 
-PROJECT_ROOT = os.environ.get("PROJECT_ROOT", "/opt/airflow/project")
+HOST_PROJECT_ROOT = os.environ.get("HOST_PROJECT_ROOT", "/home/abhiyaan-cu/Yash/MLOps-Project-ME22B214")
 ALERT_EMAIL = os.environ.get("SMTP_MAIL_FROM", "mlops-team@example.com")
 SMTP_USER = os.environ.get("SMTP_USER", "yashpurswani4@gmail.com")
 
@@ -57,7 +57,7 @@ with DAG(
     check_drift = BashOperator(
         task_id="check_drift",
         bash_command=(
-            f"cd {PROJECT_ROOT} && "
+            f"cd {HOST_PROJECT_ROOT} && "
             "python scripts/detect_drift.py"
         ),
         do_xcom_push=True,
@@ -77,7 +77,7 @@ with DAG(
             "<h3>⚠️ Data Drift Detected</h3>"
             "<p>The drift detection monitor has detected significant data drift.</p>"
             "<p>Please review the drift report at "
-            f"<code>{PROJECT_ROOT}/data/processed/drift_report.json</code> "
+            f"<code>{HOST_PROJECT_ROOT}/data/processed/drift_report.json</code> "
             "and trigger <code>experiment_pipeline_dag</code> manually if retraining "
             "is needed.</p>"
         ),

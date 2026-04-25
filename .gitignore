@@ -6,8 +6,11 @@ install/
 logs/
 .vscode/
 .antigravity/
+.claude/
 __pycache__/
 .env
 extra/snapshot/
 asmk/
 croco/
+secrets/
+certs/

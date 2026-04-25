@@ -2,7 +2,7 @@
  * ModelViewer.jsx
  * ─────────────────────────────────────────────────────────────────
  * Three.js point cloud viewer with multi-cluster dropdown.
- * Loads individual PLY files via /download/{jobId}/{filename}.
+ * Loads individual PLY files via /download/jobs/{jobId}/{filename}.
  */
 import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
@@ -89,7 +89,7 @@ export default function ModelViewer({ jobId, clusters }) {
     setError(null);
     setGeometry(null);
 
-    const url = `${API}/download/${jobId}/${selectedFile}`;
+    const url = `${API}/download/jobs/${jobId}/${selectedFile}`;
     const loader = new PLYLoader();
 
     fetch(url)
