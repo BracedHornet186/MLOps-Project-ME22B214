@@ -177,7 +177,6 @@
 <li class="toctree-l2"><a class="reference internal" href="#dataset-summary">Dataset Summary</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#imc-2025-training-dataset">IMC 2025 Training Dataset</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#imc-2025-test-dataset">IMC 2025 Test Dataset</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#custom-warehouse-dataset">Custom Warehouse Dataset</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#data-versioning">Data Versioning</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#preprocessing-assumptions">Preprocessing Assumptions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#known-biases-and-limitations">Known Biases and Limitations</a></li>
@@ -323,39 +322,20 @@ of feature matching under ambiguous structure.</p></li>
 standard feature matchers, requiring semi-dense matching approaches like MASt3R.</p>
 </section>
 <hr class="docutils" />
-<section id="custom-warehouse-dataset">
-<h2>Custom Warehouse Dataset<a class="headerlink" href="#custom-warehouse-dataset" title="Link to this heading"></a></h2>
-<p>An internally collected dataset from a warehouse environment:</p>
-<ul class="simple">
-<li><p>Captured with a hand-held mobile phone camera</p></li>
-<li><p>Images are extracted from a 30 fps video walk-through (high temporal redundancy)</p></li>
-<li><p>Single, uniform overhead lighting — shadows and specular reflections are minimal</p></li>
-<li><p>Scene content is repetitive shelving and corridor structures</p></li>
-</ul>
-<p><strong>Biases and limitations</strong></p>
-<ul class="simple">
-<li><p>The single lighting condition means the model may underperform on datasets with
-varied illumination (e.g., windows, mixed indoor/outdoor).</p></li>
-<li><p>High temporal redundancy means consecutive frames share &gt;90% of their view;
-the shortlist generator must be carefully tuned to avoid redundant pairs.</p></li>
-<li><p>Indoor repetitive texture (shelving) challenges global descriptor retrievers
-which rely on distinctive appearance.</p></li>
-</ul>
-</section>
-<hr class="docutils" />
 <section id="data-versioning">
 <h2>Data Versioning<a class="headerlink" href="#data-versioning" title="Link to this heading"></a></h2>
 <p>All datasets are tracked with <strong>DVC</strong>:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">data/train/</span></code> is tracked by <code class="docutils literal notranslate"><span class="pre">data/train.dvc</span></code> (md5: <code class="docutils literal notranslate"><span class="pre">7bf67ac358a...</span></code>,
-23 files, 7.5 MB total)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">data/test/</span></code> is tracked by <code class="docutils literal notranslate"><span class="pre">data/test.dvc</span></code> (md5: <code class="docutils literal notranslate"><span class="pre">c7dec6cac38...</span></code>,
-75 files, 83.6 MB total)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data/train/</span></code> is tracked by <code class="docutils literal notranslate"><span class="pre">data/train.dvc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data/test/</span></code> is tracked by <code class="docutils literal notranslate"><span class="pre">data/test.dvc</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">data/train_labels.csv</span></code> is tracked by <code class="docutils literal notranslate"><span class="pre">data/train_labels.csv.dvc</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">data/train_thresholds.csv</span></code> is tracked by <code class="docutils literal notranslate"><span class="pre">data/train_thresholds.csv.dvc</span></code></p></li>
 </ul>
-<p>To pull the data after cloning:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>dvc<span class="w"> </span>pull
+<p>To download the dataset:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>bash<span class="w"> </span>kaggle<span class="w"> </span>competitions<span class="w"> </span>download<span class="w"> </span>-c<span class="w"> </span>image-matching-challenge-20
+unzip<span class="w"> </span>image-matching-challenge-2025.zip<span class="w"> </span>-d<span class="w"> </span>data/
+mv<span class="w"> </span>data/image-matching-challenge-2025/*<span class="w"> </span>data/
+rm<span class="w"> </span>-r<span class="w"> </span>data/image-matching-challenge-2025
 </pre></div>
 </div>
 </section>
@@ -385,9 +365,6 @@ may degrade on low-resolution or heavily compressed imagery.</p></li>
 <li><p>Scenes with <strong>repetitive structures</strong> (stairs, shelving, tiled floors) are
 systematically harder — the shortlist generator may propose incorrect pairs,
 and COLMAP may produce disconnected sub-models.</p></li>
-<li><p>The <code class="docutils literal notranslate"><span class="pre">ETs</span></code> dataset contains a known typo in <code class="docutils literal notranslate"><span class="pre">data/scenes.yaml</span></code>
-(<code class="docutils literal notranslate"><span class="pre">sceme</span></code> instead of <code class="docutils literal notranslate"><span class="pre">scene</span></code> for one entry). This is a data quality issue
-that should be corrected before training.</p></li>
 </ul>
 </section>
 </section>

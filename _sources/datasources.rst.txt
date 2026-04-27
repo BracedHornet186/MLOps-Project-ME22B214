@@ -93,44 +93,24 @@ standard feature matchers, requiring semi-dense matching approaches like MASt3R.
 
 ----
 
-Custom Warehouse Dataset
--------------------------
-
-An internally collected dataset from a warehouse environment:
-
-- Captured with a hand-held mobile phone camera
-- Images are extracted from a 30 fps video walk-through (high temporal redundancy)
-- Single, uniform overhead lighting — shadows and specular reflections are minimal
-- Scene content is repetitive shelving and corridor structures
-
-**Biases and limitations**
-
-- The single lighting condition means the model may underperform on datasets with
-  varied illumination (e.g., windows, mixed indoor/outdoor).
-- High temporal redundancy means consecutive frames share >90% of their view;
-  the shortlist generator must be carefully tuned to avoid redundant pairs.
-- Indoor repetitive texture (shelving) challenges global descriptor retrievers
-  which rely on distinctive appearance.
-
-----
-
 Data Versioning
 ----------------
 
 All datasets are tracked with **DVC**:
 
-- ``data/train/`` is tracked by ``data/train.dvc`` (md5: ``7bf67ac358a...``,
-  23 files, 7.5 MB total)
-- ``data/test/`` is tracked by ``data/test.dvc`` (md5: ``c7dec6cac38...``,
-  75 files, 83.6 MB total)
+- ``data/train/`` is tracked by ``data/train.dvc``
+- ``data/test/`` is tracked by ``data/test.dvc``
 - ``data/train_labels.csv`` is tracked by ``data/train_labels.csv.dvc``
 - ``data/train_thresholds.csv`` is tracked by ``data/train_thresholds.csv.dvc``
 
-To pull the data after cloning:
+To download the dataset:
 
 .. code-block:: bash
 
-   dvc pull
+   bash kaggle competitions download -c image-matching-challenge-20
+   unzip image-matching-challenge-2025.zip -d data/
+   mv data/image-matching-challenge-2025/* data/
+   rm -r data/image-matching-challenge-2025
 
 ----
 
@@ -160,6 +140,3 @@ Known Biases and Limitations
 - Scenes with **repetitive structures** (stairs, shelving, tiled floors) are
   systematically harder — the shortlist generator may propose incorrect pairs,
   and COLMAP may produce disconnected sub-models.
-- The ``ETs`` dataset contains a known typo in ``data/scenes.yaml``
-  (``sceme`` instead of ``scene`` for one entry). This is a data quality issue
-  that should be corrected before training.
