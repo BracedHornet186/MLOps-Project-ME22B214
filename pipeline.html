@@ -1,0 +1,518 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pipeline Documentation &mdash; MLOps 3D Scene Reconstruction 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=01f34227"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API Reference" href="api.html" />
+    <link rel="prev" title="System Architecture" href="architecture.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            MLOps 3D Scene Reconstruction
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#step-1-clone-the-repository">Step 1 — Clone the Repository</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#step-2-download-the-dataset">Step 2 — Download the Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#docker-setup-recommended">Docker Setup (Recommended)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3a-configure-the-environment-file">Step 3a — Configure the Environment File</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3b-generate-docker-secrets">Step 3b — Generate Docker Secrets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3c-generate-tls-certificates">Step 3c — Generate TLS Certificates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3d-clone-external-dependencies">Step 3d — Clone External Dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3e-launch-the-full-stack">Step 3e — Launch the Full Stack</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#native-python-setup-developer-mode">Native Python Setup (Developer Mode)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3a-build-asmk">Step 3a — Build ASMK</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3b-build-croco-dust3r-kernels">Step 3b — Build CroCo / DUSt3R Kernels</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3c-build-remaining-packages">Step 3c — Build Remaining Packages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3d-create-the-python-virtual-environment">Step 3d — Create the Python Virtual Environment</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#pre-trained-model-weights">Pre-trained Model Weights</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#verifying-the-installation">Verifying the Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#troubleshooting-installation">Troubleshooting Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#running-the-system">Running the System</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#docker-production">Docker (Production)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#native-development">Native (Development)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#running-the-offline-dvc-pipeline">Running the Offline DVC Pipeline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#uploading-data-via-the-ui">Uploading Data via the UI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#api-authentication">API Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#uploading-data-via-the-api">Uploading Data via the API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#polling-job-status">Polling Job Status</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#downloading-results">Downloading Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#checking-data-drift">Checking Data Drift</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#triggering-retraining">Triggering Retraining</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#example-end-to-end-workflow">Example End-to-End Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#disabling-authentication-development-only">Disabling Authentication (Development Only)</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Interface</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ui_guide.html">UI Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#overview-of-the-interface">Overview of the Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-1-logging-in">Step 1 — Logging In</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-2-the-header">Step 2 — The Header</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-3-the-upload-panel-left-panel-top">Step 3 — The Upload Panel (Left Panel, Top)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-4-the-stage-tracker-left-panel-middle">Step 4 — The Stage Tracker (Left Panel, Middle)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-5-the-3d-model-viewer-right-panel">Step 5 — The 3D Model Viewer (Right Panel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-6-the-stats-table-bottom-panel">Step 6 — The Stats Table (Bottom Panel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-7-downloading-results">Step 7 — Downloading Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-8-starting-a-new-reconstruction">Step 8 — Starting a New Reconstruction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#drift-warning-banner">Drift Warning Banner</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#error-states">Error States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#frequently-asked-questions-ui">Frequently Asked Questions (UI)</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">System Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">System Architecture</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#high-level-architecture">High-Level Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#frontend">Frontend</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#api-gateway-and-gpu-worker-ray-serve">API Gateway and GPU Worker (Ray Serve)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#offline-mlops-pipeline">Offline MLOps Pipeline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#monitoring-stack">Monitoring Stack</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#data-flow">Data Flow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#networking">Networking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#security-boundaries">Security Boundaries</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Pipeline Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#pipeline-overview">Pipeline Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#stage-1-data-validation">Stage 1 — Data Validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#stage-2-exploratory-data-analysis-and-baselines">Stage 2 — Exploratory Data Analysis and Baselines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#stage-3-image-preprocessing">Stage 3 — Image Preprocessing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#stage-4-data-preparation">Stage 4 — Data Preparation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#stage-5-scene-reconstruction-core-pipeline">Stage 5 — Scene Reconstruction (Core Pipeline)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#shortlist-generation">Shortlist Generation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#feature-extraction-and-matching">Feature Extraction and Matching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#colmap-incremental-sfm">COLMAP Incremental SfM</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#stage-6-evaluation">Stage 6 — Evaluation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#online-inference-pipeline">Online Inference Pipeline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#model-selection-and-promotion">Model Selection and Promotion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#drift-monitoring-and-retraining">Drift Monitoring and Retraining</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api.html#authentication">Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#endpoint-reference">Endpoint Reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api.html#post-auth-token">POST /auth/token</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-health">GET /health</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-ready">GET /ready</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-metrics">GET /metrics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#post-upload">POST /upload</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-status-job-id-get-jobs-job-id">GET /status/{job_id}  |  GET /jobs/{job_id}</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-download-jobs-job-id">GET /download/jobs/{job_id}</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-download-jobs-job-id-csv">GET /download/jobs/{job_id}/csv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-download-jobs-job-id-filename">GET /download/jobs/{job_id}/{filename}</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-clusters-job-id">GET /clusters/{job_id}</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-jobs-job-id-insights">GET /jobs/{job_id}/insights</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#post-drift">POST /drift</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#post-drift-trigger-retrain">POST /drift/trigger-retrain</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#error-responses">Error Responses</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">MLOps &amp; Operations</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="security.html">Security &amp; Compliance</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="security.html#overview-of-security-controls">Overview of Security Controls</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#docker-secrets-management">1. Docker Secrets Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#jwt-bearer-token-authentication">2. JWT Bearer Token Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#access-logging">3. Access Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#tls-1-3-transport-security">4. TLS 1.3 (Transport Security)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#ci-cd-security-scanning">5. CI/CD Security Scanning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#protected-api-endpoints">Protected API Endpoints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#alertmanager-authentication">Alertmanager Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#environment-variables">Environment Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#security-recommendations-for-production">Security Recommendations for Production</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="datasources.html">Data Sources</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#dataset-summary">Dataset Summary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#imc-2025-training-dataset">IMC 2025 Training Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#imc-2025-test-dataset">IMC 2025 Test Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#custom-warehouse-dataset">Custom Warehouse Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#data-versioning">Data Versioning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#preprocessing-assumptions">Preprocessing Assumptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#known-biases-and-limitations">Known Biases and Limitations</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Project Context</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="business_understanding.html">Business Understanding</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#problem-statement">Problem Statement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#use-cases">Use Cases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#ml-metric">ML Metric</a></li>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#business-and-operational-metrics">Business and Operational Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#data-source">Data Source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#stakeholders">Stakeholders</a></li>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#definition-of-done">Definition of Done</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#general">General</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#installation-setup">Installation &amp; Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#using-the-api">Using the API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#reconstruction-quality">Reconstruction Quality</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#mlops-dvc-mlflow">MLOps / DVC / MLflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#monitoring-alerts">Monitoring &amp; Alerts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#data-drift">Data &amp; Drift</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MLOps 3D Scene Reconstruction</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Pipeline Documentation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/pipeline.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="pipeline-documentation">
+<h1>Pipeline Documentation<a class="headerlink" href="#pipeline-documentation" title="Link to this heading"></a></h1>
+<p>The reconstruction pipeline transforms a collection of unordered images into a
+sparse 3D point cloud and a set of camera poses. This page explains each stage
+in the pipeline, both the <strong>offline DVC training pipeline</strong> and the <strong>online
+inference pipeline</strong>.</p>
+<hr class="docutils" />
+<section id="pipeline-overview">
+<h2>Pipeline Overview<a class="headerlink" href="#pipeline-overview" title="Link to this heading"></a></h2>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>┌──────────────┐    ┌───────────────┐    ┌─────────────┐    ┌────────────────┐
+│   validate   │ →  │ eda_baselines │ →  │   preprocess│ →  │    prepare     │
+│  (data QC)   │    │ (EDA + stats) │    │  (images)   │    │ (input CSV)    │
+└──────────────┘    └───────────────┘    └─────────────┘    └────────────────┘
+                                                                     │
+                                                                     ▼
+                                                            ┌────────────────┐
+                                                            │  run_pipeline  │
+                                                            │  (MASt3R +     │
+                                                            │   COLMAP SfM)  │
+                                                            └────────────────┘
+                                                                     │
+                                                                     ▼
+                                                            ┌────────────────┐
+                                                            │    evaluate    │
+                                                            │  (mAA + MLflow)│
+                                                            └────────────────┘
+</pre></div>
+</div>
+<p>Each stage is defined in <code class="docutils literal notranslate"><span class="pre">dvc.yaml</span></code> and tracked by DVC. Metrics and artifacts
+from each run are logged to MLflow.</p>
+</section>
+<hr class="docutils" />
+<section id="stage-1-data-validation">
+<h2>Stage 1 — Data Validation<a class="headerlink" href="#stage-1-data-validation" title="Link to this heading"></a></h2>
+<p><strong>DVC stage</strong>: <code class="docutils literal notranslate"><span class="pre">validate</span></code></p>
+<p><strong>Script</strong>: <code class="docutils literal notranslate"><span class="pre">scripts/validate_data.py</span></code></p>
+<p><strong>What it does</strong></p>
+<p>Reads <code class="docutils literal notranslate"><span class="pre">data/train_labels.csv</span></code> and verifies that every image listed in the CSV
+exists on disk under <code class="docutils literal notranslate"><span class="pre">data/train/</span></code>. It reports:</p>
+<ul class="simple">
+<li><p>Total rows in the labels file</p></li>
+<li><p>Number of distinct images and scenes</p></li>
+<li><p>Missing files</p></li>
+<li><p>Duplicate image entries</p></li>
+<li><p>Malformed rotation matrices or translation vectors</p></li>
+</ul>
+<p><strong>Outputs</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">data/validation/validation_report.json</span></code> — full issue report</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data/validation/validation_metrics.json</span></code> — DVC metric file with <code class="docutils literal notranslate"><span class="pre">issue_count</span></code>
+and <code class="docutils literal notranslate"><span class="pre">status_code</span></code></p></li>
+</ul>
+<p><strong>Acceptance threshold</strong></p>
+<p>A <code class="docutils literal notranslate"><span class="pre">status_code</span></code> of <code class="docutils literal notranslate"><span class="pre">0</span></code> means all files are present and valid. A value of <code class="docutils literal notranslate"><span class="pre">1</span></code>
+means warnings exist (e.g., missing files) but the pipeline can continue.
+A value of <code class="docutils literal notranslate"><span class="pre">2</span></code> indicates a critical error that halts downstream stages.</p>
+</section>
+<hr class="docutils" />
+<section id="stage-2-exploratory-data-analysis-and-baselines">
+<h2>Stage 2 — Exploratory Data Analysis and Baselines<a class="headerlink" href="#stage-2-exploratory-data-analysis-and-baselines" title="Link to this heading"></a></h2>
+<p><strong>DVC stage</strong>: <code class="docutils literal notranslate"><span class="pre">eda_baselines</span></code></p>
+<p><strong>Script</strong>: <code class="docutils literal notranslate"><span class="pre">scripts/eda_baselines.py</span></code></p>
+<p><strong>What it does</strong></p>
+<p>Computes image statistics across the training dataset to establish the <strong>drift
+baseline</strong>. These baselines are later used by the drift monitor to detect when
+production images differ from training data. Statistics computed include:</p>
+<ul class="simple">
+<li><p>Image resolution distribution (width, height histograms)</p></li>
+<li><p>Pairwise image similarity matrix (using global descriptors)</p></li>
+<li><p>Sharpness distribution (Laplacian variance)</p></li>
+<li><p>Brightness and contrast statistics</p></li>
+</ul>
+<p><strong>Outputs</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">data/baselines/resolution_hist.png</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data/baselines/similarity_matrix.png</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data/baselines/sharpness_hist.png</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data/baselines/eda_baselines.json</span></code> — raw baseline statistics</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data/baselines/eda_metrics.json</span></code> — DVC metric summary</p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="stage-3-image-preprocessing">
+<h2>Stage 3 — Image Preprocessing<a class="headerlink" href="#stage-3-image-preprocessing" title="Link to this heading"></a></h2>
+<p><strong>DVC stage</strong>: <code class="docutils literal notranslate"><span class="pre">image_preprocess</span></code></p>
+<p><strong>Script</strong>: <code class="docutils literal notranslate"><span class="pre">scripts/image_processing.py</span></code></p>
+<p><strong>Config</strong>: <code class="docutils literal notranslate"><span class="pre">conf/preprocess.yaml</span></code></p>
+<p><strong>What it does</strong></p>
+<p>Applies a configurable preprocessing pipeline to each training image:</p>
+<ul class="simple">
+<li><p><strong>Deblurring</strong> — images with Laplacian variance below <code class="docutils literal notranslate"><span class="pre">blurry_threshold</span></code> are
+sharpened or excluded depending on configuration.</p></li>
+<li><p><strong>Orientation normalisation</strong> — corrects image rotation based on EXIF metadata
+or a learned orientation estimator, so all images are upright before matching.</p></li>
+</ul>
+<p>The preprocessing module is designed to be pluggable. Only stages listed in
+<code class="docutils literal notranslate"><span class="pre">conf/preprocess.yaml</span></code> are applied.</p>
+<p><strong>Outputs</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">data/processed/images/</span></code> — preprocessed image tree mirroring <code class="docutils literal notranslate"><span class="pre">data/train/</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data/processed/preprocess_report.json</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data/processed/preprocess_metrics.json</span></code></p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="stage-4-data-preparation">
+<h2>Stage 4 — Data Preparation<a class="headerlink" href="#stage-4-data-preparation" title="Link to this heading"></a></h2>
+<p><strong>DVC stage</strong>: <code class="docutils literal notranslate"><span class="pre">prepare</span></code></p>
+<p><strong>Script</strong>: <code class="docutils literal notranslate"><span class="pre">scripts/prepare_submission.py</span></code></p>
+<p><strong>What it does</strong></p>
+<p>Reads the preprocessed image paths and <code class="docutils literal notranslate"><span class="pre">data/train_labels.csv</span></code> to build
+<code class="docutils literal notranslate"><span class="pre">data/prepared/prepared_input.csv</span></code>. This CSV is in the IMC2025 submission format
+with <code class="docutils literal notranslate"><span class="pre">nan</span></code> placeholder values for rotation and translation — these are populated
+by the reconstruction stage.</p>
+<p>Columns: <code class="docutils literal notranslate"><span class="pre">image_id</span></code>, <code class="docutils literal notranslate"><span class="pre">dataset</span></code>, <code class="docutils literal notranslate"><span class="pre">scene</span></code>, <code class="docutils literal notranslate"><span class="pre">image</span></code>, <code class="docutils literal notranslate"><span class="pre">rotation_matrix</span></code>,
+<code class="docutils literal notranslate"><span class="pre">translation_vector</span></code>.</p>
+</section>
+<hr class="docutils" />
+<section id="stage-5-scene-reconstruction-core-pipeline">
+<h2>Stage 5 — Scene Reconstruction (Core Pipeline)<a class="headerlink" href="#stage-5-scene-reconstruction-core-pipeline" title="Link to this heading"></a></h2>
+<p><strong>DVC stage</strong>: <code class="docutils literal notranslate"><span class="pre">run_pipeline</span></code></p>
+<p><strong>Script</strong>: <code class="docutils literal notranslate"><span class="pre">scripts/reconstruct_scenes.py</span></code></p>
+<p><strong>Config</strong>: <code class="docutils literal notranslate"><span class="pre">conf/mast3r.yaml</span></code> (or <code class="docutils literal notranslate"><span class="pre">conf/best_config.yaml</span></code> in production)</p>
+<p>This is the main computational stage. It implements the full
+<code class="docutils literal notranslate"><span class="pre">IMC2025Pipeline.run()</span></code> loop.</p>
+<section id="shortlist-generation">
+<h3>Shortlist Generation<a class="headerlink" href="#shortlist-generation" title="Link to this heading"></a></h3>
+<p>Before matching, the pipeline generates a <strong>shortlist</strong> of candidate image pairs
+to match. Matching all N×N pairs is computationally infeasible for large datasets,
+so the shortlist generator selects the most promising pairs using an <strong>ensemble</strong>
+of global descriptor retrievers:</p>
+<ol class="arabic simple">
+<li><p><strong>MASt3R-ASMK</strong> — vocabulary-tree-based retrieval using MASt3R’s dense
+descriptors and the ASMK aggregation method. This is the primary retriever.</p></li>
+<li><p><strong>MASt3R-SPoC</strong> — an alternative global descriptor from the MASt3R retrieval
+head.</p></li>
+<li><p><strong>DINOv2</strong> — a general-purpose vision transformer used as a secondary global
+descriptor for cross-domain robustness.</p></li>
+<li><p><strong>ISC</strong> — a descriptor trained specifically for image copy detection, effective
+for repeated structures.</p></li>
+</ol>
+<p>Each retriever proposes its top-K most similar images per query. The union of all
+proposals forms the final shortlist.</p>
+</section>
+<section id="feature-extraction-and-matching">
+<h3>Feature Extraction and Matching<a class="headerlink" href="#feature-extraction-and-matching" title="Link to this heading"></a></h3>
+<p>For each pair in the shortlist, the pipeline runs matching via the <strong>MASt3R Hybrid
+Matcher</strong> (<code class="docutils literal notranslate"><span class="pre">type:</span> <span class="pre">mast3r_hybrid</span></code>), which combines:</p>
+<ul class="simple">
+<li><p><strong>Dense matching</strong> — MASt3R’s end-to-end dense correspondence network operates
+at 512 px resolution and produces dense pixel-level matches.</p></li>
+<li><p><strong>Sparse matching</strong> — two local feature detectors provide complementary keypoints:</p>
+<ul>
+<li><p><strong>ALIKED</strong> (with LightGlue) — a learned keypoint detector with
+up to 4096 keypoints per image at 1280 px resolution.</p></li>
+<li><p><strong>MagicLeap SuperPoint</strong> — a classical-style detector with up to 4096
+keypoints at 1600 px resolution.</p></li>
+</ul>
+</li>
+</ul>
+<p>Dense and sparse matches are <strong>fused</strong> late in the pipeline to maximise coverage.</p>
+</section>
+<section id="colmap-incremental-sfm">
+<h3>COLMAP Incremental SfM<a class="headerlink" href="#colmap-incremental-sfm" title="Link to this heading"></a></h3>
+<p>Fused matches are imported into a <strong>COLMAP</strong> database. COLMAP’s incremental
+Structure-from-Motion mapper then:</p>
+<ol class="arabic simple">
+<li><p>Selects an initial image pair with good homography overlap.</p></li>
+<li><p>Triangulates an initial 3D point set.</p></li>
+<li><p>Registers remaining images one by one via PnP.</p></li>
+<li><p>Runs bundle adjustment after each batch of registrations.</p></li>
+<li><p>Filters outlier points by reprojection error.</p></li>
+</ol>
+<p>Key COLMAP parameters (from config):</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">mapper_min_model_size:</span> <span class="pre">3</span></code> — minimum images to form a valid reconstruction.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mapper_max_num_models:</span> <span class="pre">25</span></code> — maximum number of disconnected sub-models.</p></li>
+</ul>
+<p><strong>Outputs</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">data/reconstruction/eval_prediction.csv</span></code> — IMC2025 format poses</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data/reconstruction/sparse_reconstruction.ply</span></code> — point cloud</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data/reconstruction/reconstruction_metrics.json</span></code></p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="stage-6-evaluation">
+<h2>Stage 6 — Evaluation<a class="headerlink" href="#stage-6-evaluation" title="Link to this heading"></a></h2>
+<p><strong>DVC stage</strong>: <code class="docutils literal notranslate"><span class="pre">evaluate</span></code></p>
+<p><strong>Script</strong>: <code class="docutils literal notranslate"><span class="pre">scripts/evaluate.py</span></code></p>
+<p><strong>What it does</strong></p>
+<p>Computes the <strong>mAA (mean Average Accuracy)</strong> metric, which is the primary quality
+measure for the IMC2025 competition. mAA measures the fraction of camera poses
+registered within a set of angular and translation error thresholds.</p>
+<p>It also computes:</p>
+<ul class="simple">
+<li><p>Per-dataset scores and mAA values</p></li>
+<li><p>Clusterness score (how well images cluster geometrically)</p></li>
+<li><p>Registration rate</p></li>
+</ul>
+<p>All metrics are logged as a child MLflow run under the parent DVC run.</p>
+<p><strong>Outputs</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">data/evaluation/metrics.json</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data/evaluation/git_status.txt</span></code></p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="online-inference-pipeline">
+<h2>Online Inference Pipeline<a class="headerlink" href="#online-inference-pipeline" title="Link to this heading"></a></h2>
+<p>The online pipeline (triggered via <code class="docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/upload</span></code>) mirrors the DVC pipeline but
+runs directly without DVC:</p>
+<ol class="arabic simple">
+<li><p>ZIP extraction → temporary workspace</p></li>
+<li><p>MASt3R hybrid matching on GPU worker (<code class="docutils literal notranslate"><span class="pre">GPUModelWorker.reconstruct()</span></code>)</p></li>
+<li><p>COLMAP SfM in the same temporary workspace</p></li>
+<li><p>PLY export via <code class="docutils literal notranslate"><span class="pre">pycolmap.Reconstruction.export_PLY()</span></code></p></li>
+<li><p>Voxel downsampling (<code class="docutils literal notranslate"><span class="pre">utils/decimate.py</span></code>) to ≤500,000 points</p></li>
+<li><p>Results persisted to <code class="docutils literal notranslate"><span class="pre">/app/results/</span></code></p></li>
+</ol>
+<p>The pipeline configuration is loaded from <code class="docutils literal notranslate"><span class="pre">conf/best_config.yaml</span></code> (if present)
+with fallback to <code class="docutils literal notranslate"><span class="pre">conf/mast3r.yaml</span></code>.</p>
+</section>
+<hr class="docutils" />
+<section id="model-selection-and-promotion">
+<h2>Model Selection and Promotion<a class="headerlink" href="#model-selection-and-promotion" title="Link to this heading"></a></h2>
+<p>After each DVC experiment run, <code class="docutils literal notranslate"><span class="pre">scripts/select_best_run.py</span></code> queries MLflow for
+the run with the highest <code class="docutils literal notranslate"><span class="pre">mAA_overall</span></code> metric in the
+<code class="docutils literal notranslate"><span class="pre">scene_reconstruction_dvc</span></code> experiment. It copies that run’s configuration to
+<code class="docutils literal notranslate"><span class="pre">conf/best_config.yaml</span></code>, which becomes the active production config on the
+next <code class="docutils literal notranslate"><span class="pre">ray-serve</span></code> restart.</p>
+</section>
+<hr class="docutils" />
+<section id="drift-monitoring-and-retraining">
+<h2>Drift Monitoring and Retraining<a class="headerlink" href="#drift-monitoring-and-retraining" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">DriftMonitor</span></code> class (<code class="docutils literal notranslate"><span class="pre">scripts/drift_monitor.py</span></code>) compares production image
+statistics to the baselines in <code class="docutils literal notranslate"><span class="pre">data/baselines/eda_baselines.json</span></code>. It checks:</p>
+<ul class="simple">
+<li><p>Mean brightness</p></li>
+<li><p>Mean contrast</p></li>
+<li><p>Mean sharpness</p></li>
+<li><p>Aspect ratio</p></li>
+</ul>
+<p>If any metric drifts beyond the configured threshold, an alert is raised. The
+Airflow <code class="docutils literal notranslate"><span class="pre">drift_detection_dag</span></code> polls Prometheus every 30 minutes for the
+<code class="docutils literal notranslate"><span class="pre">feature_drift_status</span></code> metric. If drift is detected, it sends an email alert
+to the configured <code class="docutils literal notranslate"><span class="pre">SMTP_USER</span></code>. High-severity drift additionally triggers
+<code class="docutils literal notranslate"><span class="pre">experiment_pipeline_dag</span></code> automatically via the Alertmanager webhook.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="architecture.html" class="btn btn-neutral float-left" title="System Architecture" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="api.html" class="btn btn-neutral float-right" title="API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Yash Purswani.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

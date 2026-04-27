@@ -1,0 +1,456 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>System Architecture &mdash; MLOps 3D Scene Reconstruction 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=01f34227"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Pipeline Documentation" href="pipeline.html" />
+    <link rel="prev" title="UI Guide" href="ui_guide.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            MLOps 3D Scene Reconstruction
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#step-1-clone-the-repository">Step 1 — Clone the Repository</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#step-2-download-the-dataset">Step 2 — Download the Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#docker-setup-recommended">Docker Setup (Recommended)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3a-configure-the-environment-file">Step 3a — Configure the Environment File</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3b-generate-docker-secrets">Step 3b — Generate Docker Secrets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3c-generate-tls-certificates">Step 3c — Generate TLS Certificates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3d-clone-external-dependencies">Step 3d — Clone External Dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3e-launch-the-full-stack">Step 3e — Launch the Full Stack</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#native-python-setup-developer-mode">Native Python Setup (Developer Mode)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3a-build-asmk">Step 3a — Build ASMK</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3b-build-croco-dust3r-kernels">Step 3b — Build CroCo / DUSt3R Kernels</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3c-build-remaining-packages">Step 3c — Build Remaining Packages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3d-create-the-python-virtual-environment">Step 3d — Create the Python Virtual Environment</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#pre-trained-model-weights">Pre-trained Model Weights</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#verifying-the-installation">Verifying the Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#troubleshooting-installation">Troubleshooting Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#running-the-system">Running the System</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#docker-production">Docker (Production)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#native-development">Native (Development)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#running-the-offline-dvc-pipeline">Running the Offline DVC Pipeline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#uploading-data-via-the-ui">Uploading Data via the UI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#api-authentication">API Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#uploading-data-via-the-api">Uploading Data via the API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#polling-job-status">Polling Job Status</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#downloading-results">Downloading Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#checking-data-drift">Checking Data Drift</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#triggering-retraining">Triggering Retraining</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#example-end-to-end-workflow">Example End-to-End Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#disabling-authentication-development-only">Disabling Authentication (Development Only)</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Interface</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ui_guide.html">UI Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#overview-of-the-interface">Overview of the Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-1-logging-in">Step 1 — Logging In</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-2-the-header">Step 2 — The Header</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-3-the-upload-panel-left-panel-top">Step 3 — The Upload Panel (Left Panel, Top)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-4-the-stage-tracker-left-panel-middle">Step 4 — The Stage Tracker (Left Panel, Middle)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-5-the-3d-model-viewer-right-panel">Step 5 — The 3D Model Viewer (Right Panel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-6-the-stats-table-bottom-panel">Step 6 — The Stats Table (Bottom Panel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-7-downloading-results">Step 7 — Downloading Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-8-starting-a-new-reconstruction">Step 8 — Starting a New Reconstruction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#drift-warning-banner">Drift Warning Banner</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#error-states">Error States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#frequently-asked-questions-ui">Frequently Asked Questions (UI)</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">System Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">System Architecture</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#high-level-architecture">High-Level Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#frontend">Frontend</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#api-gateway-and-gpu-worker-ray-serve">API Gateway and GPU Worker (Ray Serve)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#offline-mlops-pipeline">Offline MLOps Pipeline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#monitoring-stack">Monitoring Stack</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-flow">Data Flow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#networking">Networking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#security-boundaries">Security Boundaries</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pipeline.html">Pipeline Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#pipeline-overview">Pipeline Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#stage-1-data-validation">Stage 1 — Data Validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#stage-2-exploratory-data-analysis-and-baselines">Stage 2 — Exploratory Data Analysis and Baselines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#stage-3-image-preprocessing">Stage 3 — Image Preprocessing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#stage-4-data-preparation">Stage 4 — Data Preparation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#stage-5-scene-reconstruction-core-pipeline">Stage 5 — Scene Reconstruction (Core Pipeline)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#shortlist-generation">Shortlist Generation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#feature-extraction-and-matching">Feature Extraction and Matching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#colmap-incremental-sfm">COLMAP Incremental SfM</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#stage-6-evaluation">Stage 6 — Evaluation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#online-inference-pipeline">Online Inference Pipeline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#model-selection-and-promotion">Model Selection and Promotion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#drift-monitoring-and-retraining">Drift Monitoring and Retraining</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api.html#authentication">Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#endpoint-reference">Endpoint Reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api.html#post-auth-token">POST /auth/token</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-health">GET /health</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-ready">GET /ready</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-metrics">GET /metrics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#post-upload">POST /upload</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-status-job-id-get-jobs-job-id">GET /status/{job_id}  |  GET /jobs/{job_id}</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-download-jobs-job-id">GET /download/jobs/{job_id}</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-download-jobs-job-id-csv">GET /download/jobs/{job_id}/csv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-download-jobs-job-id-filename">GET /download/jobs/{job_id}/{filename}</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-clusters-job-id">GET /clusters/{job_id}</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-jobs-job-id-insights">GET /jobs/{job_id}/insights</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#post-drift">POST /drift</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#post-drift-trigger-retrain">POST /drift/trigger-retrain</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#error-responses">Error Responses</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">MLOps &amp; Operations</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="security.html">Security &amp; Compliance</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="security.html#overview-of-security-controls">Overview of Security Controls</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#docker-secrets-management">1. Docker Secrets Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#jwt-bearer-token-authentication">2. JWT Bearer Token Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#access-logging">3. Access Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#tls-1-3-transport-security">4. TLS 1.3 (Transport Security)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#ci-cd-security-scanning">5. CI/CD Security Scanning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#protected-api-endpoints">Protected API Endpoints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#alertmanager-authentication">Alertmanager Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#environment-variables">Environment Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#security-recommendations-for-production">Security Recommendations for Production</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="datasources.html">Data Sources</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#dataset-summary">Dataset Summary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#imc-2025-training-dataset">IMC 2025 Training Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#imc-2025-test-dataset">IMC 2025 Test Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#custom-warehouse-dataset">Custom Warehouse Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#data-versioning">Data Versioning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#preprocessing-assumptions">Preprocessing Assumptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#known-biases-and-limitations">Known Biases and Limitations</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Project Context</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="business_understanding.html">Business Understanding</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#problem-statement">Problem Statement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#use-cases">Use Cases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#ml-metric">ML Metric</a></li>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#business-and-operational-metrics">Business and Operational Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#data-source">Data Source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#stakeholders">Stakeholders</a></li>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#definition-of-done">Definition of Done</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#general">General</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#installation-setup">Installation &amp; Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#using-the-api">Using the API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#reconstruction-quality">Reconstruction Quality</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#mlops-dvc-mlflow">MLOps / DVC / MLflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#monitoring-alerts">Monitoring &amp; Alerts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#data-drift">Data &amp; Drift</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MLOps 3D Scene Reconstruction</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">System Architecture</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/architecture.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="system-architecture">
+<h1>System Architecture<a class="headerlink" href="#system-architecture" title="Link to this heading"></a></h1>
+<p>This page describes the high-level system design, the separation of concerns between
+components, and how the MLOps tools integrate with each other.</p>
+<hr class="docutils" />
+<section id="high-level-architecture">
+<h2>High-Level Architecture<a class="headerlink" href="#high-level-architecture" title="Link to this heading"></a></h2>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>┌──────────────────────────────────────────────────────────────────────────┐
+│                         User / Browser                                   │
+└─────────────────────────────┬────────────────────────────────────────────┘
+                              │  HTTPS (port 443 / nginx TLS)
+                              ▼
+┌──────────────────────────────────────────────────────────────────────────┐
+│                         Frontend (scene3d-ui)                            │
+│           React + Three.js · Vite · nginx reverse proxy                  │
+│                         port 5173 / 443                                  │
+└─────────────────────────────┬────────────────────────────────────────────┘
+                              │  HTTP REST  /api/*
+                              ▼
+┌──────────────────────────────────────────────────────────────────────────┐
+│                    API Gateway (ray-serve)                               │
+│              FastAPI · Ray Serve ingress · port 8000                     │
+│   Auth · Upload · Job Management · Drift · Prometheus metrics            │
+└────────────────┬─────────────────────────────────────────────────────────┘
+                 │  Ray RPC (object store, zero-copy)
+                 ▼
+┌──────────────────────────────────────────────────────────────────────────┐
+│                   GPU Model Worker (ray-serve)                           │
+│      MASt3R · ALIKED · SuperPoint · COLMAP SfM · pycolmap               │
+│                      1 GPU, 4 CPUs                                       │
+└──────────────────────────────────────────────────────────────────────────┘
+
+┌────────────────┐   ┌──────────────┐   ┌─────────────────┐   ┌──────────┐
+│    MLflow      │   │   Airflow    │   │   Prometheus    │   │  Grafana │
+│  port 5000     │   │  port 8080   │   │   port 9090     │   │ port 3001│
+│  Experiment    │   │  Orchestrate │   │  Metrics scrape │   │Dashboard │
+│  tracking      │   │  DVC + DAGs  │   │  + alerts       │   │          │
+└────────────────┘   └──────────────┘   └─────────────────┘   └──────────┘
+
+┌────────────────────────────────────────────────────────────────────────┐
+│                  Docker Network: mlops_net                             │
+│  All services communicate by container hostname on this bridge network │
+└────────────────────────────────────────────────────────────────────────┘
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="frontend">
+<h2>Frontend<a class="headerlink" href="#frontend" title="Link to this heading"></a></h2>
+<p>The frontend is a <strong>React</strong> single-page application built with <strong>Vite</strong> and styled
+with <strong>Tailwind CSS</strong>. The 3D viewer is implemented with <strong>Three.js</strong>.</p>
+<p><strong>Responsibilities</strong></p>
+<ul class="simple">
+<li><p>Render the upload form and stage tracker</p></li>
+<li><p>Poll <code class="docutils literal notranslate"><span class="pre">GET</span> <span class="pre">/jobs/{job_id}</span></code> every few seconds to update the UI</p></li>
+<li><p>Render the interactive 3D point cloud via Three.js</p></li>
+<li><p>Display drift warnings and reconstruction statistics</p></li>
+</ul>
+<p><strong>Build</strong></p>
+<p>The frontend is built into static files at Docker image build time (<code class="docutils literal notranslate"><span class="pre">npm</span> <span class="pre">run</span> <span class="pre">build</span></code>).
+These are served by an <strong>nginx</strong> container which also acts as a TLS-terminating
+reverse proxy, forwarding <code class="docutils literal notranslate"><span class="pre">/api/*</span></code> requests to the <code class="docutils literal notranslate"><span class="pre">ray-serve</span></code> backend.</p>
+</section>
+<hr class="docutils" />
+<section id="api-gateway-and-gpu-worker-ray-serve">
+<h2>API Gateway and GPU Worker (Ray Serve)<a class="headerlink" href="#api-gateway-and-gpu-worker-ray-serve" title="Link to this heading"></a></h2>
+<p>The backend is a single Docker container running two <strong>Ray Serve</strong> deployments:</p>
+<p><strong>APIGateway</strong> (CPU-only, 2 cores)</p>
+<ul class="simple">
+<li><p>Wraps a FastAPI application via <code class="docutils literal notranslate"><span class="pre">&#64;serve.ingress</span></code></p></li>
+<li><p>Handles all HTTP traffic: authentication, file uploads, job state, drift checks</p></li>
+<li><p>Delegates all inference to the GPU worker over Ray’s object store (zero HTTP overhead)</p></li>
+<li><p>Exposes Prometheus metrics at <code class="docutils literal notranslate"><span class="pre">GET</span> <span class="pre">/metrics</span></code></p></li>
+</ul>
+<p><strong>GPUModelWorker</strong> (1 GPU, 4 cores)</p>
+<ul class="simple">
+<li><p>Loads the entire MASt3R pipeline once at container startup</p></li>
+<li><p>Exposes <code class="docutils literal notranslate"><span class="pre">reconstruct()</span></code> and <code class="docutils literal notranslate"><span class="pre">ping()</span></code> methods callable via Ray RPC</p></li>
+<li><p>Never reloads models between requests — weights stay permanently in VRAM</p></li>
+<li><p>Handles the full pipeline: extraction → matching → COLMAP → PLY export</p></li>
+</ul>
+<p>The two deployments communicate via <strong>Ray’s distributed object store</strong>, which
+avoids serialising large tensors over HTTP and enables near-zero-copy data transfer.</p>
+<p><strong>Concurrency</strong></p>
+<p>A semaphore limits the API gateway to <code class="docutils literal notranslate"><span class="pre">MAX_CONCURRENT_JOBS</span> <span class="pre">=</span> <span class="pre">1</span></code> running job at
+a time, preventing GPU memory exhaustion.</p>
+</section>
+<hr class="docutils" />
+<section id="offline-mlops-pipeline">
+<h2>Offline MLOps Pipeline<a class="headerlink" href="#offline-mlops-pipeline" title="Link to this heading"></a></h2>
+<p><strong>DVC</strong> defines the pipeline as a DAG of stages in <code class="docutils literal notranslate"><span class="pre">dvc.yaml</span></code>. Each stage
+specifies its command, input dependencies (<code class="docutils literal notranslate"><span class="pre">deps</span></code>), and outputs (<code class="docutils literal notranslate"><span class="pre">outs</span></code>).
+DVC tracks content hashes so only changed stages re-run.</p>
+<p><strong>MLflow</strong> is used for experiment tracking. Every <code class="docutils literal notranslate"><span class="pre">dvc</span> <span class="pre">repro</span></code> run creates a
+parent MLflow run, with child runs logged by each script stage. Logged entities
+include:</p>
+<ul class="simple">
+<li><p>All pipeline configuration parameters (flattened from YAML)</p></li>
+<li><p>Stage-level metrics (registration rate, mAA, etc.)</p></li>
+<li><p>Artifacts (eval CSV, PLY file, config YAML, Git status)</p></li>
+</ul>
+<p><strong>Airflow</strong> orchestrates the full DVC pipeline via the <code class="docutils literal notranslate"><span class="pre">experiment_pipeline_dag</span></code>
+DAG, which:</p>
+<ol class="arabic simple">
+<li><p>Waits for required data files via <code class="docutils literal notranslate"><span class="pre">FileSensor</span></code> tasks.</p></li>
+<li><p>Runs <code class="docutils literal notranslate"><span class="pre">dvc</span> <span class="pre">repro</span></code> inside an ephemeral Docker container (Docker-out-of-Docker).</p></li>
+<li><p>Calls <code class="docutils literal notranslate"><span class="pre">select_best_run.py</span></code> to promote the best MLflow run to production.</p></li>
+<li><p>Sends an email notification on success.</p></li>
+</ol>
+</section>
+<hr class="docutils" />
+<section id="monitoring-stack">
+<h2>Monitoring Stack<a class="headerlink" href="#monitoring-stack" title="Link to this heading"></a></h2>
+<p><strong>Prometheus</strong> scrapes metrics from:</p>
+<ul class="simple">
+<li><p>The Ray Serve API gateway (<code class="docutils literal notranslate"><span class="pre">/metrics</span></code>, every 10 seconds)</p></li>
+<li><p>MLflow health endpoint (every 30 seconds)</p></li>
+<li><p>Airflow (every 15 seconds)</p></li>
+<li><p>Node Exporter (host-level hardware metrics)</p></li>
+</ul>
+<p><strong>Grafana</strong> provides dashboards powered by Prometheus data, including:</p>
+<ul class="simple">
+<li><p>Reconstruction job throughput and latency</p></li>
+<li><p>Registration rate over time</p></li>
+<li><p>GPU utilisation (via node exporter)</p></li>
+<li><p>Drift metric trends</p></li>
+</ul>
+<p><strong>Alertmanager</strong> receives alerts defined in <code class="docutils literal notranslate"><span class="pre">monitoring/alert_rules.yml</span></code>.
+Relevant alert names include <code class="docutils literal notranslate"><span class="pre">FeatureDriftDetected</span></code>, <code class="docutils literal notranslate"><span class="pre">InputBrightnessDrift</span></code>,
+<code class="docutils literal notranslate"><span class="pre">InputContrastDrift</span></code>, and <code class="docutils literal notranslate"><span class="pre">PerformanceDecay</span></code>. On firing, Alertmanager calls
+an Airflow webhook to trigger <code class="docutils literal notranslate"><span class="pre">experiment_pipeline_dag</span></code> automatically.</p>
+</section>
+<hr class="docutils" />
+<section id="data-flow">
+<h2>Data Flow<a class="headerlink" href="#data-flow" title="Link to this heading"></a></h2>
+<p><strong>Offline (training/evaluation)</strong></p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>data/train/ (images)
+  └─► validate → eda_baselines → preprocess → prepare
+                                                  └─► run_pipeline (MASt3R + COLMAP)
+                                                             └─► evaluate (mAA → MLflow)
+                                                                      └─► select_best_run
+                                                                               └─► conf/best_config.yaml
+</pre></div>
+</div>
+<p><strong>Online (inference)</strong></p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>User ZIP upload
+  └─► Drift check (vs EDA baselines)
+        └─► GPUModelWorker.reconstruct()
+              ├─► MASt3R matching
+              ├─► COLMAP SfM
+              └─► PLY export + decimation
+                    └─► /app/results/ → download by user
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="networking">
+<h2>Networking<a class="headerlink" href="#networking" title="Link to this heading"></a></h2>
+<p>All services run on a single Docker bridge network named <code class="docutils literal notranslate"><span class="pre">mlops_net</span></code>.
+Service hostnames (e.g., <code class="docutils literal notranslate"><span class="pre">mlflow</span></code>, <code class="docutils literal notranslate"><span class="pre">airflow-apiserver</span></code>, <code class="docutils literal notranslate"><span class="pre">prometheus</span></code>)
+resolve directly within this network. This allows:</p>
+<ul class="simple">
+<li><p>Airflow DockerOperator containers to reach <code class="docutils literal notranslate"><span class="pre">mlflow:5000</span></code></p></li>
+<li><p>Alertmanager to call <code class="docutils literal notranslate"><span class="pre">airflow-apiserver:8080</span></code></p></li>
+<li><p>Ray Serve to reach <code class="docutils literal notranslate"><span class="pre">mlflow:5000</span></code> for metric logging</p></li>
+</ul>
+<p>The network name is pinned in <code class="docutils literal notranslate"><span class="pre">docker-compose.yaml</span></code>:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">networks</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">default</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mlops_net</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="security-boundaries">
+<h2>Security Boundaries<a class="headerlink" href="#security-boundaries" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>External traffic</strong> enters only through nginx (port 443) and the Ray Serve API
+(port 8000).</p></li>
+<li><p><strong>JWT tokens</strong> expire after 15 minutes and are signed with a secret loaded from
+Docker Secrets.</p></li>
+<li><p><strong>Database credentials</strong> are stored as Docker Secrets, not plaintext environment
+variables.</p></li>
+<li><p><strong>CI/CD</strong> includes Trivy image scanning and <code class="docutils literal notranslate"><span class="pre">pip-audit</span></code> dependency auditing
+on every push (see <code class="docutils literal notranslate"><span class="pre">.github/workflows/security.yml</span></code>).</p></li>
+</ul>
+<p>For full security documentation see <a class="reference internal" href="security.html"><span class="doc">Security &amp; Compliance</span></a>.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="ui_guide.html" class="btn btn-neutral float-left" title="UI Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="pipeline.html" class="btn btn-neutral float-right" title="Pipeline Documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Yash Purswani.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

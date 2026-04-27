@@ -1,0 +1,497 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Usage Guide &mdash; MLOps 3D Scene Reconstruction 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=01f34227"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="UI Guide" href="ui_guide.html" />
+    <link rel="prev" title="Installation Guide" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            MLOps 3D Scene Reconstruction
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#step-1-clone-the-repository">Step 1 — Clone the Repository</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#step-2-download-the-dataset">Step 2 — Download the Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#docker-setup-recommended">Docker Setup (Recommended)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3a-configure-the-environment-file">Step 3a — Configure the Environment File</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3b-generate-docker-secrets">Step 3b — Generate Docker Secrets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3c-generate-tls-certificates">Step 3c — Generate TLS Certificates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3d-clone-external-dependencies">Step 3d — Clone External Dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3e-launch-the-full-stack">Step 3e — Launch the Full Stack</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#native-python-setup-developer-mode">Native Python Setup (Developer Mode)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3a-build-asmk">Step 3a — Build ASMK</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3b-build-croco-dust3r-kernels">Step 3b — Build CroCo / DUSt3R Kernels</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3c-build-remaining-packages">Step 3c — Build Remaining Packages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3d-create-the-python-virtual-environment">Step 3d — Create the Python Virtual Environment</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#pre-trained-model-weights">Pre-trained Model Weights</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#verifying-the-installation">Verifying the Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#troubleshooting-installation">Troubleshooting Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Usage Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#running-the-system">Running the System</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#docker-production">Docker (Production)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#native-development">Native (Development)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#running-the-offline-dvc-pipeline">Running the Offline DVC Pipeline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#uploading-data-via-the-ui">Uploading Data via the UI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#api-authentication">API Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#uploading-data-via-the-api">Uploading Data via the API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#polling-job-status">Polling Job Status</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#downloading-results">Downloading Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#checking-data-drift">Checking Data Drift</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#triggering-retraining">Triggering Retraining</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#example-end-to-end-workflow">Example End-to-End Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#disabling-authentication-development-only">Disabling Authentication (Development Only)</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Interface</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ui_guide.html">UI Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#overview-of-the-interface">Overview of the Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-1-logging-in">Step 1 — Logging In</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-2-the-header">Step 2 — The Header</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-3-the-upload-panel-left-panel-top">Step 3 — The Upload Panel (Left Panel, Top)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-4-the-stage-tracker-left-panel-middle">Step 4 — The Stage Tracker (Left Panel, Middle)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-5-the-3d-model-viewer-right-panel">Step 5 — The 3D Model Viewer (Right Panel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-6-the-stats-table-bottom-panel">Step 6 — The Stats Table (Bottom Panel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-7-downloading-results">Step 7 — Downloading Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-8-starting-a-new-reconstruction">Step 8 — Starting a New Reconstruction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#drift-warning-banner">Drift Warning Banner</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#error-states">Error States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#frequently-asked-questions-ui">Frequently Asked Questions (UI)</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">System Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">System Architecture</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#high-level-architecture">High-Level Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#frontend">Frontend</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#api-gateway-and-gpu-worker-ray-serve">API Gateway and GPU Worker (Ray Serve)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#offline-mlops-pipeline">Offline MLOps Pipeline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#monitoring-stack">Monitoring Stack</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#data-flow">Data Flow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#networking">Networking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#security-boundaries">Security Boundaries</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pipeline.html">Pipeline Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#pipeline-overview">Pipeline Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#stage-1-data-validation">Stage 1 — Data Validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#stage-2-exploratory-data-analysis-and-baselines">Stage 2 — Exploratory Data Analysis and Baselines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#stage-3-image-preprocessing">Stage 3 — Image Preprocessing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#stage-4-data-preparation">Stage 4 — Data Preparation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#stage-5-scene-reconstruction-core-pipeline">Stage 5 — Scene Reconstruction (Core Pipeline)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#shortlist-generation">Shortlist Generation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#feature-extraction-and-matching">Feature Extraction and Matching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#colmap-incremental-sfm">COLMAP Incremental SfM</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#stage-6-evaluation">Stage 6 — Evaluation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#online-inference-pipeline">Online Inference Pipeline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#model-selection-and-promotion">Model Selection and Promotion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#drift-monitoring-and-retraining">Drift Monitoring and Retraining</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api.html#authentication">Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#endpoint-reference">Endpoint Reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api.html#post-auth-token">POST /auth/token</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-health">GET /health</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-ready">GET /ready</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-metrics">GET /metrics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#post-upload">POST /upload</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-status-job-id-get-jobs-job-id">GET /status/{job_id}  |  GET /jobs/{job_id}</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-download-jobs-job-id">GET /download/jobs/{job_id}</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-download-jobs-job-id-csv">GET /download/jobs/{job_id}/csv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-download-jobs-job-id-filename">GET /download/jobs/{job_id}/{filename}</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-clusters-job-id">GET /clusters/{job_id}</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-jobs-job-id-insights">GET /jobs/{job_id}/insights</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#post-drift">POST /drift</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#post-drift-trigger-retrain">POST /drift/trigger-retrain</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#error-responses">Error Responses</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">MLOps &amp; Operations</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="security.html">Security &amp; Compliance</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="security.html#overview-of-security-controls">Overview of Security Controls</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#docker-secrets-management">1. Docker Secrets Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#jwt-bearer-token-authentication">2. JWT Bearer Token Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#access-logging">3. Access Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#tls-1-3-transport-security">4. TLS 1.3 (Transport Security)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#ci-cd-security-scanning">5. CI/CD Security Scanning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#protected-api-endpoints">Protected API Endpoints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#alertmanager-authentication">Alertmanager Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#environment-variables">Environment Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#security-recommendations-for-production">Security Recommendations for Production</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="datasources.html">Data Sources</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#dataset-summary">Dataset Summary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#imc-2025-training-dataset">IMC 2025 Training Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#imc-2025-test-dataset">IMC 2025 Test Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#custom-warehouse-dataset">Custom Warehouse Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#data-versioning">Data Versioning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#preprocessing-assumptions">Preprocessing Assumptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#known-biases-and-limitations">Known Biases and Limitations</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Project Context</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="business_understanding.html">Business Understanding</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#problem-statement">Problem Statement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#use-cases">Use Cases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#ml-metric">ML Metric</a></li>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#business-and-operational-metrics">Business and Operational Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#data-source">Data Source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#stakeholders">Stakeholders</a></li>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#definition-of-done">Definition of Done</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#general">General</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#installation-setup">Installation &amp; Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#using-the-api">Using the API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#reconstruction-quality">Reconstruction Quality</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#mlops-dvc-mlflow">MLOps / DVC / MLflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#monitoring-alerts">Monitoring &amp; Alerts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#data-drift">Data &amp; Drift</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MLOps 3D Scene Reconstruction</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Usage Guide</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/usage.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="usage-guide">
+<h1>Usage Guide<a class="headerlink" href="#usage-guide" title="Link to this heading"></a></h1>
+<p>This guide explains how to run the system, submit data for reconstruction, monitor jobs,
+and call the API programmatically.</p>
+<hr class="docutils" />
+<section id="running-the-system">
+<h2>Running the System<a class="headerlink" href="#running-the-system" title="Link to this heading"></a></h2>
+<section id="docker-production">
+<h3>Docker (Production)<a class="headerlink" href="#docker-production" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>compose<span class="w"> </span>--profile<span class="w"> </span>inference<span class="w"> </span>up<span class="w"> </span>-d
+</pre></div>
+</div>
+<p>All services start automatically. Wait until <code class="docutils literal notranslate"><span class="pre">ray-serve</span></code> reports healthy:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>compose<span class="w"> </span>ps
+<span class="c1"># ray-serve should show &quot;healthy&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="native-development">
+<h3>Native (Development)<a class="headerlink" href="#native-development" title="Link to this heading"></a></h3>
+<p>Open two terminals:</p>
+<p><strong>Terminal 1 — Backend</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">source</span><span class="w"> </span>.venv/bin/activate
+<span class="nb">export</span><span class="w"> </span><span class="nv">LD_LIBRARY_PATH</span><span class="o">=</span>.venv/lib/python3.11/site-packages/torch/lib:<span class="nv">$LD_LIBRARY_PATH</span>
+<span class="nb">cd</span><span class="w"> </span>api
+ray<span class="w"> </span>start<span class="w"> </span>--head<span class="w"> </span>--dashboard-host<span class="o">=</span><span class="m">0</span>.0.0.0
+serve<span class="w"> </span>run<span class="w"> </span>serve_app:api_node
+</pre></div>
+</div>
+<p><strong>Terminal 2 — Frontend</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>frontend
+npm<span class="w"> </span>install
+npm<span class="w"> </span>run<span class="w"> </span>dev
+<span class="c1"># → http://localhost:5173</span>
+</pre></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="running-the-offline-dvc-pipeline">
+<h2>Running the Offline DVC Pipeline<a class="headerlink" href="#running-the-offline-dvc-pipeline" title="Link to this heading"></a></h2>
+<p>The DVC pipeline is used for training, evaluation, and experiment tracking.
+Run it manually or trigger it via Airflow.</p>
+<p><strong>Manual execution</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Start an MLflow parent run to group all DVC child runs</span>
+<span class="nv">PARENT_ID</span><span class="o">=</span><span class="k">$(</span>python<span class="w"> </span>scripts/start_parent_dvc_run.py<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-n<span class="w"> </span><span class="m">1</span><span class="k">)</span>
+<span class="nv">MLFLOW_PARENT_RUN_ID</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$PARENT_ID</span><span class="s2">&quot;</span><span class="w"> </span>dvc<span class="w"> </span>repro
+
+<span class="c1"># Promote the best-performing run to production config</span>
+python<span class="w"> </span>scripts/select_best_run.py
+</pre></div>
+</div>
+<p>This writes the winning configuration to <code class="docutils literal notranslate"><span class="pre">conf/best_config.yaml</span></code>, which the
+<code class="docutils literal notranslate"><span class="pre">ray-serve</span></code> container reads at startup.</p>
+<p><strong>Via Airflow</strong></p>
+<p>Navigate to <a class="reference external" href="http://localhost:8080">http://localhost:8080</a>, find the <code class="docutils literal notranslate"><span class="pre">experiment_pipeline_dag</span></code>, and
+trigger it manually. The DAG runs <code class="docutils literal notranslate"><span class="pre">dvc</span> <span class="pre">repro</span></code> inside an ephemeral Docker
+container and then calls <code class="docutils literal notranslate"><span class="pre">select_best_run.py</span></code> automatically.</p>
+</section>
+<hr class="docutils" />
+<section id="uploading-data-via-the-ui">
+<h2>Uploading Data via the UI<a class="headerlink" href="#uploading-data-via-the-ui" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p>Open <a class="reference external" href="http://localhost:5173">http://localhost:5173</a> in your browser.</p></li>
+<li><p>Log in with username <code class="docutils literal notranslate"><span class="pre">admin</span></code> and password <code class="docutils literal notranslate"><span class="pre">admin</span></code> (change in production).</p></li>
+<li><p>Click <strong>Upload Images</strong> and select a ZIP archive containing your images.</p></li>
+<li><p>Monitor the processing stages in the Stage Tracker panel.</p></li>
+<li><p>Once complete, the 3D point cloud appears in the viewer on the right.</p></li>
+</ol>
+<p>See <a class="reference internal" href="ui_guide.html"><span class="doc">UI Guide</span></a> for a full step-by-step walkthrough with all panels explained.</p>
+</section>
+<hr class="docutils" />
+<section id="api-authentication">
+<h2>API Authentication<a class="headerlink" href="#api-authentication" title="Link to this heading"></a></h2>
+<p>All data endpoints require a JWT Bearer token. Obtain one at <code class="docutils literal notranslate"><span class="pre">/auth/token</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">TOKEN</span><span class="o">=</span><span class="k">$(</span>curl<span class="w"> </span>-s<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/auth/token<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;username&quot;: &quot;admin&quot;, &quot;password&quot;: &quot;admin&quot;}&#39;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="p">|</span><span class="w"> </span>python3<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import sys, json; print(json.load(sys.stdin)[&#39;access_token&#39;])&quot;</span><span class="k">)</span>
+
+<span class="nb">echo</span><span class="w"> </span><span class="nv">$TOKEN</span><span class="w">   </span><span class="c1"># store this for subsequent requests</span>
+</pre></div>
+</div>
+<p>Tokens expire after <strong>15 minutes</strong>. Re-request a new token when expired.</p>
+</section>
+<hr class="docutils" />
+<section id="uploading-data-via-the-api">
+<h2>Uploading Data via the API<a class="headerlink" href="#uploading-data-via-the-api" title="Link to this heading"></a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Upload a ZIP of images and start reconstruction</span>
+curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/upload<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-F<span class="w"> </span><span class="s2">&quot;file=@/path/to/images.zip&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-F<span class="w"> </span><span class="s2">&quot;dataset_name=my_scene&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-F<span class="w"> </span><span class="s2">&quot;scene_name=scene_01&quot;</span>
+</pre></div>
+</div>
+<p>Response:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;job_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;3f7a91b2-...&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Pipeline started.&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="polling-job-status">
+<h2>Polling Job Status<a class="headerlink" href="#polling-job-status" title="Link to this heading"></a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>http://localhost:8000/jobs/&lt;job_id&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span>
+</pre></div>
+</div>
+<p>Response fields:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 75.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">stage</span></code></p></td>
+<td><p>Current pipeline stage: <code class="docutils literal notranslate"><span class="pre">queued</span></code>, <code class="docutils literal notranslate"><span class="pre">extracting</span></code>, <code class="docutils literal notranslate"><span class="pre">matching</span></code>, <code class="docutils literal notranslate"><span class="pre">triangulating</span></code>, <code class="docutils literal notranslate"><span class="pre">decimating</span></code>, <code class="docutils literal notranslate"><span class="pre">success</span></code>, or <code class="docutils literal notranslate"><span class="pre">failed</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">progress</span></code></p></td>
+<td><p>Integer 0–100 indicating overall completion percentage</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">message</span></code></p></td>
+<td><p>Human-readable status message</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">registration_rate</span></code></p></td>
+<td><p>Fraction of images successfully registered into the 3D model</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">has_drift</span></code></p></td>
+<td><p>Whether input data drift was detected</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">drift_severity</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">low</span></code>, <code class="docutils literal notranslate"><span class="pre">moderate</span></code>, or <code class="docutils literal notranslate"><span class="pre">high</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">download_url</span></code></p></td>
+<td><p>Populated with a download path once the job succeeds</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<hr class="docutils" />
+<section id="downloading-results">
+<h2>Downloading Results<a class="headerlink" href="#downloading-results" title="Link to this heading"></a></h2>
+<p><strong>Download point cloud (ZIP of PLY files)</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>-O<span class="w"> </span>http://localhost:8000/download/jobs/&lt;job_id&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span>
+</pre></div>
+</div>
+<p><strong>Download submission CSV</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>-O<span class="w"> </span>http://localhost:8000/download/jobs/&lt;job_id&gt;/csv<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="checking-data-drift">
+<h2>Checking Data Drift<a class="headerlink" href="#checking-data-drift" title="Link to this heading"></a></h2>
+<p>You can check a new image set for drift before triggering reconstruction:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/drift<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-F<span class="w"> </span><span class="s2">&quot;file=@/path/to/images.zip&quot;</span>
+</pre></div>
+</div>
+<p>The response contains statistics on brightness, contrast, sharpness, and resolution
+compared to the training baseline.</p>
+</section>
+<hr class="docutils" />
+<section id="triggering-retraining">
+<h2>Triggering Retraining<a class="headerlink" href="#triggering-retraining" title="Link to this heading"></a></h2>
+<p>If drift is detected and you want to retrain the model:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/drift/trigger-retrain<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span>
+</pre></div>
+</div>
+<p>This calls the Airflow API to trigger <code class="docutils literal notranslate"><span class="pre">experiment_pipeline_dag</span></code> programmatically.</p>
+</section>
+<hr class="docutils" />
+<section id="example-end-to-end-workflow">
+<h2>Example End-to-End Workflow<a class="headerlink" href="#example-end-to-end-workflow" title="Link to this heading"></a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 1. Authenticate</span>
+<span class="nv">TOKEN</span><span class="o">=</span><span class="k">$(</span>curl<span class="w"> </span>-s<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/auth/token<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;username&quot;:&quot;admin&quot;,&quot;password&quot;:&quot;admin&quot;}&#39;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="p">|</span><span class="w"> </span>python3<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import sys,json; print(json.load(sys.stdin)[&#39;access_token&#39;])&quot;</span><span class="k">)</span>
+
+<span class="c1"># 2. Upload images</span>
+<span class="nv">JOB</span><span class="o">=</span><span class="k">$(</span>curl<span class="w"> </span>-s<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/upload<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-F<span class="w"> </span><span class="s2">&quot;file=@my_photos.zip&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="p">|</span><span class="w"> </span>python3<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import sys,json; print(json.load(sys.stdin)[&#39;job_id&#39;])&quot;</span><span class="k">)</span>
+
+<span class="c1"># 3. Poll until done</span>
+<span class="k">while</span><span class="w"> </span>true<span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<span class="w">  </span><span class="nv">STATUS</span><span class="o">=</span><span class="k">$(</span>curl<span class="w"> </span>-s<span class="w"> </span>http://localhost:8000/jobs/<span class="nv">$JOB</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span><span class="p">|</span><span class="w"> </span>python3<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import sys,json; d=json.load(sys.stdin); print(d[&#39;stage&#39;])&quot;</span><span class="k">)</span>
+<span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Stage: </span><span class="nv">$STATUS</span><span class="s2">&quot;</span>
+<span class="w">  </span><span class="o">[</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$STATUS</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;success&quot;</span><span class="w"> </span><span class="o">]</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$STATUS</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;failed&quot;</span><span class="w"> </span><span class="o">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="k">break</span>
+<span class="w">  </span>sleep<span class="w"> </span><span class="m">10</span>
+<span class="k">done</span>
+
+<span class="c1"># 4. Download results</span>
+curl<span class="w"> </span>-O<span class="w"> </span>http://localhost:8000/download/jobs/<span class="nv">$JOB</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="disabling-authentication-development-only">
+<h2>Disabling Authentication (Development Only)<a class="headerlink" href="#disabling-authentication-development-only" title="Link to this heading"></a></h2>
+<p>To disable JWT checks during local development, set <code class="docutils literal notranslate"><span class="pre">AUTH_ENABLED=false</span></code> in the
+<code class="docutils literal notranslate"><span class="pre">ray-serve</span></code> service environment in <code class="docutils literal notranslate"><span class="pre">docker-compose.yaml</span></code>:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">environment</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">AUTH_ENABLED</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;false&quot;</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Never disable authentication in production. All data endpoints will be
+publicly accessible without a token.</p>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-left" title="Installation Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ui_guide.html" class="btn btn-neutral float-right" title="UI Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Yash Purswani.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

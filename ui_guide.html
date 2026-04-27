@@ -1,0 +1,648 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UI Guide &mdash; MLOps 3D Scene Reconstruction 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=01f34227"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="System Architecture" href="architecture.html" />
+    <link rel="prev" title="Usage Guide" href="usage.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            MLOps 3D Scene Reconstruction
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#step-1-clone-the-repository">Step 1 — Clone the Repository</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#step-2-download-the-dataset">Step 2 — Download the Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#docker-setup-recommended">Docker Setup (Recommended)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3a-configure-the-environment-file">Step 3a — Configure the Environment File</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3b-generate-docker-secrets">Step 3b — Generate Docker Secrets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3c-generate-tls-certificates">Step 3c — Generate TLS Certificates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3d-clone-external-dependencies">Step 3d — Clone External Dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3e-launch-the-full-stack">Step 3e — Launch the Full Stack</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#native-python-setup-developer-mode">Native Python Setup (Developer Mode)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3a-build-asmk">Step 3a — Build ASMK</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3b-build-croco-dust3r-kernels">Step 3b — Build CroCo / DUSt3R Kernels</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3c-build-remaining-packages">Step 3c — Build Remaining Packages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3d-create-the-python-virtual-environment">Step 3d — Create the Python Virtual Environment</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#pre-trained-model-weights">Pre-trained Model Weights</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#verifying-the-installation">Verifying the Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#troubleshooting-installation">Troubleshooting Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#running-the-system">Running the System</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#docker-production">Docker (Production)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#native-development">Native (Development)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#running-the-offline-dvc-pipeline">Running the Offline DVC Pipeline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#uploading-data-via-the-ui">Uploading Data via the UI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#api-authentication">API Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#uploading-data-via-the-api">Uploading Data via the API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#polling-job-status">Polling Job Status</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#downloading-results">Downloading Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#checking-data-drift">Checking Data Drift</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#triggering-retraining">Triggering Retraining</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#example-end-to-end-workflow">Example End-to-End Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#disabling-authentication-development-only">Disabling Authentication (Development Only)</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Interface</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">UI Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview-of-the-interface">Overview of the Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-1-logging-in">Step 1 — Logging In</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-2-the-header">Step 2 — The Header</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-3-the-upload-panel-left-panel-top">Step 3 — The Upload Panel (Left Panel, Top)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-4-the-stage-tracker-left-panel-middle">Step 4 — The Stage Tracker (Left Panel, Middle)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-5-the-3d-model-viewer-right-panel">Step 5 — The 3D Model Viewer (Right Panel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-6-the-stats-table-bottom-panel">Step 6 — The Stats Table (Bottom Panel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-7-downloading-results">Step 7 — Downloading Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-8-starting-a-new-reconstruction">Step 8 — Starting a New Reconstruction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#drift-warning-banner">Drift Warning Banner</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#error-states">Error States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#frequently-asked-questions-ui">Frequently Asked Questions (UI)</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">System Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">System Architecture</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#high-level-architecture">High-Level Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#frontend">Frontend</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#api-gateway-and-gpu-worker-ray-serve">API Gateway and GPU Worker (Ray Serve)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#offline-mlops-pipeline">Offline MLOps Pipeline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#monitoring-stack">Monitoring Stack</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#data-flow">Data Flow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#networking">Networking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#security-boundaries">Security Boundaries</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pipeline.html">Pipeline Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#pipeline-overview">Pipeline Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#stage-1-data-validation">Stage 1 — Data Validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#stage-2-exploratory-data-analysis-and-baselines">Stage 2 — Exploratory Data Analysis and Baselines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#stage-3-image-preprocessing">Stage 3 — Image Preprocessing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#stage-4-data-preparation">Stage 4 — Data Preparation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#stage-5-scene-reconstruction-core-pipeline">Stage 5 — Scene Reconstruction (Core Pipeline)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#shortlist-generation">Shortlist Generation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#feature-extraction-and-matching">Feature Extraction and Matching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#colmap-incremental-sfm">COLMAP Incremental SfM</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#stage-6-evaluation">Stage 6 — Evaluation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#online-inference-pipeline">Online Inference Pipeline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#model-selection-and-promotion">Model Selection and Promotion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#drift-monitoring-and-retraining">Drift Monitoring and Retraining</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api.html#authentication">Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#endpoint-reference">Endpoint Reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api.html#post-auth-token">POST /auth/token</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-health">GET /health</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-ready">GET /ready</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-metrics">GET /metrics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#post-upload">POST /upload</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-status-job-id-get-jobs-job-id">GET /status/{job_id}  |  GET /jobs/{job_id}</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-download-jobs-job-id">GET /download/jobs/{job_id}</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-download-jobs-job-id-csv">GET /download/jobs/{job_id}/csv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-download-jobs-job-id-filename">GET /download/jobs/{job_id}/{filename}</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-clusters-job-id">GET /clusters/{job_id}</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-jobs-job-id-insights">GET /jobs/{job_id}/insights</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#post-drift">POST /drift</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#post-drift-trigger-retrain">POST /drift/trigger-retrain</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#error-responses">Error Responses</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">MLOps &amp; Operations</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="security.html">Security &amp; Compliance</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="security.html#overview-of-security-controls">Overview of Security Controls</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#docker-secrets-management">1. Docker Secrets Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#jwt-bearer-token-authentication">2. JWT Bearer Token Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#access-logging">3. Access Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#tls-1-3-transport-security">4. TLS 1.3 (Transport Security)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#ci-cd-security-scanning">5. CI/CD Security Scanning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#protected-api-endpoints">Protected API Endpoints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#alertmanager-authentication">Alertmanager Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#environment-variables">Environment Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#security-recommendations-for-production">Security Recommendations for Production</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="datasources.html">Data Sources</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#dataset-summary">Dataset Summary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#imc-2025-training-dataset">IMC 2025 Training Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#imc-2025-test-dataset">IMC 2025 Test Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#custom-warehouse-dataset">Custom Warehouse Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#data-versioning">Data Versioning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#preprocessing-assumptions">Preprocessing Assumptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#known-biases-and-limitations">Known Biases and Limitations</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Project Context</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="business_understanding.html">Business Understanding</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#problem-statement">Problem Statement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#use-cases">Use Cases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#ml-metric">ML Metric</a></li>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#business-and-operational-metrics">Business and Operational Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#data-source">Data Source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#stakeholders">Stakeholders</a></li>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#definition-of-done">Definition of Done</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#general">General</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#installation-setup">Installation &amp; Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#using-the-api">Using the API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#reconstruction-quality">Reconstruction Quality</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#mlops-dvc-mlflow">MLOps / DVC / MLflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#monitoring-alerts">Monitoring &amp; Alerts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#data-drift">Data &amp; Drift</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MLOps 3D Scene Reconstruction</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">UI Guide</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/ui_guide.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="ui-guide">
+<h1>UI Guide<a class="headerlink" href="#ui-guide" title="Link to this heading"></a></h1>
+<p>This guide provides a complete walkthrough of the 3D Scene Reconstruction web application.
+It is written for <strong>non-technical users</strong> and explains every screen, panel, button, and
+indicator in plain language.</p>
+<hr class="docutils" />
+<section id="overview-of-the-interface">
+<h2>Overview of the Interface<a class="headerlink" href="#overview-of-the-interface" title="Link to this heading"></a></h2>
+<p>When you open the application at <a class="reference external" href="http://localhost:5173">http://localhost:5173</a>, you are presented with a
+<strong>dashboard</strong> divided into four main areas:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>┌──────────────────────────── HEADER ─────────────────────────────────┐
+│  App title · Current job ID · Pipeline stage indicator              │
+├──────────────────────────┬──────────────────────────────────────────┤
+│       LEFT PANEL         │              RIGHT PANEL                 │
+│                          │                                          │
+│  · Upload Panel          │        3D Model Viewer                   │
+│  · Stage Tracker         │        (interactive point cloud)         │
+│  · Action Buttons        │                                          │
+├──────────────────────────┴──────────────────────────────────────────┤
+│                    STATS TABLE (bottom)                             │
+│  Registration rate · Points · Drift status · Cluster breakdown      │
+└─────────────────────────────────────────────────────────────────────┘
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="step-1-logging-in">
+<h2>Step 1 — Logging In<a class="headerlink" href="#step-1-logging-in" title="Link to this heading"></a></h2>
+<p>Before you can upload data or view results, you must log in.</p>
+<p><strong>What you see</strong></p>
+<p>A centered login form with two fields: <strong>Username</strong> and <strong>Password</strong>.</p>
+<p><strong>What to do</strong></p>
+<ol class="arabic simple">
+<li><p>Enter your username (default: <code class="docutils literal notranslate"><span class="pre">admin</span></code>).</p></li>
+<li><p>Enter your password (default: <code class="docutils literal notranslate"><span class="pre">admin</span></code>).</p></li>
+<li><p>Click <strong>Login</strong>.</p></li>
+</ol>
+<p><strong>What happens internally</strong></p>
+<p>The application sends your credentials to <code class="docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/auth/token</span></code>. On success, it
+receives a <strong>JWT access token</strong> valid for 15 minutes, which is stored in your
+browser’s local storage. All subsequent API calls include this token in the
+<code class="docutils literal notranslate"><span class="pre">Authorization</span></code> header automatically.</p>
+<p><strong>Error cases</strong></p>
+<ul class="simple">
+<li><p><em>Invalid credentials</em> — you will see a red error message. Double-check your
+username and password. Contact your administrator if you do not have credentials.</p></li>
+<li><p><em>Network error</em> — ensure the backend is running and reachable at the address shown
+in your browser.</p></li>
+</ul>
+<p><strong>Session expiry</strong></p>
+<p>After 15 minutes of inactivity, your token expires. The page will automatically
+redirect you back to the login screen. Simply log in again to continue.</p>
+</section>
+<hr class="docutils" />
+<section id="step-2-the-header">
+<h2>Step 2 — The Header<a class="headerlink" href="#step-2-the-header" title="Link to this heading"></a></h2>
+<p>The <strong>Header</strong> bar spans the full width of the page and shows:</p>
+<ul class="simple">
+<li><p><strong>Application name</strong> — “Scene Reconstruction” branding on the left.</p></li>
+<li><p><strong>Job ID</strong> — once you start a reconstruction, the active job’s unique identifier
+(a UUID such as <code class="docutils literal notranslate"><span class="pre">3f7a91b2-...</span></code>) is shown here. You can copy it to track the
+job via the API.</p></li>
+<li><p><strong>Stage pill</strong> — a colour-coded indicator showing the current pipeline stage.
+It updates in real time as processing progresses.</p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="step-3-the-upload-panel-left-panel-top">
+<h2>Step 3 — The Upload Panel (Left Panel, Top)<a class="headerlink" href="#step-3-the-upload-panel-left-panel-top" title="Link to this heading"></a></h2>
+<p>This is where you submit images for reconstruction.</p>
+<p><strong>What you see</strong></p>
+<p>A drag-and-drop zone with a <strong>Choose File</strong> button, and two optional text fields:
+<strong>Dataset Name</strong> and <strong>Scene Name</strong>.</p>
+<p><strong>What to do</strong></p>
+<ol class="arabic simple">
+<li><p>Click <strong>Choose File</strong> or drag a ZIP archive directly onto the upload area.</p></li>
+<li><p>Optionally edit the <strong>Dataset Name</strong> (default: <code class="docutils literal notranslate"><span class="pre">custom</span></code>) and <strong>Scene Name</strong>
+(default: <code class="docutils literal notranslate"><span class="pre">scene_01</span></code>). These are used to organise your results internally
+and appear in the download filenames.</p></li>
+<li><p>Click <strong>Upload &amp; Reconstruct</strong>.</p></li>
+</ol>
+<p><strong>What is a valid ZIP file?</strong></p>
+<p>Your ZIP archive must contain image files with one of the following extensions:
+<code class="docutils literal notranslate"><span class="pre">.jpg</span></code>, <code class="docutils literal notranslate"><span class="pre">.jpeg</span></code>, <code class="docutils literal notranslate"><span class="pre">.png</span></code>, <code class="docutils literal notranslate"><span class="pre">.tif</span></code>, <code class="docutils literal notranslate"><span class="pre">.tiff</span></code>, <code class="docutils literal notranslate"><span class="pre">.bmp</span></code>, <code class="docutils literal notranslate"><span class="pre">.webp</span></code>.
+Images can be placed directly in the root of the ZIP or in subdirectories —
+the system will find them automatically.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Maximum upload size is <strong>500 MB</strong> by default. If your dataset is larger,
+contact your administrator to increase the <code class="docutils literal notranslate"><span class="pre">SCENE3D_MAX_UPLOAD_MB</span></code> limit.</p>
+</div>
+<p><strong>What happens internally after you click Upload</strong></p>
+<ol class="arabic simple">
+<li><p>Your browser sends the ZIP file to <code class="docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/upload</span></code> on the API.</p></li>
+<li><p>The API immediately performs a <strong>data drift check</strong> — it computes brightness,
+contrast, sharpness, and resolution statistics for your images and compares
+them to the training baseline. If significant drift is detected, the system
+logs a warning and may automatically trigger retraining.</p></li>
+<li><p>A <strong>job record</strong> is created with a unique Job ID.</p></li>
+<li><p>The reconstruction pipeline is queued as a background task.</p></li>
+<li><p>You are immediately returned the Job ID and the UI begins polling for status.</p></li>
+</ol>
+<p><strong>While uploading is in progress</strong></p>
+<p>The Upload button becomes greyed out and shows a spinner. You cannot start a
+second job until the current one completes.</p>
+<p><strong>Error cases</strong></p>
+<ul class="simple">
+<li><p><em>“Upload exceeds 500 MB”</em> — reduce your dataset size or ask your administrator
+to raise the limit.</p></li>
+<li><p><em>“Invalid ZIP”</em> — the file you selected is not a valid ZIP archive. Recreate
+it using your operating system’s built-in zip tool.</p></li>
+<li><p><em>“ZIP contains no supported image files”</em> — check that your images have a
+supported extension and are not hidden inside non-standard nested directories.</p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="step-4-the-stage-tracker-left-panel-middle">
+<h2>Step 4 — The Stage Tracker (Left Panel, Middle)<a class="headerlink" href="#step-4-the-stage-tracker-left-panel-middle" title="Link to this heading"></a></h2>
+<p>Once a job is submitted, the <strong>Stage Tracker</strong> appears below the Upload Panel.
+It shows you exactly where the pipeline is in the reconstruction process.</p>
+<p><strong>The five pipeline stages</strong></p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 10.0%" />
+<col style="width: 25.0%" />
+<col style="width: 65.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>#</p></th>
+<th class="head"><p>Stage Name</p></th>
+<th class="head"><p>What is happening</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p><strong>Extracting</strong> (10%)</p></td>
+<td><p>Your ZIP file is unpacked on the server and images are saved to a temporary
+workspace. Image files are renamed to avoid collisions.</p></td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p><strong>Matching</strong> (30%)</p></td>
+<td><p>This is the most computationally expensive step. The MASt3R neural network
+runs on the GPU and finds correspondences (matching keypoints) between every
+pair of images. ALIKED and SuperPoint local feature detectors also run here
+to provide complementary sparse keypoints.</p></td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td><p><strong>Triangulating</strong> (70%)</p></td>
+<td><p>COLMAP’s incremental Structure-from-Motion (SfM) mapper takes the keypoint
+matches and geometrically triangulates 3D points. Camera poses (rotation R
+and translation t) are determined for each registered image.</p></td>
+</tr>
+<tr class="row-odd"><td><p>4</p></td>
+<td><p><strong>Decimating</strong> (85%)</p></td>
+<td><p>The raw point cloud produced by COLMAP can contain millions of points. This
+stage applies voxel downsampling to reduce it to at most 500,000 points,
+making the result fast to download and render in the browser.</p></td>
+</tr>
+<tr class="row-even"><td><p>5</p></td>
+<td><p><strong>Success</strong> (100%)</p></td>
+<td><p>Reconstruction is complete. The 3D viewer loads your point cloud automatically.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Visual indicators</strong></p>
+<p>Each stage is displayed as a row with:</p>
+<ul class="simple">
+<li><p>A <strong>status icon</strong> — grey circle (pending), spinning loader (active), green check
+(complete), or red X (failed).</p></li>
+<li><p>A <strong>stage name</strong>.</p></li>
+<li><p>A <strong>progress bar</strong> showing overall completion as a percentage.</p></li>
+<li><p>A <strong>text message</strong> describing what is happening in more detail.</p></li>
+</ul>
+<p><strong>Timing expectations</strong></p>
+<p>Reconstruction time depends on the number of images:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Dataset Size</p></th>
+<th class="head"><p>Approximate Time</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>&lt; 20 images</p></td>
+<td><p>1–3 minutes</p></td>
+</tr>
+<tr class="row-odd"><td><p>20–100 images</p></td>
+<td><p>3–10 minutes</p></td>
+</tr>
+<tr class="row-even"><td><p>100–500 images</p></td>
+<td><p>10–30 minutes</p></td>
+</tr>
+<tr class="row-odd"><td><p>&gt; 500 images</p></td>
+<td><p>30–90 minutes</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<hr class="docutils" />
+<section id="step-5-the-3d-model-viewer-right-panel">
+<h2>Step 5 — The 3D Model Viewer (Right Panel)<a class="headerlink" href="#step-5-the-3d-model-viewer-right-panel" title="Link to this heading"></a></h2>
+<p>Once reconstruction is complete, the interactive <strong>3D Model Viewer</strong> appears on the
+right side of the dashboard.</p>
+<p><strong>Controls</strong></p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Action</p></th>
+<th class="head"><p>Effect</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Left-click + drag</strong></p></td>
+<td><p>Rotate the point cloud around its centre</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Right-click + drag</strong></p></td>
+<td><p>Pan (translate) the view</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Scroll wheel</strong></p></td>
+<td><p>Zoom in or out</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Double-click</strong></p></td>
+<td><p>Reset camera to the default viewpoint</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>What you are looking at</strong></p>
+<p>Each coloured dot in the viewer represents a <strong>3D point</strong> triangulated from two or
+more images. Clusters of points naturally form the surfaces, edges, and textures of
+the photographed scene. Camera positions are represented as small axis frames if
+enabled.</p>
+<p><strong>Cluster selector</strong></p>
+<p>If the reconstruction produced multiple clusters (groups of images that the
+algorithm determined were separate sub-scenes), a <strong>cluster selector</strong> appears above
+the viewer. Click a cluster name to highlight only the points belonging to that group.</p>
+<p><strong>Point density</strong></p>
+<p>The point cloud displayed is the <em>decimated</em> version (maximum 500,000 points). The
+original full-density cloud is available for download as a PLY file.</p>
+</section>
+<hr class="docutils" />
+<section id="step-6-the-stats-table-bottom-panel">
+<h2>Step 6 — The Stats Table (Bottom Panel)<a class="headerlink" href="#step-6-the-stats-table-bottom-panel" title="Link to this heading"></a></h2>
+<p>Below the main panels, a <strong>Statistics Table</strong> summarises the reconstruction outcome.</p>
+<p><strong>Columns</strong></p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Total Images</strong></p></td>
+<td><p>Number of image files found in your ZIP archive.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Registered Images</strong></p></td>
+<td><p>Number of images successfully placed in the 3D model. An image is
+“registered” when COLMAP was able to determine its pose.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Registration Rate</strong></p></td>
+<td><p>Registered ÷ Total, expressed as a percentage. Higher is better.
+A rate above 90% is considered excellent.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Total 3D Points</strong></p></td>
+<td><p>Total number of 3D points in the decimated point cloud.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Drift Detected</strong></p></td>
+<td><p>Whether the uploaded images differ significantly from the training
+data distribution. <code class="docutils literal notranslate"><span class="pre">No</span></code> is ideal; <code class="docutils literal notranslate"><span class="pre">Yes</span></code> means the model may
+perform sub-optimally.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Drift Severity</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">low</span></code>, <code class="docutils literal notranslate"><span class="pre">moderate</span></code>, or <code class="docutils literal notranslate"><span class="pre">high</span></code>. High severity may trigger
+automatic retraining.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Cluster breakdown</strong></p>
+<p>Below the summary row, each reconstructed cluster is listed with its own point count
+and a download link for the individual PLY file.</p>
+</section>
+<hr class="docutils" />
+<section id="step-7-downloading-results">
+<h2>Step 7 — Downloading Results<a class="headerlink" href="#step-7-downloading-results" title="Link to this heading"></a></h2>
+<p>When the job status is <strong>success</strong>, two download options appear:</p>
+<p><strong>Download Point Cloud (ZIP)</strong></p>
+<p>Click the <strong>Download .ply</strong> button or use the download URL shown in the stats table.
+This downloads a ZIP archive containing one PLY file per cluster. PLY files can be
+opened in:</p>
+<ul class="simple">
+<li><p><strong>MeshLab</strong> (free, recommended)</p></li>
+<li><p><strong>CloudCompare</strong> (free)</p></li>
+<li><p><strong>Blender</strong> (free, via the Point Cloud Visualiser add-on)</p></li>
+<li><p><strong>Open3D</strong> (Python library)</p></li>
+</ul>
+<p><strong>Download Submission CSV</strong></p>
+<p>Click <strong>Download CSV</strong> to get the raw pose data in Kaggle IMC2025 submission format.
+Each row contains the dataset name, scene name, image name, rotation matrix (9
+semicolon-separated values), and translation vector (3 semicolon-separated values).</p>
+<p>Images that could not be registered have <code class="docutils literal notranslate"><span class="pre">nan</span></code> values for their rotation and
+translation.</p>
+</section>
+<hr class="docutils" />
+<section id="step-8-starting-a-new-reconstruction">
+<h2>Step 8 — Starting a New Reconstruction<a class="headerlink" href="#step-8-starting-a-new-reconstruction" title="Link to this heading"></a></h2>
+<p>After a job finishes (successfully or with failure), click <strong>New Reconstruction</strong>
+in the left panel. This clears the current job and returns the Upload Panel to
+its initial state.</p>
+</section>
+<hr class="docutils" />
+<section id="drift-warning-banner">
+<h2>Drift Warning Banner<a class="headerlink" href="#drift-warning-banner" title="Link to this heading"></a></h2>
+<p>If significant data drift is detected during upload, a <strong>yellow warning banner</strong>
+appears at the top of the stage tracker. It shows:</p>
+<ul class="simple">
+<li><p>Drift severity (<code class="docutils literal notranslate"><span class="pre">low</span></code>, <code class="docutils literal notranslate"><span class="pre">moderate</span></code>, or <code class="docutils literal notranslate"><span class="pre">high</span></code>)</p></li>
+<li><p>Which image statistics drifted (e.g., brightness, contrast, sharpness)</p></li>
+</ul>
+<p>For <code class="docutils literal notranslate"><span class="pre">high</span></code> severity drift, the system automatically triggers a retraining job in
+Airflow. You will still see your reconstruction results, but they may be less
+accurate than usual.</p>
+</section>
+<hr class="docutils" />
+<section id="error-states">
+<h2>Error States<a class="headerlink" href="#error-states" title="Link to this heading"></a></h2>
+<p><strong>Job Failed</strong></p>
+<p>If the pipeline encounters an unrecoverable error, the Stage Tracker shows a red
+<strong>Failed</strong> indicator with an error message. Common causes are:</p>
+<ul class="simple">
+<li><p>Images are too blurry or lack sufficient overlap for matching.</p></li>
+<li><p>The ZIP contained fewer than 3 usable images (the minimum for reconstruction).</p></li>
+<li><p>The GPU ran out of memory (VRAM). Try reducing the number of images or contact
+your administrator.</p></li>
+</ul>
+<p><strong>Session Expired</strong></p>
+<p>If your JWT token expires mid-session, the application automatically detects the
+401 response from the API and redirects you to the login page. Your job continues
+running on the server — log back in and the job status will still be available
+by entering the Job ID in the URL.</p>
+<p><strong>Network Error</strong></p>
+<p>If the API is unreachable, a banner message appears at the top of the page. Check
+that the backend is running (<code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">compose</span> <span class="pre">ps</span></code>) and that you are on the correct
+network.</p>
+</section>
+<hr class="docutils" />
+<section id="frequently-asked-questions-ui">
+<h2>Frequently Asked Questions (UI)<a class="headerlink" href="#frequently-asked-questions-ui" title="Link to this heading"></a></h2>
+<dl class="simple">
+<dt><strong>Why are some of my images not in the point cloud?</strong></dt><dd><p>Images are excluded when COLMAP cannot find enough keypoint matches connecting them
+to the rest of the scene. This typically happens when an image is blurry, captured
+at a very different scale, or has too little overlap with neighbouring images.
+The registration rate in the Stats Table tells you how many images were placed.</p>
+</dd>
+<dt><strong>Can I upload multiple scenes at once?</strong></dt><dd><p>Currently, each upload creates a single job processing one scene. To process
+multiple scenes, upload them one at a time.</p>
+</dd>
+<dt><strong>The 3D viewer is blank after the job finishes. What should I do?</strong></dt><dd><p>This means the reconstruction produced no valid 3D points. This can happen when
+there are fewer than 3 images with sufficient overlap, or when all images are
+from a single flat surface. Try adding more images with different viewpoints.</p>
+</dd>
+<dt><strong>How long are my results stored?</strong></dt><dd><p>Results are stored in the server’s <code class="docutils literal notranslate"><span class="pre">/app/results/</span></code> directory. They persist
+until the container is restarted or the results directory is manually cleared.
+Download your PLY and CSV files promptly after reconstruction.</p>
+</dd>
+<dt><strong>What does “drift detected” mean?</strong></dt><dd><p>It means the statistical properties of your uploaded images (brightness, contrast,
+sharpness, resolution) differ from the images used to train the underlying models.
+The system can still reconstruct your scene, but accuracy may be lower. High-drift
+datasets may trigger an automatic retraining job overnight.</p>
+</dd>
+</dl>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="usage.html" class="btn btn-neutral float-left" title="Usage Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="architecture.html" class="btn btn-neutral float-right" title="System Architecture" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Yash Purswani.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

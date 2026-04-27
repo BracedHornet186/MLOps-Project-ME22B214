@@ -1,0 +1,433 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Frequently Asked Questions &mdash; MLOps 3D Scene Reconstruction 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=01f34227"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Business Understanding" href="business_understanding.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            MLOps 3D Scene Reconstruction
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#step-1-clone-the-repository">Step 1 — Clone the Repository</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#step-2-download-the-dataset">Step 2 — Download the Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#docker-setup-recommended">Docker Setup (Recommended)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3a-configure-the-environment-file">Step 3a — Configure the Environment File</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3b-generate-docker-secrets">Step 3b — Generate Docker Secrets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3c-generate-tls-certificates">Step 3c — Generate TLS Certificates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3d-clone-external-dependencies">Step 3d — Clone External Dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3e-launch-the-full-stack">Step 3e — Launch the Full Stack</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#native-python-setup-developer-mode">Native Python Setup (Developer Mode)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3a-build-asmk">Step 3a — Build ASMK</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3b-build-croco-dust3r-kernels">Step 3b — Build CroCo / DUSt3R Kernels</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3c-build-remaining-packages">Step 3c — Build Remaining Packages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#step-3d-create-the-python-virtual-environment">Step 3d — Create the Python Virtual Environment</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#pre-trained-model-weights">Pre-trained Model Weights</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#verifying-the-installation">Verifying the Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#troubleshooting-installation">Troubleshooting Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#running-the-system">Running the System</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#docker-production">Docker (Production)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#native-development">Native (Development)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#running-the-offline-dvc-pipeline">Running the Offline DVC Pipeline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#uploading-data-via-the-ui">Uploading Data via the UI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#api-authentication">API Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#uploading-data-via-the-api">Uploading Data via the API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#polling-job-status">Polling Job Status</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#downloading-results">Downloading Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#checking-data-drift">Checking Data Drift</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#triggering-retraining">Triggering Retraining</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#example-end-to-end-workflow">Example End-to-End Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#disabling-authentication-development-only">Disabling Authentication (Development Only)</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Interface</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ui_guide.html">UI Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#overview-of-the-interface">Overview of the Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-1-logging-in">Step 1 — Logging In</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-2-the-header">Step 2 — The Header</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-3-the-upload-panel-left-panel-top">Step 3 — The Upload Panel (Left Panel, Top)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-4-the-stage-tracker-left-panel-middle">Step 4 — The Stage Tracker (Left Panel, Middle)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-5-the-3d-model-viewer-right-panel">Step 5 — The 3D Model Viewer (Right Panel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-6-the-stats-table-bottom-panel">Step 6 — The Stats Table (Bottom Panel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-7-downloading-results">Step 7 — Downloading Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-8-starting-a-new-reconstruction">Step 8 — Starting a New Reconstruction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#drift-warning-banner">Drift Warning Banner</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#error-states">Error States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#frequently-asked-questions-ui">Frequently Asked Questions (UI)</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">System Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">System Architecture</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#high-level-architecture">High-Level Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#frontend">Frontend</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#api-gateway-and-gpu-worker-ray-serve">API Gateway and GPU Worker (Ray Serve)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#offline-mlops-pipeline">Offline MLOps Pipeline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#monitoring-stack">Monitoring Stack</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#data-flow">Data Flow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#networking">Networking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#security-boundaries">Security Boundaries</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pipeline.html">Pipeline Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#pipeline-overview">Pipeline Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#stage-1-data-validation">Stage 1 — Data Validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#stage-2-exploratory-data-analysis-and-baselines">Stage 2 — Exploratory Data Analysis and Baselines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#stage-3-image-preprocessing">Stage 3 — Image Preprocessing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#stage-4-data-preparation">Stage 4 — Data Preparation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#stage-5-scene-reconstruction-core-pipeline">Stage 5 — Scene Reconstruction (Core Pipeline)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#shortlist-generation">Shortlist Generation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#feature-extraction-and-matching">Feature Extraction and Matching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#colmap-incremental-sfm">COLMAP Incremental SfM</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#stage-6-evaluation">Stage 6 — Evaluation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#online-inference-pipeline">Online Inference Pipeline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#model-selection-and-promotion">Model Selection and Promotion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#drift-monitoring-and-retraining">Drift Monitoring and Retraining</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api.html#authentication">Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#endpoint-reference">Endpoint Reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api.html#post-auth-token">POST /auth/token</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-health">GET /health</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-ready">GET /ready</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-metrics">GET /metrics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#post-upload">POST /upload</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-status-job-id-get-jobs-job-id">GET /status/{job_id}  |  GET /jobs/{job_id}</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-download-jobs-job-id">GET /download/jobs/{job_id}</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-download-jobs-job-id-csv">GET /download/jobs/{job_id}/csv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-download-jobs-job-id-filename">GET /download/jobs/{job_id}/{filename}</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-clusters-job-id">GET /clusters/{job_id}</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-jobs-job-id-insights">GET /jobs/{job_id}/insights</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#post-drift">POST /drift</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#post-drift-trigger-retrain">POST /drift/trigger-retrain</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#error-responses">Error Responses</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">MLOps &amp; Operations</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="security.html">Security &amp; Compliance</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="security.html#overview-of-security-controls">Overview of Security Controls</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#docker-secrets-management">1. Docker Secrets Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#jwt-bearer-token-authentication">2. JWT Bearer Token Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#access-logging">3. Access Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#tls-1-3-transport-security">4. TLS 1.3 (Transport Security)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#ci-cd-security-scanning">5. CI/CD Security Scanning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#protected-api-endpoints">Protected API Endpoints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#alertmanager-authentication">Alertmanager Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#environment-variables">Environment Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#security-recommendations-for-production">Security Recommendations for Production</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="datasources.html">Data Sources</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#dataset-summary">Dataset Summary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#imc-2025-training-dataset">IMC 2025 Training Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#imc-2025-test-dataset">IMC 2025 Test Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#custom-warehouse-dataset">Custom Warehouse Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#data-versioning">Data Versioning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#preprocessing-assumptions">Preprocessing Assumptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#known-biases-and-limitations">Known Biases and Limitations</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Project Context</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="business_understanding.html">Business Understanding</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#problem-statement">Problem Statement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#use-cases">Use Cases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#ml-metric">ML Metric</a></li>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#business-and-operational-metrics">Business and Operational Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#data-source">Data Source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#stakeholders">Stakeholders</a></li>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#definition-of-done">Definition of Done</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Frequently Asked Questions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#general">General</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installation-setup">Installation &amp; Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-the-api">Using the API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#reconstruction-quality">Reconstruction Quality</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mlops-dvc-mlflow">MLOps / DVC / MLflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#monitoring-alerts">Monitoring &amp; Alerts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-drift">Data &amp; Drift</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MLOps 3D Scene Reconstruction</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Frequently Asked Questions</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/faq.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="frequently-asked-questions">
+<h1>Frequently Asked Questions<a class="headerlink" href="#frequently-asked-questions" title="Link to this heading"></a></h1>
+<hr class="docutils" />
+<section id="general">
+<h2>General<a class="headerlink" href="#general" title="Link to this heading"></a></h2>
+<dl class="simple">
+<dt><strong>What does this system actually do?</strong></dt><dd><p>It takes a collection of photos of a scene (e.g., a building, a room, an
+archaeological site) and reconstructs a 3D point cloud from them. For each
+image it also estimates where the camera was positioned and which direction it
+was pointing.</p>
+</dd>
+<dt><strong>What kind of images can I use?</strong></dt><dd><p>The system accepts <code class="docutils literal notranslate"><span class="pre">.jpg</span></code>, <code class="docutils literal notranslate"><span class="pre">.jpeg</span></code>, <code class="docutils literal notranslate"><span class="pre">.png</span></code>, <code class="docutils literal notranslate"><span class="pre">.tif</span></code>, <code class="docutils literal notranslate"><span class="pre">.tiff</span></code>,
+<code class="docutils literal notranslate"><span class="pre">.bmp</span></code>, and <code class="docutils literal notranslate"><span class="pre">.webp</span></code> files, packaged into a single ZIP archive. Images
+should be taken with a real camera or phone; synthetic renders or heavily
+edited images may produce poor results.</p>
+</dd>
+<dt><strong>How many images do I need?</strong></dt><dd><p>A minimum of 3 images is required to form a reconstruction. In practice,
+at least 10–20 overlapping images of a scene will give usable results.
+More images (50–200) generally improve accuracy and coverage.</p>
+</dd>
+<dt><strong>Do the images need to be ordered?</strong></dt><dd><p>No. The system handles unordered collections. However, every image must share
+some visual overlap with at least one other image in the set.</p>
+</dd>
+</dl>
+</section>
+<hr class="docutils" />
+<section id="installation-setup">
+<h2>Installation &amp; Setup<a class="headerlink" href="#installation-setup" title="Link to this heading"></a></h2>
+<dl>
+<dt><strong>I get “CUDA error” when starting ray-serve. What should I do?</strong></dt><dd><p>Ensure the NVIDIA Container Toolkit is installed on your host:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>nvidia-container-toolkit
+sudo<span class="w"> </span>systemctl<span class="w"> </span>restart<span class="w"> </span>docker
+</pre></div>
+</div>
+<p>Then verify GPU access:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>--gpus<span class="w"> </span>all<span class="w"> </span>nvidia/cuda:12.6.3-base-ubuntu22.04<span class="w"> </span>nvidia-smi
+</pre></div>
+</div>
+</dd>
+<dt><strong>The ``generate_secrets.sh`` script fails.</strong></dt><dd><p>Ensure you have <code class="docutils literal notranslate"><span class="pre">openssl</span></code> installed (<code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">apt</span> <span class="pre">install</span> <span class="pre">openssl</span></code>). The
+script generates random secret strings using <code class="docutils literal notranslate"><span class="pre">openssl</span> <span class="pre">rand</span></code>.</p>
+</dd>
+<dt><strong>I see “AIRFLOW_UID not set” warnings.</strong></dt><dd><p>Add your user ID to <code class="docutils literal notranslate"><span class="pre">.env</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;AIRFLOW_UID=</span><span class="k">$(</span>id<span class="w"> </span>-u<span class="k">)</span><span class="s2">&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>.env
+</pre></div>
+</div>
+</dd>
+<dt><strong>Git LFS download fails.</strong></dt><dd><p>You can download model weights manually using the URLs listed in
+<a class="reference internal" href="installation.html"><span class="doc">Installation Guide</span></a>. Place the files in <code class="docutils literal notranslate"><span class="pre">extra/pretrained_models/</span></code>.</p>
+</dd>
+</dl>
+</section>
+<hr class="docutils" />
+<section id="using-the-api">
+<h2>Using the API<a class="headerlink" href="#using-the-api" title="Link to this heading"></a></h2>
+<dl class="simple">
+<dt><strong>My JWT token keeps expiring mid-workflow.</strong></dt><dd><p>Tokens are valid for 15 minutes. For long-running automation scripts, refresh
+the token proactively by calling <code class="docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/auth/token</span></code> before each request, or
+increase <code class="docutils literal notranslate"><span class="pre">JWT_EXPIRY_SECONDS</span></code> in the environment configuration.</p>
+</dd>
+<dt><strong>I get HTTP 503 on ``/ready``.</strong></dt><dd><p>The GPU worker is still loading. MASt3R model weights take 1–3 minutes to
+load into VRAM at container startup. Wait for the <code class="docutils literal notranslate"><span class="pre">ray-serve</span></code> healthcheck
+to pass before sending inference requests.</p>
+</dd>
+<dt><strong>``POST /upload`` returns HTTP 413.</strong></dt><dd><p>Your ZIP file exceeds the 500 MB default limit. Either reduce the dataset
+size or increase <code class="docutils literal notranslate"><span class="pre">SCENE3D_MAX_UPLOAD_MB</span></code> in <code class="docutils literal notranslate"><span class="pre">docker-compose.yaml</span></code>.</p>
+</dd>
+<dt><strong>How do I run multiple jobs in parallel?</strong></dt><dd><p>The system is currently configured for one concurrent job (<code class="docutils literal notranslate"><span class="pre">MAX_CONCURRENT_JOBS=1</span></code>)
+to prevent GPU memory exhaustion. Additional uploads will be queued and
+processed in order.</p>
+</dd>
+</dl>
+</section>
+<hr class="docutils" />
+<section id="reconstruction-quality">
+<h2>Reconstruction Quality<a class="headerlink" href="#reconstruction-quality" title="Link to this heading"></a></h2>
+<dl class="simple">
+<dt><strong>My registration rate is below 50%. What went wrong?</strong></dt><dd><p>Low registration rates are usually caused by one or more of:</p>
+<ul class="simple">
+<li><p>Images without sufficient overlap (each image should share at least 20–30%
+of its view with neighbouring images).</p></li>
+<li><p>Images that are too blurry (Laplacian variance below threshold).</p></li>
+<li><p>Scenes with repetitive textures where feature matching produces false positives.</p></li>
+<li><p>Very few images (fewer than 10 in a connected scene).</p></li>
+</ul>
+</dd>
+<dt><strong>Some images appear in the point cloud viewer but others don’t.</strong></dt><dd><p>Images that appear are those successfully registered by COLMAP. Excluded images
+did not have enough verified matches to determine their pose. Check the
+<code class="docutils literal notranslate"><span class="pre">registration_rate</span></code> value in the Stats Table for the proportion registered.</p>
+</dd>
+<dt><strong>The point cloud looks very sparse.</strong></dt><dd><p>The displayed point cloud is voxel-downsampled to at most 500,000 points for
+browser performance. The original full-density PLY files are available for
+download and will be much denser.</p>
+</dd>
+<dt><strong>I uploaded 200 images but got only 1 cluster with 30 images.</strong></dt><dd><p>COLMAP may have produced multiple disconnected sub-models and selected only the
+largest. This can happen when images fall into groups with little overlap between
+them. Try ensuring all images share some visual context, or increase the number
+of images from each viewpoint.</p>
+</dd>
+</dl>
+</section>
+<hr class="docutils" />
+<section id="mlops-dvc-mlflow">
+<h2>MLOps / DVC / MLflow<a class="headerlink" href="#mlops-dvc-mlflow" title="Link to this heading"></a></h2>
+<dl>
+<dt><strong>How do I compare two experiment runs?</strong></dt><dd><p>Open MLflow at <a class="reference external" href="http://localhost:5000">http://localhost:5000</a>, navigate to the
+<code class="docutils literal notranslate"><span class="pre">scene_reconstruction_dvc</span></code> experiment, and select multiple runs to compare.
+You can plot <code class="docutils literal notranslate"><span class="pre">mAA_overall</span></code>, <code class="docutils literal notranslate"><span class="pre">registration_rate</span></code>, and per-dataset metrics
+side by side.</p>
+</dd>
+<dt><strong>How is the best config selected?</strong></dt><dd><p><code class="docutils literal notranslate"><span class="pre">scripts/select_best_run.py</span></code> queries the MLflow tracking server for the run
+with the highest <code class="docutils literal notranslate"><span class="pre">mAA_overall</span></code> metric in the experiment. It copies that run’s
+config YAML to <code class="docutils literal notranslate"><span class="pre">conf/best_config.yaml</span></code>. The <code class="docutils literal notranslate"><span class="pre">ray-serve</span></code> container reads
+this file at startup.</p>
+</dd>
+<dt><strong>DVC repro says “nothing changed”. How do I force a re-run?</strong></dt><dd><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>dvc<span class="w"> </span>repro<span class="w"> </span>--force
+</pre></div>
+</div>
+<p>Or invalidate a specific stage:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>dvc<span class="w"> </span>repro<span class="w"> </span>--force<span class="w"> </span>run_pipeline
+</pre></div>
+</div>
+</dd>
+<dt><strong>Where are MLflow artifacts stored?</strong></dt><dd><p>Artifacts are stored in the <code class="docutils literal notranslate"><span class="pre">mlflow-artifacts</span></code> Docker volume, mounted at
+<code class="docutils literal notranslate"><span class="pre">/opt/mlflow/artifacts</span></code> inside the <code class="docutils literal notranslate"><span class="pre">mlflow</span></code> container.</p>
+</dd>
+</dl>
+</section>
+<hr class="docutils" />
+<section id="monitoring-alerts">
+<h2>Monitoring &amp; Alerts<a class="headerlink" href="#monitoring-alerts" title="Link to this heading"></a></h2>
+<dl>
+<dt><strong>I’m not receiving drift alert emails.</strong></dt><dd><p>Check that your SMTP credentials are correctly set in <code class="docutils literal notranslate"><span class="pre">.env</span></code>
+(<code class="docutils literal notranslate"><span class="pre">SMTP_USER</span></code>, <code class="docutils literal notranslate"><span class="pre">SMTP_PASSWORD</span></code>, <code class="docutils literal notranslate"><span class="pre">SMTP_MAIL_FROM</span></code>). Verify the Airflow
+connection is active at <a class="reference external" href="http://localhost:8080/connection/list">http://localhost:8080/connection/list</a>.</p>
+</dd>
+<dt><strong>Grafana shows “No data” for most panels.</strong></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">ray-serve</span></code> service must be running (<code class="docutils literal notranslate"><span class="pre">inference</span></code> Docker Compose profile)
+for Prometheus to scrape metrics. Start it with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>compose<span class="w"> </span>--profile<span class="w"> </span>inference<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>ray-serve
+</pre></div>
+</div>
+</dd>
+<dt><strong>Alertmanager is firing but Airflow retraining DAG is not triggered.</strong></dt><dd><p>Check Alertmanager logs: <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">compose</span> <span class="pre">logs</span> <span class="pre">alertmanager</span></code>.
+Verify the Airflow API is reachable from within the <code class="docutils literal notranslate"><span class="pre">mlops_net</span></code> network:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>alertmanager<span class="w"> </span>wget<span class="w"> </span>-qO-<span class="w"> </span>http://airflow-apiserver:8080/api/v2/monitor/health
+</pre></div>
+</div>
+</dd>
+</dl>
+</section>
+<hr class="docutils" />
+<section id="data-drift">
+<h2>Data &amp; Drift<a class="headerlink" href="#data-drift" title="Link to this heading"></a></h2>
+<dl>
+<dt><strong>What does “drift detected” mean for my results?</strong></dt><dd><p>It means the statistical properties of your uploaded images differ from the
+training dataset. The reconstruction will still run, but accuracy may be lower.
+High-severity drift triggers an automatic Airflow retraining job.</p>
+</dd>
+<dt><strong>How do I update the drift baselines?</strong></dt><dd><p>Re-run the <code class="docutils literal notranslate"><span class="pre">eda_baselines</span></code> DVC stage with your new dataset:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>dvc<span class="w"> </span>repro<span class="w"> </span>eda_baselines<span class="w"> </span>--force
+</pre></div>
+</div>
+<p>This regenerates <code class="docutils literal notranslate"><span class="pre">data/baselines/eda_baselines.json</span></code>, which the drift monitor
+uses as the new reference.</p>
+</dd>
+</dl>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="business_understanding.html" class="btn btn-neutral float-left" title="Business Understanding" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Yash Purswani.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

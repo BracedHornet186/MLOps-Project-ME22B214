@@ -1,0 +1,165 @@
+Data Sources
+============
+
+This page describes the datasets used for training, evaluation, and testing the
+reconstruction pipeline.
+
+----
+
+Dataset Summary
+----------------
+
+.. list-table::
+   :widths: 20 20 15 45
+   :header-rows: 1
+
+   * - Dataset
+     - Source
+     - License
+     - Known Bias / Notes
+   * - **IMC25 train**
+     - Kaggle / CVG Group
+     - CC BY
+     - Outdoor scenes, heritage sites; well-lit, high-resolution imagery
+   * - **IMC25 test**
+     - Kaggle / CVG Group
+     - CC BY
+     - Includes staircase scenes and ET-type scenes; more challenging geometry
+   * - **custom_warehouse**
+     - Mobile camera (internal)
+     - Internal use only
+     - Single lighting condition, 30 fps video frames; indoor, repetitive textures
+
+----
+
+IMC 2025 Training Dataset
+--------------------------
+
+The primary dataset is from the **Image Matching Challenge 2025** hosted on Kaggle
+(provided by the Computer Vision Group).
+
+**Contents**
+
+The training split contains multi-view image collections for a variety of outdoor
+and heritage scenes including:
+
+- Ancient monuments and archaeological sites (e.g., ``dioscuri``, ``cyprus``,
+  ``baalshamin``)
+- Iconic urban landmarks (e.g., ``taj_mahal``, ``sacre_coeur``, ``trevi_fountain``,
+  ``piazza_san_marco``, ``grand_place_brussels``)
+- Indoor and mixed scenes (e.g., ``stairs``, ``haiper`` series with bikes, chairs,
+  fountains)
+- Vineyard and outdoor scenes (``fbk_vineyard``)
+- Scenes explicitly containing outlier images (``outliers`` sub-scenes)
+
+A full list of 34 dataset/scene pairs is defined in ``data/scenes.yaml``.
+
+**Labels file**
+
+``data/train_labels.csv`` contains ground-truth rotation matrices and translation
+vectors for each image, formatted as semicolon-separated values:
+
+- ``rotation_matrix`` — 9 floats (row-major 3×3 rotation matrix)
+- ``translation_vector`` — 3 floats (camera centre in world coordinates)
+
+**Thresholds file**
+
+``data/train_thresholds.csv`` defines per-scene angular and translation error
+thresholds used to compute the mAA metric. Different scenes have different tolerance
+levels reflecting their physical scale.
+
+**Downloading the dataset**
+
+.. code-block:: bash
+
+   kaggle competitions download -c image-matching-challenge-2025
+   unzip image-matching-challenge-2025.zip -d data/
+   mv data/image-matching-challenge-2025/* data/
+
+----
+
+IMC 2025 Test Dataset
+----------------------
+
+The test split is provided separately (``data/test/``, 75 files, ~83 MB).
+It includes scenes emphasising challenging conditions:
+
+- **Stairs** — repetitive geometry with few distinctive features; tests robustness
+  of feature matching under ambiguous structure.
+- **ET-type scenes** — scenes from the ``ETs`` dataset with unusual viewpoints.
+
+These scene types were chosen specifically because they expose weaknesses of
+standard feature matchers, requiring semi-dense matching approaches like MASt3R.
+
+----
+
+Custom Warehouse Dataset
+-------------------------
+
+An internally collected dataset from a warehouse environment:
+
+- Captured with a hand-held mobile phone camera
+- Images are extracted from a 30 fps video walk-through (high temporal redundancy)
+- Single, uniform overhead lighting — shadows and specular reflections are minimal
+- Scene content is repetitive shelving and corridor structures
+
+**Biases and limitations**
+
+- The single lighting condition means the model may underperform on datasets with
+  varied illumination (e.g., windows, mixed indoor/outdoor).
+- High temporal redundancy means consecutive frames share >90% of their view;
+  the shortlist generator must be carefully tuned to avoid redundant pairs.
+- Indoor repetitive texture (shelving) challenges global descriptor retrievers
+  which rely on distinctive appearance.
+
+----
+
+Data Versioning
+----------------
+
+All datasets are tracked with **DVC**:
+
+- ``data/train/`` is tracked by ``data/train.dvc`` (md5: ``7bf67ac358a...``,
+  23 files, 7.5 MB total)
+- ``data/test/`` is tracked by ``data/test.dvc`` (md5: ``c7dec6cac38...``,
+  75 files, 83.6 MB total)
+- ``data/train_labels.csv`` is tracked by ``data/train_labels.csv.dvc``
+- ``data/train_thresholds.csv`` is tracked by ``data/train_thresholds.csv.dvc``
+
+To pull the data after cloning:
+
+.. code-block:: bash
+
+   dvc pull
+
+----
+
+Preprocessing Assumptions
+---------------------------
+
+The preprocessing stage (``scripts/image_processing.py``) makes the following
+assumptions:
+
+- Images may contain EXIF orientation metadata; orientations are normalised before
+  matching.
+- Blurry images (Laplacian variance below ``blurry_threshold`` in
+  ``conf/preprocess.yaml``) are either sharpened or excluded.
+- All images for a given scene are expected to have reasonable overlap (>20% shared
+  field of view with at least one other image in the scene).
+
+----
+
+Known Biases and Limitations
+------------------------------
+
+- The training data is heavily weighted towards **outdoor heritage and landmark
+  scenes**. The model may be less accurate on indoor, industrial, or highly
+  reflective surfaces.
+- All training images are high quality (DSLR or recent smartphone). Performance
+  may degrade on low-resolution or heavily compressed imagery.
+- Scenes with **repetitive structures** (stairs, shelving, tiled floors) are
+  systematically harder — the shortlist generator may propose incorrect pairs,
+  and COLMAP may produce disconnected sub-models.
+- The ``ETs`` dataset contains a known typo in ``data/scenes.yaml``
+  (``sceme`` instead of ``scene`` for one entry). This is a data quality issue
+  that should be corrected before training.

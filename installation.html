@@ -1,0 +1,562 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Installation Guide &mdash; MLOps 3D Scene Reconstruction 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=01f34227"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Usage Guide" href="usage.html" />
+    <link rel="prev" title="MLOps 3D Scene Reconstruction" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            MLOps 3D Scene Reconstruction
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-1-clone-the-repository">Step 1 — Clone the Repository</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-2-download-the-dataset">Step 2 — Download the Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#docker-setup-recommended">Docker Setup (Recommended)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#step-3a-configure-the-environment-file">Step 3a — Configure the Environment File</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-3b-generate-docker-secrets">Step 3b — Generate Docker Secrets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-3c-generate-tls-certificates">Step 3c — Generate TLS Certificates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-3d-clone-external-dependencies">Step 3d — Clone External Dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-3e-launch-the-full-stack">Step 3e — Launch the Full Stack</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#native-python-setup-developer-mode">Native Python Setup (Developer Mode)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#step-3a-build-asmk">Step 3a — Build ASMK</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-3b-build-croco-dust3r-kernels">Step 3b — Build CroCo / DUSt3R Kernels</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-3c-build-remaining-packages">Step 3c — Build Remaining Packages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-3d-create-the-python-virtual-environment">Step 3d — Create the Python Virtual Environment</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#pre-trained-model-weights">Pre-trained Model Weights</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#verifying-the-installation">Verifying the Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#troubleshooting-installation">Troubleshooting Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#running-the-system">Running the System</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#docker-production">Docker (Production)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#native-development">Native (Development)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#running-the-offline-dvc-pipeline">Running the Offline DVC Pipeline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#uploading-data-via-the-ui">Uploading Data via the UI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#api-authentication">API Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#uploading-data-via-the-api">Uploading Data via the API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#polling-job-status">Polling Job Status</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#downloading-results">Downloading Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#checking-data-drift">Checking Data Drift</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#triggering-retraining">Triggering Retraining</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#example-end-to-end-workflow">Example End-to-End Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#disabling-authentication-development-only">Disabling Authentication (Development Only)</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Interface</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ui_guide.html">UI Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#overview-of-the-interface">Overview of the Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-1-logging-in">Step 1 — Logging In</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-2-the-header">Step 2 — The Header</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-3-the-upload-panel-left-panel-top">Step 3 — The Upload Panel (Left Panel, Top)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-4-the-stage-tracker-left-panel-middle">Step 4 — The Stage Tracker (Left Panel, Middle)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-5-the-3d-model-viewer-right-panel">Step 5 — The 3D Model Viewer (Right Panel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-6-the-stats-table-bottom-panel">Step 6 — The Stats Table (Bottom Panel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-7-downloading-results">Step 7 — Downloading Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#step-8-starting-a-new-reconstruction">Step 8 — Starting a New Reconstruction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#drift-warning-banner">Drift Warning Banner</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#error-states">Error States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ui_guide.html#frequently-asked-questions-ui">Frequently Asked Questions (UI)</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">System Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">System Architecture</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#high-level-architecture">High-Level Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#frontend">Frontend</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#api-gateway-and-gpu-worker-ray-serve">API Gateway and GPU Worker (Ray Serve)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#offline-mlops-pipeline">Offline MLOps Pipeline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#monitoring-stack">Monitoring Stack</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#data-flow">Data Flow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#networking">Networking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#security-boundaries">Security Boundaries</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pipeline.html">Pipeline Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#pipeline-overview">Pipeline Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#stage-1-data-validation">Stage 1 — Data Validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#stage-2-exploratory-data-analysis-and-baselines">Stage 2 — Exploratory Data Analysis and Baselines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#stage-3-image-preprocessing">Stage 3 — Image Preprocessing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#stage-4-data-preparation">Stage 4 — Data Preparation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#stage-5-scene-reconstruction-core-pipeline">Stage 5 — Scene Reconstruction (Core Pipeline)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#shortlist-generation">Shortlist Generation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#feature-extraction-and-matching">Feature Extraction and Matching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#colmap-incremental-sfm">COLMAP Incremental SfM</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#stage-6-evaluation">Stage 6 — Evaluation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#online-inference-pipeline">Online Inference Pipeline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#model-selection-and-promotion">Model Selection and Promotion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#drift-monitoring-and-retraining">Drift Monitoring and Retraining</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api.html#authentication">Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#endpoint-reference">Endpoint Reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api.html#post-auth-token">POST /auth/token</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-health">GET /health</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-ready">GET /ready</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-metrics">GET /metrics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#post-upload">POST /upload</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-status-job-id-get-jobs-job-id">GET /status/{job_id}  |  GET /jobs/{job_id}</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-download-jobs-job-id">GET /download/jobs/{job_id}</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-download-jobs-job-id-csv">GET /download/jobs/{job_id}/csv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-download-jobs-job-id-filename">GET /download/jobs/{job_id}/{filename}</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-clusters-job-id">GET /clusters/{job_id}</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#get-jobs-job-id-insights">GET /jobs/{job_id}/insights</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#post-drift">POST /drift</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#post-drift-trigger-retrain">POST /drift/trigger-retrain</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#error-responses">Error Responses</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">MLOps &amp; Operations</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="security.html">Security &amp; Compliance</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="security.html#overview-of-security-controls">Overview of Security Controls</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#docker-secrets-management">1. Docker Secrets Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#jwt-bearer-token-authentication">2. JWT Bearer Token Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#access-logging">3. Access Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#tls-1-3-transport-security">4. TLS 1.3 (Transport Security)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#ci-cd-security-scanning">5. CI/CD Security Scanning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#protected-api-endpoints">Protected API Endpoints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#alertmanager-authentication">Alertmanager Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#environment-variables">Environment Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security.html#security-recommendations-for-production">Security Recommendations for Production</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="datasources.html">Data Sources</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#dataset-summary">Dataset Summary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#imc-2025-training-dataset">IMC 2025 Training Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#imc-2025-test-dataset">IMC 2025 Test Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#custom-warehouse-dataset">Custom Warehouse Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#data-versioning">Data Versioning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#preprocessing-assumptions">Preprocessing Assumptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasources.html#known-biases-and-limitations">Known Biases and Limitations</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Project Context</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="business_understanding.html">Business Understanding</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#problem-statement">Problem Statement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#use-cases">Use Cases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#ml-metric">ML Metric</a></li>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#business-and-operational-metrics">Business and Operational Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#data-source">Data Source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#stakeholders">Stakeholders</a></li>
+<li class="toctree-l2"><a class="reference internal" href="business_understanding.html#definition-of-done">Definition of Done</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#general">General</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#installation-setup">Installation &amp; Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#using-the-api">Using the API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#reconstruction-quality">Reconstruction Quality</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#mlops-dvc-mlflow">MLOps / DVC / MLflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#monitoring-alerts">Monitoring &amp; Alerts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#data-drift">Data &amp; Drift</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MLOps 3D Scene Reconstruction</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Installation Guide</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/installation.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="installation-guide">
+<h1>Installation Guide<a class="headerlink" href="#installation-guide" title="Link to this heading"></a></h1>
+<p>This guide covers two installation paths: the recommended <strong>Docker-based</strong> setup and the
+<strong>native Python</strong> setup for development.</p>
+<hr class="docutils" />
+<section id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Docker</strong> &gt;= 24.0 and <strong>Docker Compose</strong> &gt;= 2.20</p></li>
+<li><p><strong>NVIDIA GPU</strong> with CUDA 12.6 support (required for inference)</p></li>
+<li><p><strong>NVIDIA Container Toolkit</strong> installed on the host</p></li>
+<li><p><strong>Git</strong> and <strong>Git LFS</strong></p></li>
+<li><p>At least <strong>16 GB GPU VRAM</strong> and <strong>32 GB system RAM</strong> recommended</p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="step-1-clone-the-repository">
+<h2>Step 1 — Clone the Repository<a class="headerlink" href="#step-1-clone-the-repository" title="Link to this heading"></a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/your-org/MLOps-Project-ME22B214.git
+<span class="nb">cd</span><span class="w"> </span>MLOps-Project-ME22B214
+git<span class="w"> </span>lfs<span class="w"> </span>pull<span class="w">          </span><span class="c1"># Downloads pre-trained model weights</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="step-2-download-the-dataset">
+<h2>Step 2 — Download the Dataset<a class="headerlink" href="#step-2-download-the-dataset" title="Link to this heading"></a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kaggle<span class="w"> </span>competitions<span class="w"> </span>download<span class="w"> </span>-c<span class="w"> </span>image-matching-challenge-2025
+unzip<span class="w"> </span>image-matching-challenge-2025.zip<span class="w"> </span>-d<span class="w"> </span>data/
+mv<span class="w"> </span>data/image-matching-challenge-2025/*<span class="w"> </span>data/
+rm<span class="w"> </span>-r<span class="w"> </span>data/image-matching-challenge-2025
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">data/</span></code> directory should now contain <code class="docutils literal notranslate"><span class="pre">train/</span></code>, <code class="docutils literal notranslate"><span class="pre">test/</span></code>, <code class="docutils literal notranslate"><span class="pre">train_labels.csv</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">train_thresholds.csv</span></code>.</p>
+</section>
+<hr class="docutils" />
+<section id="docker-setup-recommended">
+<h2>Docker Setup (Recommended)<a class="headerlink" href="#docker-setup-recommended" title="Link to this heading"></a></h2>
+<p>This is the standard production-ready setup. All services run as Docker containers
+on a shared network (<code class="docutils literal notranslate"><span class="pre">mlops_net</span></code>).</p>
+<section id="step-3a-configure-the-environment-file">
+<h3>Step 3a — Configure the Environment File<a class="headerlink" href="#step-3a-configure-the-environment-file" title="Link to this heading"></a></h3>
+<p>Run the interactive setup script to generate your <code class="docutils literal notranslate"><span class="pre">.env</span></code> file:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./setup_env.sh
+</pre></div>
+</div>
+<p>The script will prompt you for the following values:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Variable</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">AIRFLOW_UID</span></code></p></td>
+<td><p>Your host user ID (run <code class="docutils literal notranslate"><span class="pre">id</span> <span class="pre">-u</span></code> to find it)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">DOCKER_GID</span></code></p></td>
+<td><p>Docker group ID (run <code class="docutils literal notranslate"><span class="pre">getent</span> <span class="pre">group</span> <span class="pre">docker</span> <span class="pre">|</span> <span class="pre">cut</span> <span class="pre">-d:</span> <span class="pre">-f3</span></code>)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FERNET_KEY</span></code></p></td>
+<td><p>Airflow encryption key (generate with <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-c</span> <span class="pre">&quot;from</span> <span class="pre">cryptography.fernet</span> <span class="pre">import</span> <span class="pre">Fernet;</span> <span class="pre">print(Fernet.generate_key().decode())&quot;</span></code> )</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SMTP_USER</span></code></p></td>
+<td><p>Gmail address for Airflow email alerts</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">SMTP_PASSWORD</span></code></p></td>
+<td><p>Gmail app password (not your regular password)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">HOST_PROJECT_ROOT</span></code></p></td>
+<td><p>Absolute path to this repository on the host machine</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="step-3b-generate-docker-secrets">
+<h3>Step 3b — Generate Docker Secrets<a class="headerlink" href="#step-3b-generate-docker-secrets" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./generate_secrets.sh
+chmod<span class="w"> </span><span class="m">644</span><span class="w"> </span>./secrets/*
+</pre></div>
+</div>
+<p>This creates two files under <code class="docutils literal notranslate"><span class="pre">secrets/</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">secrets/jwt_secret</span></code> — used to sign API JWT tokens</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">secrets/grafana_admin_password</span></code> — used for the Grafana admin account</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">secrets/</span></code> directory is listed in <code class="docutils literal notranslate"><span class="pre">.gitignore</span></code> and will never be committed.</p>
+</div>
+</section>
+<section id="step-3c-generate-tls-certificates">
+<h3>Step 3c — Generate TLS Certificates<a class="headerlink" href="#step-3c-generate-tls-certificates" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./generate-certs.sh
+</pre></div>
+</div>
+<p>This creates self-signed certificates under <code class="docutils literal notranslate"><span class="pre">certs/</span></code> for nginx TLS termination.
+For production, replace these with certificates from a trusted CA.</p>
+</section>
+<section id="step-3d-clone-external-dependencies">
+<h3>Step 3d — Clone External Dependencies<a class="headerlink" href="#step-3d-clone-external-dependencies" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>extra/
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/jenicek/asmk
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/naver/croco
+<span class="nb">cd</span><span class="w"> </span>..
+</pre></div>
+</div>
+</section>
+<section id="step-3e-launch-the-full-stack">
+<h3>Step 3e — Launch the Full Stack<a class="headerlink" href="#step-3e-launch-the-full-stack" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>compose<span class="w"> </span>--profile<span class="w"> </span>inference<span class="w"> </span>up<span class="w"> </span>--build<span class="w"> </span>-d
+</pre></div>
+</div>
+<p>This starts the following services:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 20.0%" />
+<col style="width: 55.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Service</p></th>
+<th class="head"><p>Port</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">scene3d-ui</span></code></p></td>
+<td><p>5173, 443</p></td>
+<td><p>React + Three.js frontend</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ray-serve</span></code></p></td>
+<td><p>8000, 8265</p></td>
+<td><p>FastAPI gateway + GPU inference worker</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mlflow</span></code></p></td>
+<td><p>5000</p></td>
+<td><p>Experiment tracking server</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">airflow-apiserver</span></code></p></td>
+<td><p>8080</p></td>
+<td><p>Airflow web UI and REST API</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">prometheus</span></code></p></td>
+<td><p>9090</p></td>
+<td><p>Metrics scraping</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">grafana</span></code></p></td>
+<td><p>3001</p></td>
+<td><p>Monitoring dashboards</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">postgres</span></code></p></td>
+<td><p>(internal)</p></td>
+<td><p>Airflow metadata database</p></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Verify all containers are healthy</span>
+docker<span class="w"> </span>compose<span class="w"> </span>ps
+</pre></div>
+</div>
+<p>Wait for the <code class="docutils literal notranslate"><span class="pre">ray-serve</span></code> healthcheck to pass — this can take up to 5 minutes as
+MASt3R model weights are loaded into GPU memory.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="native-python-setup-developer-mode">
+<h2>Native Python Setup (Developer Mode)<a class="headerlink" href="#native-python-setup-developer-mode" title="Link to this heading"></a></h2>
+<p>Use this path if you need to develop or debug outside Docker.</p>
+<section id="step-3a-build-asmk">
+<h3>Step 3a — Build ASMK<a class="headerlink" href="#step-3a-build-asmk" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>extra/
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/jenicek/asmk
+<span class="nb">cd</span><span class="w"> </span>asmk/cython/
+cythonize<span class="w"> </span>*.pyx
+<span class="nb">cd</span><span class="w"> </span>..
+python<span class="w"> </span>-m<span class="w"> </span>build<span class="w"> </span>--no-isolation
+pip<span class="w"> </span>install<span class="w"> </span>dist/*.whl
+<span class="nb">cd</span><span class="w"> </span>../../
+</pre></div>
+</div>
+</section>
+<section id="step-3b-build-croco-dust3r-kernels">
+<h3>Step 3b — Build CroCo / DUSt3R Kernels<a class="headerlink" href="#step-3b-build-croco-dust3r-kernels" title="Link to this heading"></a></h3>
+<p>DUSt3R relies on RoPE positional embeddings, which require compiled CUDA kernels:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>extra/
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/naver/croco.git
+<span class="nb">cd</span><span class="w"> </span>croco/models/curope/
+python<span class="w"> </span>-m<span class="w"> </span>build<span class="w"> </span>--no-isolation
+pip<span class="w"> </span>install<span class="w"> </span>dist/*.whl
+<span class="nb">cd</span><span class="w"> </span>../../
+</pre></div>
+</div>
+</section>
+<section id="step-3c-build-remaining-packages">
+<h3>Step 3c — Build Remaining Packages<a class="headerlink" href="#step-3c-build-remaining-packages" title="Link to this heading"></a></h3>
+<p>Build any additional packages in <code class="docutils literal notranslate"><span class="pre">bundle/oss/</span></code> as <code class="docutils literal notranslate"><span class="pre">.whl</span></code> files using
+<code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">build</span> <span class="pre">--no-isolation</span></code> in their respective directories, then move
+the compiled <code class="docutils literal notranslate"><span class="pre">.whl</span></code> files to <code class="docutils literal notranslate"><span class="pre">bundle/oss/</span></code>.</p>
+</section>
+<section id="step-3d-create-the-python-virtual-environment">
+<h3>Step 3d — Create the Python Virtual Environment<a class="headerlink" href="#step-3d-create-the-python-virtual-environment" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>uv
+uv<span class="w"> </span>venv
+<span class="nb">source</span><span class="w"> </span>.venv/bin/activate
+uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+<span class="nb">export</span><span class="w"> </span><span class="nv">LD_LIBRARY_PATH</span><span class="o">=</span>.venv/lib/python3.11/site-packages/torch/lib:<span class="nv">$LD_LIBRARY_PATH</span>
+</pre></div>
+</div>
+<p>The project requires <strong>Python 3.11</strong> exactly (<code class="docutils literal notranslate"><span class="pre">requires-python</span> <span class="pre">=</span> <span class="pre">&quot;==3.11.*&quot;</span></code>).</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="pre-trained-model-weights">
+<h2>Pre-trained Model Weights<a class="headerlink" href="#pre-trained-model-weights" title="Link to this heading"></a></h2>
+<p>Model weights are stored under <code class="docutils literal notranslate"><span class="pre">extra/pretrained_models/</span></code> via Git LFS. If you
+need to download them manually:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 40.0%" />
+<col style="width: 60.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Model</p></th>
+<th class="head"><p>Download URL</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>ALIKED <code class="docutils literal notranslate"><span class="pre">aliked-n16.pth</span></code></p></td>
+<td><p><a class="reference external" href="https://github.com/Shiaoming/ALIKED/raw/main/models/aliked-n16.pth">https://github.com/Shiaoming/ALIKED/raw/main/models/aliked-n16.pth</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>ISC <code class="docutils literal notranslate"><span class="pre">isc_ft_v107.pth.tar</span></code></p></td>
+<td><p><a class="reference external" href="https://github.com/lyakaap/ISC21-Descriptor-Track-1st/releases/download/v1.0.1/isc_ft_v107.pth.tar">https://github.com/lyakaap/ISC21-Descriptor-Track-1st/releases/download/v1.0.1/isc_ft_v107.pth.tar</a></p></td>
+</tr>
+<tr class="row-even"><td><p>MASt3R main weights</p></td>
+<td><p><a class="reference external" href="https://download.europe.naverlabs.com/ComputerVision/MASt3R/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric.pth">https://download.europe.naverlabs.com/ComputerVision/MASt3R/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric.pth</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>MASt3R retrieval weights</p></td>
+<td><p><a class="reference external" href="https://download.europe.naverlabs.com/ComputerVision/MASt3R/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric_retrieval_trainingfree.pth">https://download.europe.naverlabs.com/ComputerVision/MASt3R/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric_retrieval_trainingfree.pth</a></p></td>
+</tr>
+<tr class="row-even"><td><p>MASt3R codebook</p></td>
+<td><p><a class="reference external" href="https://download.europe.naverlabs.com/ComputerVision/MASt3R/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric_retrieval_codebook.pkl">https://download.europe.naverlabs.com/ComputerVision/MASt3R/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric_retrieval_codebook.pkl</a></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<hr class="docutils" />
+<section id="verifying-the-installation">
+<h2>Verifying the Installation<a class="headerlink" href="#verifying-the-installation" title="Link to this heading"></a></h2>
+<p>Once all services are running, verify the stack is healthy:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># API health check</span>
+curl<span class="w"> </span>http://localhost:8000/health
+
+<span class="c1"># GPU worker readiness</span>
+curl<span class="w"> </span>http://localhost:8000/ready
+
+<span class="c1"># Obtain a JWT token</span>
+curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/auth/token<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;username&quot;: &quot;admin&quot;, &quot;password&quot;: &quot;admin&quot;}&#39;</span>
+</pre></div>
+</div>
+<p>A successful <code class="docutils literal notranslate"><span class="pre">/health</span></code> response looks like:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ok&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2.0.0&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1714300000.0</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="troubleshooting-installation">
+<h2>Troubleshooting Installation<a class="headerlink" href="#troubleshooting-installation" title="Link to this heading"></a></h2>
+<dl class="simple">
+<dt><strong>``ray-serve`` container exits immediately</strong></dt><dd><p>Check that the NVIDIA Container Toolkit is installed and that
+<code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">run</span> <span class="pre">--gpus</span> <span class="pre">all</span> <span class="pre">nvidia/cuda:12.6.3-base-ubuntu22.04</span> <span class="pre">nvidia-smi</span></code> succeeds.</p>
+</dd>
+<dt><strong>Port conflicts</strong></dt><dd><p>If ports 8000, 5000, or 8080 are in use on your host, edit the <code class="docutils literal notranslate"><span class="pre">ports:</span></code>
+mappings in <code class="docutils literal notranslate"><span class="pre">docker-compose.yaml</span></code> before launching.</p>
+</dd>
+<dt><strong>Airflow DB migration fails</strong></dt><dd><p>Ensure <code class="docutils literal notranslate"><span class="pre">postgres</span></code> is healthy before running <code class="docutils literal notranslate"><span class="pre">airflow-init</span></code>:
+<code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">compose</span> <span class="pre">logs</span> <span class="pre">postgres</span></code>.</p>
+</dd>
+<dt><strong>Git LFS quota exceeded</strong></dt><dd><p>Download model weights manually using the URLs above and place them under
+<code class="docutils literal notranslate"><span class="pre">extra/pretrained_models/</span></code>.</p>
+</dd>
+</dl>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="MLOps 3D Scene Reconstruction" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="usage.html" class="btn btn-neutral float-right" title="Usage Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Yash Purswani.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
