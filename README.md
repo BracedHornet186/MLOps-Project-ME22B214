@@ -79,15 +79,28 @@ rm -r data/image-matching-challenge-2025
 
 1. **Configure `.env` file**: Run the setup script and enter the details.
    ```bash
-   bash setup_env.sh
+   ./setup_env.sh
    ```
 
 2. **Generate Docker Secrets**: We use Docker Secrets for managing sensitive data. Run the setup script:
    ```bash
-   bash generate_secrets.sh
+   ./generate_secrets.sh
+   chmod 644 ./secrets/*
    ```
 
-3. **Start the Stack**:
+3. **Generate Certificates**
+    ```bash
+    ./generate-certs.sh
+    ```
+
+4. **Clone ASMK and CroCo repositories**
+    ```bash
+    cd extra/
+    git clone https://github.com/jenicek/asmk
+    git clone https://github.com/naver/croco
+    ```
+
+4. **Start the Stack**:
    ```bash
    docker compose --profile inference up --build -d
    ```

@@ -76,16 +76,22 @@ jobs:
       - name: Audit API dependencies
         run: |
           echo "=== Auditing api/pyproject.toml ==="
-          pip-audit --requirement <(pip-compile --quiet --output-file=- api/pyproject.toml 2>/dev/null) \
-            --desc --output=json --output-file=pip-audit-report.json \
+          pip-audit \
+            --requirement <(pip-compile --quiet --output-file=- api/pyproject.toml 2>/dev/null) \
+            --desc \
+            -f json \
+            -o pip-api-audit-report.json \
             || true
-          cat pip-audit-report.json
+          cat pip-api-audit-report.json
 
       - name: Audit pipeline dependencies
         run: |
           echo "=== Auditing root pyproject.toml ==="
-          pip-audit --requirement <(pip-compile --quiet --output-file=- pyproject.toml 2>/dev/null) \
+          pip-audit \
+            --requirement <(pip-compile --quiet --output-file=- pyproject.toml 2>/dev/null) \
             --desc \
+            -f json \
+            -o pip-audit-report.json \
             || true
 
       - name: Upload audit report
