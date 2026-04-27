@@ -5,12 +5,11 @@
 ### 1. Docker Secrets Management (no plaintext passwords)
 
 **Files created:**
-- [generate_secrets.sh](file:///home/abhiyaan-cu/Yash/MLOps-Project-ME22B214/scripts/generate_secrets.sh) — generates `secrets/jwt_secret`, `secrets/postgres_password`, `secrets/grafana_admin_password`
+- [generate_secrets.sh](file:///home/abhiyaan-cu/Yash/MLOps-Project-ME22B214/scripts/generate_secrets.sh) — generates `secrets/jwt_secret`, `secrets/grafana_admin_password`
 
 **Files modified:**
 - [docker-compose.yaml](file:///home/abhiyaan-cu/Yash/MLOps-Project-ME22B214/docker-compose.yaml):
-  - Added top-level `secrets:` block with 3 file-based secrets
-  - Postgres: `POSTGRES_PASSWORD` → `POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password`
+  - Added top-level `secrets:` block with 2 file-based secrets
   - Grafana: `GF_SECURITY_ADMIN_PASSWORD` → `GF_SECURITY_ADMIN_PASSWORD__FILE`
   - Airflow: `SQL_ALCHEMY_CONN` → `SQL_ALCHEMY_CONN_CMD` (reads secret at runtime)
   - Ray-serve: mounts `jwt_secret`
@@ -62,16 +61,7 @@
 
 ---
 
-### 5. AES-256 Encrypted Volumes
-
-**Files created:**
-- [setup_encrypted_volumes.sh](file:///home/abhiyaan-cu/Yash/MLOps-Project-ME22B214/scripts/setup_encrypted_volumes.sh):
-  - LUKS2 encrypted loop devices (AES-256-XTS) when run as root
-  - Automatic bind-mount fallback for non-root development
-
----
-
-### 6. CI — Trivy Image Scanning + pip-audit
+### 5. CI — Trivy Image Scanning + pip-audit
 
 **Files created:**
 - [security.yml](file:///home/abhiyaan-cu/Yash/MLOps-Project-ME22B214/.github/workflows/security.yml):
@@ -82,7 +72,7 @@
 
 ---
 
-### 7. Dockerfile Updates
+### 6. Dockerfile Updates
 
 **Files modified:**
 - [Dockerfile](file:///home/abhiyaan-cu/Yash/MLOps-Project-ME22B214/api/Dockerfile):
@@ -98,9 +88,8 @@
 docker compose config --quiet  # exits 0, no errors
 ```
 
-### All 3 secrets mounted correctly ✓
+### All 2 secrets mounted correctly ✓
 - `jwt_secret` → `ray-serve` at `/run/secrets/jwt_secret`
-- `postgres_password` → `postgres` + all Airflow services
 - `grafana_admin_password` → `grafana`
 
 ### JWT Auth Flow

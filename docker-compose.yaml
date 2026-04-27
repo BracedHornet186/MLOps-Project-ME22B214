@@ -153,7 +153,7 @@ services:
       - ./data:/app/data:ro
       - ./conf:/app/conf:ro
       - ./extra:/app/extra:ro
-      - reconstruction-results:/app/results
+      - ./results:/app/results
       - mlflow-artifacts:/opt/mlflow/artifacts
     deploy:
       resources:
@@ -408,7 +408,6 @@ volumes:
   postgres-db-volume:
   mlflow-artifacts:
   mlflow-db:
-  reconstruction-results:
   prometheus-data:
   grafana-data:
 

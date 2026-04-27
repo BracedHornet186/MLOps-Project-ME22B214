@@ -10,7 +10,7 @@ Used by:
 Baselines are the EDA statistics saved to data/baselines/eda_baselines.json.
 
 All alerts are:
-  1. Written to data/baselines/drift_report.json
+  1. Written to data/monitoring/drift_report.json
   2. Exposed as Prometheus gauges (when called from the API)
 """
 
@@ -114,7 +114,6 @@ class DriftMonitor:
         reg_rate_drop_threshold: float = DEFAULT_REG_RATE_DROP_THRESHOLD,
         maa_threshold: float = DEFAULT_MAA_THRESHOLD,
     ):
-        self.features_dir = features_dir
         self.ks_alpha = ks_alpha
         self.baselines = self._load_baselines(baselines_path)
         self.mlflow_uri = mlflow_uri or os.environ.get(

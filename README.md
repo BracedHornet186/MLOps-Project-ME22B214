@@ -65,18 +65,26 @@ We have already included the necessary pre-trained models as Git LFS objects in 
 
 ## Installation & Setup
 
+### Download data
+```bash
+bash kaggle competitions download -c image-matching-challenge-2025
+# Unzip the downloaded file into data/
+unzip image-matching-challenge-2025.zip -d data/
+# PUt the contents directly in data/ 
+mv data/image-matching-challenge-2025/* data/
+rm -r data/image-matching-challenge-2025
+```
+
 ### Docker Mode (Recommended)
 
-1. **Configure `.env` file**: Ensure you have `.env` set up in the project root.
+1. **Configure `.env` file**: Run the setup script and enter the details.
    ```bash
-   export HOST_PROJECT_ROOT=$(pwd)
-   export AIRFLOW_UID=$(id -u)
-   FERNET_KEY=LS47uw30w1OWKkHCGlSjEKkE3FQ2_ynycWQJ-Sd-y30=
+   bash setup_env.sh
    ```
 
 2. **Generate Docker Secrets**: We use Docker Secrets for managing sensitive data. Run the setup script:
    ```bash
-   bash scripts/generate_secrets.sh
+   bash generate_secrets.sh
    ```
 
 3. **Start the Stack**:

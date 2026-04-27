@@ -1,7 +1,7 @@
 import time, requests
 
 BASE = "http://localhost:8000"
-zip_path = "/absolute/path/to/images.zip"
+zip_path = "/home/abhiyaan-cu/Yash/MLOps-Project-ME22B214/data/test/ETs.zip"
 
 with open(zip_path, "rb") as f:
     r = requests.post(f"{BASE}/upload", files={"file": ("images.zip", f, "application/zip")})

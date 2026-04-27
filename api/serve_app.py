@@ -12,7 +12,7 @@ Two deployments:
                      Loads MASt3R pipeline once at startup.
                      Exposes reconstruct() + ping() methods via Ray RPC.
 
-  APIGateway       — num_replicas=2, CPU-only
+  APIGateway       — num_replicas=1, CPU-only
                      Wraps FastAPI via @serve.ingress.
                      Handles uploads, job management, Prometheus metrics,
                      drift endpoints.  All inference delegated to GPU worker
@@ -589,7 +589,7 @@ class APIGateway:
         )
         report = monitor.check(
             live_stats=live_stats,
-            report_path=DATA_DIR / "monitoring" / "drift_report.json",
+            report_path=RESULTS_DIR / "drift_report.json",
             check_performance=True,
         )
         update_prometheus_drift_metrics(report)
@@ -938,7 +938,7 @@ class APIGateway:
 
                 # Save temporal drift and metrics history
                 try:
-                    drift_history_path = RESULTS_DIR / "monitoring" / "drift_history.jsonl"
+                    drift_history_path = RESULTS_DIR / "drift_history.jsonl"
                     drift_history_path.parent.mkdir(parents=True, exist_ok=True)
                     
                     drift_entry = {

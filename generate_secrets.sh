@@ -8,7 +8,7 @@
 
 set -euo pipefail
 
-SECRETS_DIR="$(cd "$(dirname "$0")/.." && pwd)/secrets"
+SECRETS_DIR="$(pwd)/secrets"
 
 mkdir -p "$SECRETS_DIR"
 
@@ -30,7 +30,6 @@ echo "Generating Docker Secrets in $SECRETS_DIR …"
 echo ""
 
 generate_if_missing "jwt_secret" 32
-generate_if_missing "postgres_password" 16
 generate_if_missing "grafana_admin_password" 16
 
 echo ""
