@@ -124,8 +124,6 @@ Key metrics exposed:
      - Total 4xx/5xx responses labelled by endpoint
    * - ``inference_latency_seconds``
      - Histogram of end-to-end reconstruction wall-clock time
-   * - ``reconstruction_maa``
-     - mAA score of the most recent completed job
    * - ``registered_images_ratio``
      - Fraction of images placed in the last reconstruction
    * - ``active_jobs_total``
@@ -181,8 +179,6 @@ Upload a ZIP archive and start a reconstruction job. **Auth required.**
    curl -X POST http://localhost:8000/upload \
      -H "Authorization: Bearer $TOKEN" \
      -F "file=@photos.zip" \
-     -F "dataset_name=warehouse" \
-     -F "scene_name=aisle_3"
 
 ----
 

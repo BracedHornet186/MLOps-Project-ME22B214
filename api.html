@@ -177,7 +177,6 @@
 <li class="toctree-l2"><a class="reference internal" href="datasources.html#dataset-summary">Dataset Summary</a></li>
 <li class="toctree-l2"><a class="reference internal" href="datasources.html#imc-2025-training-dataset">IMC 2025 Training Dataset</a></li>
 <li class="toctree-l2"><a class="reference internal" href="datasources.html#imc-2025-test-dataset">IMC 2025 Test Dataset</a></li>
-<li class="toctree-l2"><a class="reference internal" href="datasources.html#custom-warehouse-dataset">Custom Warehouse Dataset</a></li>
 <li class="toctree-l2"><a class="reference internal" href="datasources.html#data-versioning">Data Versioning</a></li>
 <li class="toctree-l2"><a class="reference internal" href="datasources.html#preprocessing-assumptions">Preprocessing Assumptions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="datasources.html#known-biases-and-limitations">Known Biases and Limitations</a></li>
@@ -336,19 +335,16 @@ Scraped automatically by Prometheus every 10 seconds.</p>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">inference_latency_seconds</span></code></p></td>
 <td><p>Histogram of end-to-end reconstruction wall-clock time</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">reconstruction_maa</span></code></p></td>
-<td><p>mAA score of the most recent completed job</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">registered_images_ratio</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">registered_images_ratio</span></code></p></td>
 <td><p>Fraction of images placed in the last reconstruction</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">active_jobs_total</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">active_jobs_total</span></code></p></td>
 <td><p>Number of currently running reconstruction jobs</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">model_server_ready</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">model_server_ready</span></code></p></td>
 <td><p>1 if the GPU worker is ready, 0 otherwise</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">data_valid_images_total</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">data_valid_images_total</span></code></p></td>
 <td><p>Number of valid images in the current dataset</p></td>
 </tr>
 </tbody>
@@ -399,8 +395,6 @@ Scraped automatically by Prometheus every 10 seconds.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/upload<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-F<span class="w"> </span><span class="s2">&quot;file=@photos.zip&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-F<span class="w"> </span><span class="s2">&quot;dataset_name=warehouse&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-F<span class="w"> </span><span class="s2">&quot;scene_name=aisle_3&quot;</span>
 </pre></div>
 </div>
 </section>
