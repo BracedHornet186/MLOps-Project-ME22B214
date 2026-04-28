@@ -201,16 +201,14 @@ The API Gateway exposes the following key endpoints. *Note: Most endpoints are p
 | `/ready` | GET | No | Readiness probe for deployment orchestration. |
 | `/metrics` | GET | No | Prometheus metrics scraping endpoint. |
 
-## Testing Drift Detection
-To test the data drift detection pipeline directly, run the `detect_drift.py` script:
+## Testing with pytest
+The project includes a robust unit testing suite using `pytest`. The tests cover authentication, point cloud decimation utilities, drift monitoring logic, and FastAPI endpoints.
 
+You can run the tests and generate an HTML report using the following command:
 ```bash
-python scripts/detect_drift.py
+pytest tests/ --html=tests/pytest_report.html --self-contained-html
 ```
+The generated report can be found in `./tests/pytest_report.html`.
 
-You can point the script to a custom dataset using the `DATA_DIR` environment variable:
-```bash
-DATA_DIR=/path/to/custom/dataset python scripts/detect_drift.py
-```
 ## Declaration
 I, Yash Purswani (ME22B214), hereby declare that the work reported in this project is the result of my own investigation and is asubmission for DA5402: Machine Learning Operations term project at IIT Madras.

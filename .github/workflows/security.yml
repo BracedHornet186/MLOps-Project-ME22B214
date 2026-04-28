@@ -32,6 +32,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Clone ASMK and CroCo
+        run: |
+          mkdir -p extra
+          git clone https://github.com/jenicek/asmk extra/asmk
+          git clone https://github.com/naver/croco extra/croco 
+
       - name: Build ${{ matrix.target.service }} image
         run: |
           docker build -t mlops-${{ matrix.target.service }}:scan \

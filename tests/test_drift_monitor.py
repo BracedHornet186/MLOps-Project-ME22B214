@@ -5,38 +5,38 @@ from scripts.drift_monitor import DriftMonitor
 
 def test_drift_monitor_no_drift(tmp_path):
     baselines = {
-        "n_images": {"mean": 100, "std": 10},
-        "registration_rate": {"mean": 0.8, "std": 0.1, "p50": 0.82, "p25": 0.75},
-        "inference_latency_seconds": {"mean": 60, "std": 10}
+        "brightness": {"mean": 128.0, "std": 10.0}
     }
     baseline_path = tmp_path / "baselines.json"
     baseline_path.write_text(json.dumps(baselines))
     
     monitor = DriftMonitor(baseline_path)
     
-    np.random.seed(42)
-    reference = np.random.normal(0, 1, 100)
-    current = np.random.normal(0, 1, 100)
+    live_stats = {"brightness_mean": 129.0}
+    alerts = monitor._check_brightness(live_stats)
     
-    has_drift, p_val = monitor._check_drift(reference, current, threshold=0.05)
-    assert has_drift is False
-    assert p_val > 0.05
+    assert len(alerts) == 0
 
-def test_drift_monitor_performance_drift(tmp_path):
+def test_drift_monitor_brightness_drift(tmp_path):
     baselines = {
-        "n_images": {"mean": 100, "std": 10},
-        "registration_rate": {"mean": 0.8, "std": 0.1, "p50": 0.80, "p25": 0.75},
-        "inference_latency_seconds": {"mean": 60, "std": 10}
+        "brightness": {"mean": 128.0, "std": 10.0}
     }
     baseline_path = tmp_path / "baselines.json"
     baseline_path.write_text(json.dumps(baselines))
     
     monitor = DriftMonitor(baseline_path)
     
-    alert = monitor._check_performance_drift(0.4)
-    assert alert is not None
-    assert alert["metric"] == "registration_rate"
-    assert alert["severity"] == "critical"
+    # 170 is 4.2 std deviations away, which triggers warning (>3.0)
+    live_stats = {"brightness_mean": 170.0}
+    alerts = monitor._check_brightness(live_stats)
     
-    alert2 = monitor._check_performance_drift(0.78)
-    assert alert2 is None
+    assert len(alerts) == 1
+    assert alerts[0].feature == "brightness_mean"
+    assert alerts[0].severity == "warning"
+    
+    # 200 is 7.2 std deviations away, which triggers critical (>5.0)
+    live_stats_crit = {"brightness_mean": 200.0}
+    alerts_crit = monitor._check_brightness(live_stats_crit)
+    
+    assert len(alerts_crit) == 1
+    assert alerts_crit[0].severity == "critical"
