@@ -15,46 +15,44 @@ on:
 jobs:
   # ── Trivy: Container Image Scanning ──────────────────────────────────────
   trivy-scan:
-    name: Trivy Image Scan
+    name: Trivy Image Scan (${{ matrix.target.service }})
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         target:
           - service: ray-serve
             dockerfile: api/Dockerfile
+            context: .
           - service: scene3d-ui
             dockerfile: frontend/Dockerfile
+            context: ./frontend
+            
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Build ${{ matrix.target.service }} image
         run: |
           docker build -t mlops-${{ matrix.target.service }}:scan \
-            -f ${{ matrix.target.dockerfile }} .
+            -f ${{ matrix.target.dockerfile }} \
+            ${{ matrix.target.context }}
 
-      - name: Generate SARIF report
-        run: |
-          trivy image \
-            --format sarif \
-            --output trivy-${{ matrix.target.service }}.sarif \
-            mlops-${{ matrix.target.service }}:scan \
-            --severity CRITICAL,HIGH \
-            --ignore-unfixed
-
-      - name: Upload Trivy SARIF report
-        if: always()
+      - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: mlops-${{ matrix.target.service }}:scan
-          format: sarif
-          output: trivy-${{ matrix.target.service }}.sarif
-          severity: CRITICAL,HIGH
+          image-ref: 'mlops-${{ matrix.target.service }}:scan'
+          format: 'sarif'
+          output: 'trivy-${{ matrix.target.service }}.sarif'
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true
 
       - name: Upload SARIF to GitHub Security
         if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: trivy-${{ matrix.target.service }}.sarif
+          sarif_file: 'trivy-${{ matrix.target.service }}.sarif'
+          category: ${{ matrix.target.service }}
 
   # ── pip-audit: Python Dependency Auditing ────────────────────────────────
   pip-audit:
