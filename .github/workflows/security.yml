@@ -12,6 +12,11 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
 jobs:
   # ── Trivy: Container Image Scanning ──────────────────────────────────────
   trivy-scan:
