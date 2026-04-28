@@ -7,36 +7,45 @@
 # ─────────────────────────────────────────────────────────────────────────────
 
 global:
-  resolve_timeout: 5m
+  smtp_smarthost: 'sandbox.smtp.mailtrap.io:2525'
+  smtp_from: 'mlops-me22b214@alerts.com'
+  smtp_auth_username: 'api'
+  smtp_auth_password: '<API-KEY>'
+  smtp_require_tls: true
 
 route:
   group_by: ['alertname']
   group_wait: 30s
   group_interval: 5m
   repeat_interval: 4h
-  receiver: 'default'
+  receiver: 'email_only'
   routes:
-    # Route drift/performance alerts to the Airflow webhook trigger
+    # Route drift/performance alerts to the Airflow webhook trigger AND send an email
     - match_re:
         alertname: 'FeatureDriftDetected|InputBrightnessDrift|InputContrastDrift|PerformanceDecay'
-      receiver: 'airflow_retrain_webhook'
+      receiver: 'airflow_webhook_and_email'
       group_wait: 1m
       repeat_interval: 6h
 
 receivers:
-  - name: 'default'
-    # Default receiver — logs only (no external notification)
+  # 1. Receiver for standard alerts (sends email only)
+  - name: 'email_only'
+    email_configs:
+      - to: 'admin@example.com'
+        send_resolved: true
 
-  - name: 'airflow_retrain_webhook'
+  # 2. Receiver for drift alerts (triggers Airflow AND sends an email)
+  - name: 'airflow_webhook_and_email'
     webhook_configs:
       - url: 'http://airflow-apiserver:8080/api/v2/dags/experiment_pipeline_dag/dagRuns'
         send_resolved: false
         http_config:
-          # Uses Airflow's internal API — no auth needed within Docker network.
-          # For external access, configure JWT auth here.
           basic_auth:
             username: 'airflow'
             password: 'airflow'
+    email_configs:
+      - to: 'admin@example.com'
+        send_resolved: true
 
 inhibit_rules:
   # If ModelServerDown is firing, suppress drift alerts (they're unreliable)

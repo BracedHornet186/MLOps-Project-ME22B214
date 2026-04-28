@@ -1,5 +1,7 @@
 {
-  "annotations": { "list": [] },
+  "annotations": {
+    "list": []
+  },
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
@@ -7,223 +9,443 @@
   "links": [],
   "panels": [
     {
-      "title": "Reconstruction mAA",
-      "type": "gauge",
-      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 0 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "title": "Active Jobs",
+      "type": "stat",
+      "gridPos": {
+        "h": 6,
+        "w": 4,
+        "x": 0,
+        "y": 0
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "active_jobs_total",
+          "legendFormat": "Active"
+        }
+      ]
+    },
+    {
+      "title": "Model Server Ready",
+      "type": "stat",
+      "gridPos": {
+        "h": 6,
+        "w": 4,
+        "x": 4,
+        "y": 0
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "red", "value": null },
-              { "color": "yellow", "value": 0.35 },
-              { "color": "green", "value": 0.45 }
-            ]
-          },
-          "min": 0, "max": 1
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "text": "NOT READY",
+                  "color": "red"
+                },
+                "1": {
+                  "text": "READY",
+                  "color": "green"
+                }
+              },
+              "type": "value"
+            }
+          ]
         }
       },
       "targets": [
-        { "expr": "reconstruction_maa", "legendFormat": "mAA" }
+        {
+          "expr": "model_server_ready",
+          "legendFormat": "Ready"
+        }
+      ]
+    },
+    {
+      "title": "Drift Status",
+      "type": "stat",
+      "gridPos": {
+        "h": 6,
+        "w": 4,
+        "x": 8,
+        "y": 0
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "text": "OK",
+                  "color": "green"
+                },
+                "1": {
+                  "text": "WARNING",
+                  "color": "yellow"
+                },
+                "2": {
+                  "text": "CRITICAL",
+                  "color": "red"
+                }
+              },
+              "type": "value"
+            }
+          ]
+        }
+      },
+      "targets": [
+        {
+          "expr": "feature_drift_status",
+          "legendFormat": "Drift"
+        }
+      ]
+    },
+    {
+      "title": "Performance Proxy Status",
+      "type": "stat",
+      "gridPos": {
+        "h": 6,
+        "w": 4,
+        "x": 12,
+        "y": 0
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "text": "OK",
+                  "color": "green"
+                },
+                "1": {
+                  "text": "WARNING",
+                  "color": "yellow"
+                },
+                "2": {
+                  "text": "CRITICAL",
+                  "color": "red"
+                }
+              },
+              "type": "value"
+            }
+          ]
+        }
+      },
+      "targets": [
+        {
+          "expr": "performance_proxy_status",
+          "legendFormat": "Perf Proxy"
+        }
       ]
     },
     {
       "title": "Registration Rate",
       "type": "gauge",
-      "gridPos": { "h": 8, "w": 6, "x": 6, "y": 0 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 16,
+        "y": 0
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "percentunit",
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "red", "value": null },
-              { "color": "yellow", "value": 0.7 },
-              { "color": "green", "value": 0.9 }
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.7
+              },
+              {
+                "color": "green",
+                "value": 0.9
+              }
             ]
           },
-          "min": 0, "max": 1
+          "min": 0,
+          "max": 1
         }
       },
       "targets": [
-        { "expr": "registered_images_ratio", "legendFormat": "Reg Rate" }
-      ]
-    },
-    {
-      "title": "Active Jobs",
-      "type": "stat",
-      "gridPos": { "h": 8, "w": 4, "x": 12, "y": 0 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "targets": [
-        { "expr": "active_jobs_total", "legendFormat": "Active" }
-      ]
-    },
-    {
-      "title": "Model Server Ready",
-      "type": "stat",
-      "gridPos": { "h": 8, "w": 4, "x": 16, "y": 0 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [
-            { "options": { "0": { "text": "NOT READY", "color": "red" }, "1": { "text": "READY", "color": "green" } }, "type": "value" }
-          ]
+        {
+          "expr": "registered_images_ratio",
+          "legendFormat": "Reg Rate"
         }
-      },
-      "targets": [
-        { "expr": "model_server_ready", "legendFormat": "Ready" }
-      ]
-    },
-    {
-      "title": "Drift Status",
-      "type": "stat",
-      "gridPos": { "h": 8, "w": 4, "x": 20, "y": 0 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [
-            { "options": { "0": { "text": "OK", "color": "green" }, "1": { "text": "WARNING", "color": "yellow" }, "2": { "text": "CRITICAL", "color": "red" } }, "type": "value" }
-          ]
-        }
-      },
-      "targets": [
-        { "expr": "feature_drift_status", "legendFormat": "Drift" }
-      ]
-    },
-    {
-      "title": "Inference Latency Distribution",
-      "type": "histogram",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "targets": [
-        { "expr": "rate(inference_latency_seconds_bucket[5m])", "legendFormat": "{{le}}", "format": "heatmap" }
       ]
     },
     {
       "title": "API Requests Rate",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 6
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "targets": [
-        { "expr": "rate(api_requests_total[5m])", "legendFormat": "{{endpoint}} {{status}}" }
+        {
+          "expr": "rate(api_requests_total[5m])",
+          "legendFormat": "{{endpoint}} {{status}}"
+        }
       ]
     },
     {
       "title": "API Errors Rate",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "red" } } },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 6
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "red"
+          }
+        }
+      },
       "targets": [
-        { "expr": "rate(api_errors_total[5m])", "legendFormat": "{{endpoint}}" }
+        {
+          "expr": "rate(api_errors_total[5m])",
+          "legendFormat": "{{endpoint}}"
+        }
       ]
     },
     {
-      "title": "Drift Alert Count",
-      "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "title": "Inference Latency Distribution",
+      "type": "histogram",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 6
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "targets": [
-        { "expr": "feature_drift_alert_count", "legendFormat": "Alerts" }
+        {
+          "expr": "rate(inference_latency_seconds_bucket[5m])",
+          "legendFormat": "{{le}}",
+          "format": "heatmap"
+        }
       ]
     },
     {
       "title": "Brightness Drift Z-Score",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 24 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 14
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 3 },
-              { "color": "red", "value": 5 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 3
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
             ]
           },
-          "custom": { "thresholdsStyle": { "mode": "line" } }
+          "custom": {
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          }
         }
       },
       "targets": [
-        { "expr": "brightness_drift_z", "legendFormat": "Brightness Z" }
+        {
+          "expr": "brightness_drift_z",
+          "legendFormat": "Brightness Z"
+        }
       ]
     },
     {
       "title": "Contrast Drift Z-Score",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 24 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 14
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 3 },
-              { "color": "red", "value": 5 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 3
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
             ]
           },
-          "custom": { "thresholdsStyle": { "mode": "line" } }
+          "custom": {
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          }
         }
       },
       "targets": [
-        { "expr": "contrast_drift_z", "legendFormat": "Contrast Z" }
+        {
+          "expr": "contrast_drift_z",
+          "legendFormat": "Contrast Z"
+        }
       ]
     },
     {
-      "title": "Performance Proxy Status",
-      "type": "stat",
-      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 24 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [
-            { "options": { "0": { "text": "OK", "color": "green" }, "1": { "text": "WARNING", "color": "yellow" }, "2": { "text": "CRITICAL", "color": "red" } }, "type": "value" }
-          ]
-        }
+      "title": "Drift Alert Count",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 14
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
       },
       "targets": [
-        { "expr": "performance_proxy_status", "legendFormat": "Perf Proxy" }
+        {
+          "expr": "feature_drift_alert_count",
+          "legendFormat": "Alerts"
+        }
       ]
     },
     {
       "title": "Node Memory Usage",
       "type": "gauge",
-      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 32 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 22
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
-          "min": 0, "max": 100
+          "min": 0,
+          "max": 100
         }
       },
       "targets": [
-        { "expr": "100 * (1 - ((node_memory_MemFree_bytes + node_memory_Cached_bytes + node_memory_Buffers_bytes) / node_memory_MemTotal_bytes))", "legendFormat": "Memory %" }
+        {
+          "expr": "100 * (1 - ((node_memory_MemFree_bytes + node_memory_Cached_bytes + node_memory_Buffers_bytes) / node_memory_MemTotal_bytes))",
+          "legendFormat": "Memory %"
+        }
       ]
     },
     {
       "title": "Node Disk Usage",
       "type": "gauge",
-      "gridPos": { "h": 8, "w": 6, "x": 6, "y": 32 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 22
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
-          "min": 0, "max": 100
+          "min": 0,
+          "max": 100
         }
       },
       "targets": [
-        { "expr": "100 - ((node_filesystem_avail_bytes{mountpoint=\"/\"} * 100) / node_filesystem_size_bytes{mountpoint=\"/\"})", "legendFormat": "Disk %" }
+        {
+          "expr": "100 - ((node_filesystem_avail_bytes{mountpoint=\"/\"} * 100) / node_filesystem_size_bytes{mountpoint=\"/\"})",
+          "legendFormat": "Disk %"
+        }
       ]
     }
   ],
   "schemaVersion": 39,
-  "tags": ["scene_reconstruction", "mlops", "drift"],
-  "templating": { "list": [] },
-  "time": { "from": "now-6h", "to": "now" },
+  "tags": [
+    "scene_reconstruction",
+    "mlops",
+    "drift"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
   "title": "Scene Reconstruction MLOps",
   "uid": "scene_reconstruction_mlops",
   "version": 2

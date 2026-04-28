@@ -15,17 +15,7 @@ groups:
           summary: "API error rate > 5%"
           description: "Error rate is {{ $value | humanizePercentage }} over the last 5 minutes."
 
-      # Alert 2: Low reconstruction mAA (below 0.45)
-      - alert: LowReconstructionMAA
-        expr: reconstruction_maa < 0.45
-        for: 10m
-        labels:
-          severity: warning
-        annotations:
-          summary: "Reconstruction mAA below threshold"
-          description: "mAA is {{ $value }} (threshold: 0.45). Consider promoting a better model."
-
-      # Alert 3: High inference latency (p99 > 600s)
+      # Alert 2: High inference latency (p99 > 600s)
       - alert: HighInferenceLatency
         expr: histogram_quantile(0.99, rate(inference_latency_seconds_bucket[1h])) > 600
         for: 15m
@@ -35,7 +25,7 @@ groups:
           summary: "Inference p99 latency > 600s"
           description: "P99 latency is {{ $value }}s. Auto-scale or throttle request queue."
 
-      # Alert 4: Feature drift detected
+      # Alert 3: Feature drift detected
       - alert: FeatureDriftDetected
         expr: feature_drift_status >= 2
         for: 5m
@@ -45,7 +35,7 @@ groups:
           summary: "Critical feature drift detected"
           description: "Drift status is critical. Check drift_report.json and review input data."
 
-      # Alert 5: Model server down
+      # Alert 4: Model server down
       - alert: ModelServerDown
         expr: model_server_ready == 0
         for: 5m
@@ -55,7 +45,7 @@ groups:
           summary: "Model server is not ready"
           description: "Model server has been unreachable for 5 minutes."
 
-      # Alert 6: Input quality drift (brightness)
+      # Alert 5: Input quality drift (brightness)
       - alert: InputBrightnessDrift
         expr: brightness_drift_z > 3
         for: 5m
@@ -65,7 +55,7 @@ groups:
           summary: "Image brightness drift detected"
           description: "Brightness z-score is {{ $value }}. Input images may be significantly brighter/darker than training data."
 
-      # Alert 7: Input quality drift (contrast)
+      # Alert 6: Input quality drift (contrast)
       - alert: InputContrastDrift
         expr: contrast_drift_z > 3
         for: 5m
@@ -75,7 +65,7 @@ groups:
           summary: "Image contrast drift detected"
           description: "Contrast z-score is {{ $value }}. Input images may have very different contrast than training data."
 
-      # Alert 8: Performance proxy decay
+      # Alert 7: Performance proxy decay
       - alert: PerformanceDecay
         expr: performance_proxy_status >= 1
         for: 10m

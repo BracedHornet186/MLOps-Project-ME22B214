@@ -1,8 +1,8 @@
 scenes:
   - {dataset: amy_gardens, scene: peach}
   - {dataset: ETs, scene: another_ET}
-  - {dataset: ETs, sceme: ET}
-  - {dataset: ETS, scene: outliers}
+  - {dataset: ETs, scene: ET}
+  - {dataset: ETs, scene: outliers}
   - {dataset: fbk_vineyard, scene: vineyard_split_1}
   - {dataset: fbk_vineyard, scene: vineyard_split_2}
   - {dataset: fbk_vineyard, scene: vineyard_split_3}

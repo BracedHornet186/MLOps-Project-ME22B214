@@ -501,7 +501,6 @@ class APIGateway:
         self.api_requests_total       = Counter("api_requests_total",       "Total HTTP requests",              ["method", "endpoint", "status"])
         self.api_errors_total         = Counter("api_errors_total",         "Total 4xx/5xx responses",          ["endpoint"])
         self.inference_latency_seconds= Histogram("inference_latency_seconds","End-to-end inference wall-clock", buckets=[10,30,60,120,180,300,600,900])
-        self.reconstruction_maa       = Gauge("reconstruction_maa",         "mAA score of most recent job")
         self.registration_rate_gauge  = Gauge("registered_images_ratio",    "Fraction of images placed")
         self.active_jobs_gauge        = Gauge("active_jobs_total",          "Running jobs")
         self.model_ready_gauge        = Gauge("model_server_ready",         "1 if GPU worker ready")

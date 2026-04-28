@@ -9,6 +9,8 @@ Given a set of multi-view images of a scene, the application recovers the 3D str
 * Cultural Heritage Digitization
 * Surveying and Topography
 
+The offical documentation and guide for this project can be found [here](https://bracedhornet186.github.io/MLOps-Project-ME22B214).
+
 ## Architecture
 
 ```mermaid
@@ -210,3 +212,5 @@ You can point the script to a custom dataset using the `DATA_DIR` environment va
 ```bash
 DATA_DIR=/path/to/custom/dataset python scripts/detect_drift.py
 ```
+## Declaration
+I, Yash Purswani (ME22B214), hereby declare that the work reported in this project is the result of my own investigation and is asubmission for DA5402: Machine Learning Operations term project at IIT Madras.
